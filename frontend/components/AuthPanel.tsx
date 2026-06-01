@@ -90,22 +90,18 @@ export function AuthPanel({ onAuthed }: { onAuthed: (user: AuthUser) => void }) 
         />
       ))}
 
-      <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="w-full max-w-[360px]"
-        >
-          {/* Logo */}
+      <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-8 w-full max-w-[900px] mx-auto">
+        <div className="grid w-full grid-cols-1 items-center gap-10 md:grid-cols-2 md:gap-16">
+          
+          {/* Left Column: Logo + AI info */}
           <motion.div
-            className="mb-6 flex flex-col items-center"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15, duration: 0.6 }}
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="flex flex-col items-center text-center md:items-start md:text-left"
           >
             <motion.div
-              className="relative mb-2"
+              className="relative mb-4"
               whileHover={{ scale: 1.04, rotate: -1 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
@@ -113,164 +109,174 @@ export function AuthPanel({ onAuthed }: { onAuthed: (user: AuthUser) => void }) 
               <img
                 src="/landing_hero.png"
                 alt="Artha Logo"
-                className="relative h-40 w-40 object-contain"
+                className="relative h-44 w-44 object-contain md:h-52 md:w-52"
               />
             </motion.div>
-           
-            <motion.div
-              className="mt-2 h-px w-12 bg-gradient-to-r from-transparent via-[#d4a84c] to-transparent"
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
-            />
+            
+            <h1 className="text-2xl font-bold tracking-tight text-black md:text-3xl font-sans">
+              Artha Analytics
+            </h1>
+            <p className="mt-3 text-sm font-semibold tracking-widest text-[#d4a84c] uppercase font-mono">
+              Stock Market AI Intelligence
+            </p>
+            <p className="mt-3 max-w-[340px] text-xs font-mono leading-relaxed text-neutral-500">
+              Supercharge your investments using advanced multi-agent reasoning to fetch, process, and analyze market data in real-time.
+            </p>
           </motion.div>
 
-          {/* Card */}
+          {/* Right Column: Card */}
           <motion.div
-            className="relative rounded-2xl border border-black/10 bg-white/70 p-6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.2)] backdrop-blur-xl h-[465px] flex flex-col justify-between"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+            className="w-full max-w-[360px] mx-auto"
           >
-            {/* Gold border glow */}
-            <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-[#d4a84c]/20 via-transparent to-black/10 opacity-50 [mask:linear-gradient(#000,#000)_content-box,linear-gradient(#000,#000)] [mask-composite:exclude] p-px" />
+            <motion.div
+              className="relative rounded-2xl border border-black/10 bg-white/70 p-6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.2)] backdrop-blur-xl h-[465px] flex flex-col justify-between w-full"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+            >
+              {/* Gold border glow */}
+              <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-[#d4a84c]/20 via-transparent to-black/10 opacity-50 [mask:linear-gradient(#000,#000)_content-box,linear-gradient(#000,#000)] [mask-composite:exclude] p-px" />
 
-            {/* Tabs */}
-            <div className="relative mb-5 grid grid-cols-2 rounded-lg border border-black/10 bg-neutral-100/60 p-1">
-              {(["login", "signup"] as Tab[]).map((t) => (
-                <button
-                  key={t}
-                  id={`tab-${t}-btn`}
-                  onClick={() => {
-                    setTab(t);
-                    setError(null);
-                  }}
-                  className={`relative z-10 py-2 text-xs font-semibold tracking-[0.2em] transition-colors ${
-                    tab === t ? "text-white" : "text-neutral-600 hover:text-black"
-                  }`}
-                >
-                  {t.toUpperCase()}
-                </button>
-              ))}
-              <motion.div
-                layout
-                transition={{ type: "spring", stiffness: 400, damping: 35 }}
-                className="absolute inset-y-1 w-1/2 rounded-md bg-black shadow"
-                style={{ left: tab === "login" ? "0.25rem" : "calc(50% - 0.25rem)" }}
-              />
-            </div>
-
-            {/* Form */}
-            <AnimatePresence mode="wait">
-              <motion.form
-                key={tab}
-                initial={{ opacity: 0, x: tab === "login" ? -15 : 15 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: tab === "login" ? 15 : -15 }}
-                transition={{ duration: 0.25 }}
-                className="flex-1 flex flex-col justify-between"
-                onSubmit={submit}
-              >
-                <div className="space-y-3.5">
-                  {tab === "signup" && (
-                    <Field
-                      id="signup-name-input"
-                      icon={<User size={14} />}
-                      label="NAME"
-                      type="text"
-                      placeholder="Jane Doe"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                    />
-                  )}
-                  <Field
-                    id="auth-email-input"
-                    icon={<Mail size={14} />}
-                    label="EMAIL"
-                    type="email"
-                    placeholder="you@artha.ai"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                  <Field
-                    id="auth-password-input"
-                    icon={<Lock size={14} />}
-                    label="PASSWORD"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={8}
-                    autoComplete={tab === "login" ? "current-password" : "new-password"}
-                  />
-
-                  {tab === "login" && (
-                    <div className="flex justify-end">
-                      <a
-                        id="forgot-password-link"
-                        href="#"
-                        onClick={handleForgotPassword}
-                        className="text-[11px] text-neutral-500 transition-colors hover:text-[#d4a84c]"
-                      >
-                        Forgot password?
-                      </a>
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-3">
-                  {error && (
-                    <motion.p
-                      initial={{ opacity: 0, y: -4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="text-xs font-semibold text-red-500 text-center tracking-wide"
-                    >
-                      {error}
-                    </motion.p>
-                  )}
-
-                  <motion.button
-                    id="auth-submit-btn"
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
-                    type="submit"
-                    disabled={loading}
-                    className="group relative w-full overflow-hidden rounded-lg bg-black py-2.5 text-xs font-semibold tracking-[0.3em] text-white disabled:opacity-60 disabled:cursor-not-allowed"
+              {/* Tabs */}
+              <div className="relative mb-5 grid grid-cols-2 rounded-lg border border-black/10 bg-neutral-100/60 p-1">
+                {(["login", "signup"] as Tab[]).map((t) => (
+                  <button
+                    key={t}
+                    id={`tab-${t}-btn`}
+                    onClick={() => {
+                      setTab(t);
+                      setError(null);
+                    }}
+                    className={`relative z-10 py-2 text-xs font-semibold tracking-[0.2em] transition-colors ${
+                      tab === t ? "text-white" : "text-neutral-600 hover:text-black"
+                    }`}
                   >
-                    <span className="relative z-10 flex items-center justify-center gap-1.5">
-                      {loading ? "PLEASE WAIT..." : (tab === "login" ? "LOGIN" : "CREATE ACCOUNT")}
-                      {!loading && <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />}
-                    </span>
-                    {!loading && (
-                      <motion.div
-                        className="absolute inset-0 bg-gradient-to-r from-[#d4a84c] via-[#f0c97a] to-[#d4a84c]"
-                        initial={{ x: "-100%" }}
-                        whileHover={{ x: 0 }}
-                        transition={{ duration: 0.4 }}
+                    {t.toUpperCase()}
+                  </button>
+                ))}
+                <motion.div
+                  layout
+                  transition={{ type: "spring", stiffness: 400, damping: 35 }}
+                  className="absolute inset-y-1 w-1/2 rounded-md bg-black shadow"
+                  style={{ left: tab === "login" ? "0.25rem" : "calc(50% - 0.25rem)" }}
+                />
+              </div>
+
+              {/* Form */}
+              <AnimatePresence mode="wait">
+                <motion.form
+                  key={tab}
+                  initial={{ opacity: 0, x: tab === "login" ? -15 : 15 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: tab === "login" ? 15 : -15 }}
+                  transition={{ duration: 0.25 }}
+                  className="flex-1 flex flex-col justify-between"
+                  onSubmit={submit}
+                >
+                  <div className="space-y-3.5">
+                    {tab === "signup" && (
+                      <Field
+                        id="signup-name-input"
+                        icon={<User size={14} />}
+                        label="NAME"
+                        type="text"
+                        placeholder="Jane Doe"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
                       />
                     )}
-                  </motion.button>
-                </div>
-              </motion.form>
-            </AnimatePresence>
+                    <Field
+                      id="auth-email-input"
+                      icon={<Mail size={14} />}
+                      label="EMAIL"
+                      type="email"
+                      placeholder="you@artha.ai"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                    <Field
+                      id="auth-password-input"
+                      icon={<Lock size={14} />}
+                      label="PASSWORD"
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={8}
+                      autoComplete={tab === "login" ? "current-password" : "new-password"}
+                    />
 
-            <div className="my-3.5 flex items-center gap-3">
-              <div className="h-px flex-1 bg-black/10" />
-              <span className="text-[9px] tracking-[0.3em] text-neutral-400">OR</span>
-              <div className="h-px flex-1 bg-black/10" />
-            </div>
+                    {tab === "login" && (
+                      <div className="flex justify-end">
+                        <a
+                          id="forgot-password-link"
+                          href="#"
+                          onClick={handleForgotPassword}
+                          className="text-[11px] text-neutral-500 transition-colors hover:text-[#d4a84c]"
+                        >
+                          Forgot password?
+                        </a>
+                      </div>
+                    )}
+                  </div>
 
-            <button
-              id="google-auth-btn"
-              onClick={handleGoogleAuth}
-              className="w-full rounded-lg border border-black/10 bg-white py-2.5 text-xs font-medium tracking-wider text-neutral-700 transition-all hover:border-[#d4a84c]/50 hover:bg-neutral-50 animate-none"
-            >
-              Continue with Google
-            </button>
+                  <div className="space-y-3">
+                    {error && (
+                      <motion.p
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-xs font-semibold text-red-500 text-center tracking-wide"
+                      >
+                        {error}
+                      </motion.p>
+                    )}
+
+                    <motion.button
+                      id="auth-submit-btn"
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                      type="submit"
+                      disabled={loading}
+                      className="group relative w-full overflow-hidden rounded-lg bg-black py-2.5 text-xs font-semibold tracking-[0.3em] text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      <span className="relative z-10 flex items-center justify-center gap-1.5">
+                        {loading ? "PLEASE WAIT..." : (tab === "login" ? "LOGIN" : "CREATE ACCOUNT")}
+                        {!loading && <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />}
+                      </span>
+                      {!loading && (
+                        <motion.div
+                          className="absolute inset-0 bg-gradient-to-r from-[#d4a84c] via-[#f0c97a] to-[#d4a84c]"
+                          initial={{ x: "-100%" }}
+                          whileHover={{ x: 0 }}
+                          transition={{ duration: 0.4 }}
+                        />
+                      )}
+                    </motion.button>
+                  </div>
+                </motion.form>
+              </AnimatePresence>
+
+              <div className="my-3.5 flex items-center gap-3">
+                <div className="h-px flex-1 bg-black/10" />
+                <span className="text-[9px] tracking-[0.3em] text-neutral-400">OR</span>
+                <div className="h-px flex-1 bg-black/10" />
+              </div>
+
+              <button
+                id="google-auth-btn"
+                onClick={handleGoogleAuth}
+                className="w-full rounded-lg border border-black/10 bg-white py-2.5 text-xs font-medium tracking-wider text-neutral-700 transition-all hover:border-[#d4a84c]/50 hover:bg-neutral-50 animate-none"
+              >
+                Continue with Google
+              </button>
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </div>
       </div>
     </main>
   );

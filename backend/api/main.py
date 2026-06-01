@@ -1,7 +1,8 @@
 import asyncio
+import os
 from contextlib import asynccontextmanager
 from typing import Any, Optional
-
+import time
 import uvicorn
 from fastapi.responses import JSONResponse
 from fastapi import Depends, FastAPI, HTTPException, Request, Header
@@ -141,11 +142,15 @@ def me(user: AuthUser = Depends(get_current_user)):
 async def analyze(
     request: Request,
     body: AnalyzeRequest,
-    groq_api_key: str = Header(..., alias="Groq-API-Key"),
+    groq_api_key: Optional[str] = Header(None, alias="Groq-API-Key"),
     user: AuthUser = Depends(get_current_user),
 ):
     ticker = body.ticker.strip().upper()
     logger.info(f"Analyze request received | ticker={ticker}")
+
+    # Fallback to backend environment variable if not provided or empty
+    if not groq_api_key or groq_api_key == "undefined" or groq_api_key == "null" or not groq_api_key.strip():
+        groq_api_key = os.getenv("GROQ_API_KEY", "")
 
     # Validate API key format
     is_valid_key, key_error = validate_api_keys(groq_api_key=groq_api_key)

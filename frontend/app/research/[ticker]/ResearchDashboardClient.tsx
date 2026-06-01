@@ -155,7 +155,7 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
             </button>
             <button
               onClick={() => router.push("/")}
-              className="h-10 border border-[var(--border)] bg-white px-5 font-mono text-[12px] hover:border-[var(--foreground)] rounded-lg shadow-sm transition-all hover:bg-zinc-50"
+              className="h-10 border border-[var(--border)] bg-white px-5 font-mono text-[14px] hover:border-[var(--foreground)] rounded-lg shadow-sm transition-all hover:bg-zinc-50"
             >
               ← New Analysis
             </button>
@@ -186,7 +186,7 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
         <div className="flex items-center gap-4">
           <Link
             href="/"
-            className="font-mono text-[12px] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+            className="font-mono text-[14px] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
           >
             ← New Analysis
           </Link>

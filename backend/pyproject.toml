@@ -25,4 +25,5 @@ dependencies = [
     "slowapi>=0.1.9",
     "pymongo>=4.17.0",
     "dnspython>=2.8.0",
+    "pyjwt>=2.13.0",
 ]

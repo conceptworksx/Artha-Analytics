@@ -9,6 +9,8 @@ import time
 import urllib.parse
 from typing import Annotated
 
+import jwt
+
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field, field_validator
@@ -137,31 +139,13 @@ def _verify_password(password: str, stored_hash: str) -> bool:
         return False
 
 
-def _b64_json(data: dict) -> str:
-    raw = json.dumps(data, separators=(",", ":")).encode("utf-8")
-    return base64.urlsafe_b64encode(raw).decode("utf-8").rstrip("=")
-
-
-def _decode_b64_json(data: str) -> dict:
-    padded = data + "=" * (-len(data) % 4)
-    raw = base64.urlsafe_b64decode(padded.encode("utf-8"))
-    return json.loads(raw)
-
-
-def _sign(payload: str) -> str:
-    digest = hmac.new(_secret_key(), payload.encode("utf-8"), hashlib.sha256).digest()
-    return base64.urlsafe_b64encode(digest).decode("utf-8").rstrip("=")
-
-
 def _create_token(user_id: str, email: str) -> str:
-    payload = _b64_json(
-        {
-            "sub": user_id,
-            "email": email,
-            "exp": int(time.time()) + TOKEN_TTL_SECONDS,
-        }
-    )
-    return f"{payload}.{_sign(payload)}"
+    payload = {
+        "sub": user_id,
+        "email": email,
+        "exp": int(time.time()) + TOKEN_TTL_SECONDS,
+    }
+    return jwt.encode(payload, _secret_key(), algorithm="HS256")
 
 
 def _get_user_by_email(email: str) -> dict | None:
@@ -237,12 +221,11 @@ def get_current_user(
 
     token = credentials.credentials
     try:
-        payload, signature = token.split(".", 1)
-        if not hmac.compare_digest(signature, _sign(payload)):
-            raise ValueError("bad signature")
-        claims = _decode_b64_json(payload)
-        if int(claims["exp"]) < int(time.time()):
-            raise ValueError("expired")
+        claims = jwt.decode(
+            token,
+            _secret_key(),
+            algorithms=["HS256"],
+        )
         user_row = _get_user_by_id(claims["sub"])
         if not user_row:
             raise ValueError("missing user")

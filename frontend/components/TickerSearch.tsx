@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Fuse from "fuse.js";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { clearCached, type AuthUser } from "@/lib/api";
-import DebateLoader from "./DebateLoader";
+import { LoadingScreen } from "./LoadingScreen";
 
 interface Ticker {
   symbol: string;
@@ -42,12 +43,6 @@ export function TickerSearch({
       setGroqApiKey(savedKey);
     }
   }, []);
-
-  const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setGroqApiKey(val);
-    localStorage.setItem("groq_api_key", val);
-  };
 
   const fuse = useMemo(
     () =>
@@ -114,11 +109,6 @@ export function TickerSearch({
   const handleAnalyse = async () => {
     if (!selected) return;
 
-    if (!groqApiKey || !groqApiKey.trim().startsWith("gsk_")) {
-      setError("Please enter a valid Groq API Key starting with 'gsk_'");
-      return;
-    }
-
     setLoading(true);
     setError(null);
     try {
@@ -133,13 +123,49 @@ export function TickerSearch({
   };
 
   if (loading) {
-    return <LoadingPanel ticker={selected?.symbol ?? ""} />;
+    return (
+      <LoadingScreen
+        ticker={selected?.symbol ?? ""}
+        user={user}
+        onLogout={onLogout}
+      />
+    );
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-white text-black">
+      {/* Animated gold aurora */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <motion.div
+          className="absolute -top-40 -left-40 h-[500px] w-[500px] rounded-full bg-[#d4a84c]/20 blur-3xl"
+          animate={{ x: [0, 80, 0], y: [0, 60, 0] }}
+          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute -bottom-40 -right-40 h-[600px] w-[600px] rounded-full bg-black/10 blur-3xl"
+          animate={{ x: [0, -60, 0], y: [0, -40, 0] }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+        />
+      </div>
+
+      {/* Floating gold particles */}
+      {Array.from({ length: 15 }).map((_, i) => (
+        <motion.span
+          key={i}
+          className="absolute h-1 w-1 rounded-full bg-[#d4a84c]/50"
+          style={{ left: `${(i * 67) % 100}%`, top: `${(i * 41) % 100}%` }}
+          animate={{ y: [0, -35, 0], opacity: [0.15, 0.8, 0.15] }}
+          transition={{
+            duration: 5 + (i % 6),
+            repeat: Infinity,
+            delay: i * 0.4,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+
       {/* Navbar matching report page style */}
-      <header className="flex h-16 shrink-0 items-center justify-between border-b border-[var(--border)] bg-white px-5 w-full">
+      <header className="flex h-16 shrink-0 items-center justify-between border-b border-black/10 bg-white/70 backdrop-blur-md px-5 w-full z-10">
         <div className="flex items-center">
           <img
             src="/navbar.png"
@@ -164,97 +190,71 @@ export function TickerSearch({
       </header>
 
       {/* Main search panel container */}
-      <main className="flex flex-1 items-center justify-center px-6 py-12">
-        <div className="w-full max-w-[420px]">
-          {/* Landing Page Hero Logo */}
-          {/* <div className="mb-6 flex justify-center">
-            <img
-              src="/landing_hero.png"
-              alt="Artha Analytics Logo"
-              className="w-60 h-60 object-contain"
-            />
-          </div> */}
-
-          {/* Groq API Key input */}
-          <div className="mb-6">
-            <label className="mb-2 block font-mono text-[11px] tracking-wider text-[var(--label)]">
-              GROQ API KEY
-            </label>
+      <main className="flex flex-1 items-center justify-center px-6 py-12 relative z-10">
+        <div className="w-full max-w-[400px]">
+          <label className="mb-2 ml-3 block font-mono text-[13px] tracking-wider text-[var(--label)]">
+            SEARCH NSE TICKER
+          </label>
+          {/* Ticker Search Input wrapper */}
+          <div className="relative w-full">
             <input
-              type="password"
-              value={groqApiKey}
-              onChange={handleApiKeyChange}
-              placeholder="gsk_..."
-              className="block h-12 w-full border border-[var(--border)] bg-white px-4 font-mono text-[14px] text-[var(--foreground)] placeholder:text-[var(--label)] focus:border-[var(--foreground)] focus:outline-none rounded-lg shadow-sm"
+              ref={inputRef}
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setOpen(true);
+                setSelected(null);
+                setHighlight(0);
+              }}
+              onFocus={() => setOpen(true)}
+              onBlur={() => setTimeout(() => setOpen(false), 120)}
+              onKeyDown={handleKey}
+              placeholder="e.g. RELIANCE, TCS, INFY  ..."
+              className="block h-12 w-full border-0 bg-white/50 backdrop-blur-md px-4 font-mono text-[14px] text-black placeholder:text-neutral-400 focus:outline-none focus:ring-0 rounded-lg shadow-md transition-all"
             />
-          </div>
 
-          {/* Ticker Search Input */}
-          <div className="mb-6">
-            <label className="mb-2 block font-mono text-[11px] tracking-wider text-[var(--label)]">
-              SEARCH NSE TICKER
-            </label>
-            <div className="relative">
-              <input
-                ref={inputRef}
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setOpen(true);
-                  setSelected(null);
-                  setHighlight(0);
-                }}
-                onFocus={() => setOpen(true)}
-                onBlur={() => setTimeout(() => setOpen(false), 120)}
-                onKeyDown={handleKey}
-                placeholder="e.g. RELIANCE, TCS, INFY  ..."
-                className="block h-12 w-full border border-[var(--border)] bg-white px-4 font-mono text-[14px] text-[var(--foreground)] placeholder:text-[var(--label)] focus:border-[var(--foreground)] focus:outline-none rounded-lg shadow-sm"
-              />
-
-              {open && results.length > 0 && (
-                <div ref={listRef} role="listbox" className="absolute left-0 right-0 top-full z-10 max-h-[352px] overflow-y-auto border border-t-0 border-[var(--border)] bg-white rounded-b-lg shadow-lg">
-                  {results.map((t, i) => (
-                    <button
-                      key={t.symbol}
-                      type="button"
-                      role="option"
-                      aria-selected={i === highlight}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        handleSelect(t);
-                      }}
-                      onMouseEnter={() => setHighlight(i)}
-                      className={`flex h-11 w-full items-center justify-between px-4 text-left transition-colors duration-100 ${i === highlight ? "bg-[#f0f0ee]" : "bg-white"
-                        }`}
-                    >
-                      <span className="font-mono text-[13px] font-bold text-[var(--foreground)]">
-                        {t.symbol}
-                      </span>
-                      <span className="ml-4 truncate text-[13px] text-[var(--muted-foreground)]">
-                        {t.name}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            {open && results.length > 0 && (
+              <div ref={listRef} role="listbox" className="absolute left-0 right-0 top-full mt-2 z-10 max-h-[300px] overflow-y-auto border border-black/5 bg-white/95 backdrop-blur-md rounded-lg shadow-lg">
+                {results.map((t, i) => (
+                  <button
+                    key={t.symbol}
+                    type="button"
+                    role="option"
+                    aria-selected={i === highlight}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      handleSelect(t);
+                    }}
+                    onMouseEnter={() => setHighlight(i)}
+                    className={`flex h-10 w-full items-center justify-between px-4 text-left transition-colors duration-100 ${i === highlight ? "bg-black/5" : "bg-transparent"
+                      }`}
+                  >
+                    <span className="font-mono text-[13px] font-bold text-black">
+                      {t.symbol}
+                    </span>
+                    <span className="ml-4 truncate text-[12px] text-neutral-500">
+                      {t.name}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {selected && (
             <button
               onClick={handleAnalyse}
-              className="mt-3 block h-12 w-full bg-[var(--foreground)] text-[14px] font-medium text-[var(--background)] transition-colors hover:bg-[#333330] rounded-lg shadow-sm"
+              className="mt-3 block h-11 w-full bg-black text-[13px] font-medium text-white transition-colors hover:bg-neutral-800 rounded-lg shadow-sm font-sans tracking-widest cursor-pointer"
             >
-              Analyse {selected.symbol} →
+              ANALYSE {selected.symbol} →
             </button>
           )}
 
           {error && (
-            <p className="mt-4 font-mono text-[11px] text-[var(--sell)]">
+            <p className="mt-4 text-center font-mono text-[11px] text-[var(--sell)]">
               {error}
             </p>
           )}
-
         </div>
       </main>
 
@@ -279,36 +279,3 @@ export function TickerSearch({
   );
 }
 
-
-const STEPS = [
-  "Fetching news signals",
-  "Running technical analysis",
-  "Evaluating fundamentals",
-  "Scanning market & sector data",
-];
-
-function LoadingPanel({ ticker }: { ticker: string }) {
-  const [step, setStep] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setStep((s) => (s + 1) % STEPS.length), 1800);
-    return () => clearInterval(id);
-  }, []);
-
-  return (
-    <div className="flex min-h-screen items-center justify-center px-6">
-      <div className="w-full max-w-[480px] text-center">
-        <h1 className="font-mono text-[13px] tracking-widest">ARTHA ANALYTICS</h1>
-        <div className="mx-auto my-3 h-px w-full bg-[var(--border)]" />
-        <p className="font-mono text-[13px] text-[var(--muted-foreground)]">
-          Initialising agents for {ticker}...
-        </p>
-        <div className="mt-6">
-          <DebateLoader />
-        </div>
-        <p className="mt-4 font-mono text-[12px] text-[var(--muted-foreground)]">
-          {STEPS[step]}
-        </p>
-      </div>
-    </div>
-  );
-}
