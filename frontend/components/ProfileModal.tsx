@@ -159,12 +159,25 @@ export function ProfileModal({ user, isOpen, onClose }: ProfileModalProps) {
                   {showKey ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
               </div>
-              <button
-                type="submit"
-                className="self-end rounded-lg bg-black px-4 py-1.5 font-mono text-[10px] font-bold tracking-widest text-white hover:bg-neutral-800 transition-colors cursor-pointer"
-              >
-                SAVE API KEY
-              </button>
+              <div className="flex justify-between items-center mt-1">
+                <span className="font-sans text-[10px] text-neutral-500">
+                  Don&apos;t have a key?{" "}
+                  <a
+                    href="https://console.groq.com/keys"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#d4a84c] hover:underline font-semibold"
+                  >
+                    Get one here
+                  </a>
+                </span>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-black px-4 py-1.5 font-mono text-[10px] font-bold tracking-widest text-white hover:bg-neutral-800 transition-colors cursor-pointer"
+                >
+                  SAVE API KEY
+                </button>
+              </div>
             </form>
 
             <div className="h-px bg-black/5" />
