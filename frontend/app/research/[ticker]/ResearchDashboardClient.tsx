@@ -7,8 +7,10 @@ import {
   analyseTicker,
   AnalysisError,
   cacheResponse,
+  clearAuthSession,
   readCached,
   clearCached,
+  getAuthToken,
   type AnalyseResponse,
 } from "@/lib/api";
 import { LoadingScreen } from "@/components/LoadingScreen";
@@ -32,6 +34,12 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
 
   useEffect(() => {
     const controller = new AbortController();
+    const authToken = getAuthToken();
+
+    if (!authToken) {
+      router.replace("/");
+      return;
+    }
 
     // Clear cache if this is a manual retry
     if (retryCount > 0) {
@@ -54,6 +62,7 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
     analyseTicker({
       ticker,
       groqApiKey,
+      authToken,
       signal: controller.signal,
     })
       .then((d) => {
@@ -64,6 +73,11 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
       .catch((e) => {
         if (controller.signal.aborted) return;
         if (e instanceof AnalysisError) {
+          if (e.title === "SIGN IN REQUIRED") {
+            clearAuthSession();
+            router.replace("/");
+            return;
+          }
           setError({ title: e.title, message: e.message });
         } else {
           setError({
@@ -77,7 +91,7 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
     return () => {
       controller.abort();
     };
-  }, [ticker, retryCount]);
+  }, [ticker, retryCount, router]);
 
   // ── Error page ─────────────────────────────────────────────────────────
   if (error) {

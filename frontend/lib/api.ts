@@ -47,6 +47,19 @@ export interface AnalyseResponse {
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const AUTH_TOKEN_KEY = "artha_auth_token";
+const AUTH_USER_KEY = "artha_auth_user";
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  name?: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: AuthUser;
+}
 
 export function normalizeTicker(ticker: string) {
   let cleanTicker = ticker.trim().toUpperCase();
@@ -88,6 +101,14 @@ function buildErrorMessage(
 ): { title: string; message: string } {
   const errorCode = detail?.error ?? "";
   const serverMsg = detail?.message ?? "";
+
+  // 401 — Invalid API key
+  if (status === 401 && errorCode !== "invalid_api_key") {
+    return {
+      title: "SIGN IN REQUIRED",
+      message: serverMsg || "Your session has expired. Please sign in again.",
+    };
+  }
 
   // 401 — Invalid API key
   if (status === 401 || errorCode === "invalid_api_key") {
@@ -144,10 +165,12 @@ function buildErrorMessage(
 export async function analyseTicker({
   ticker,
   groqApiKey,
+  authToken,
   signal,
 }: {
   ticker: string;
   groqApiKey: string;
+  authToken?: string;
   signal?: AbortSignal;
 }): Promise<AnalyseResponse> {
   const cleanTicker = normalizeTicker(ticker);
@@ -159,6 +182,10 @@ export async function analyseTicker({
 
   if (groqApiKey) {
     headers["Groq-API-Key"] = groqApiKey.trim();
+  }
+
+  if (authToken) {
+    headers.Authorization = `Bearer ${authToken}`;
   }
 
   let res: Response;
@@ -192,6 +219,73 @@ export async function analyseTicker({
 
   const data: AnalyseResponse = await res.json();
   return data;
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+
+export function saveAuthSession(session: AuthResponse) {
+  localStorage.setItem(AUTH_TOKEN_KEY, session.token);
+  localStorage.setItem(AUTH_USER_KEY, JSON.stringify(session.user));
+}
+
+export function clearAuthSession() {
+  localStorage.removeItem(AUTH_TOKEN_KEY);
+  localStorage.removeItem(AUTH_USER_KEY);
+}
+
+export function getAuthToken() {
+  return localStorage.getItem(AUTH_TOKEN_KEY) || "";
+}
+
+export function getAuthUser(): AuthUser | null {
+  try {
+    const raw = localStorage.getItem(AUTH_USER_KEY);
+    return raw ? (JSON.parse(raw) as AuthUser) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function authRequest({
+  mode,
+  email,
+  password,
+  name,
+}: {
+  mode: "login" | "signup";
+  email: string;
+  password: string;
+  name?: string;
+}): Promise<AuthResponse> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE_URL}/auth/${mode}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, name }),
+    });
+  } catch {
+    throw new AnalysisError({
+      title: "CONNECTION FAILED",
+      message: "Unable to reach the authentication server.",
+    });
+  }
+
+  if (!res.ok) {
+    let detail: BackendErrorDetail = {};
+    try {
+      const errorBody = await res.json();
+      detail = errorBody?.detail ?? errorBody ?? {};
+    } catch {}
+    throw new AnalysisError({
+      title: res.status === 409 ? "ACCOUNT EXISTS" : "AUTHENTICATION FAILED",
+      message:
+        detail.message ||
+        "Please check your email and password, then try again.",
+    });
+  }
+
+  return res.json();
 }
 
 // ── Session cache ──────────────────────────────────────────────────────────────

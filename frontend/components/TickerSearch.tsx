@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Fuse from "fuse.js";
 import { useRouter } from "next/navigation";
-import { clearCached } from "@/lib/api";
+import { clearCached, type AuthUser } from "@/lib/api";
 import DebateLoader from "./DebateLoader";
 
 interface Ticker {
@@ -11,7 +11,13 @@ interface Ticker {
   name: string;
 }
 
-export function TickerSearch() {
+export function TickerSearch({
+  user,
+  onLogout,
+}: {
+  user?: AuthUser;
+  onLogout?: () => void;
+}) {
   const router = useRouter();
   const [tickers, setTickers] = useState<Ticker[]>([]);
   const [query, setQuery] = useState("");
@@ -23,9 +29,6 @@ export function TickerSearch() {
   const [groqApiKey, setGroqApiKey] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-
-  const [showIntro, setShowIntro] = useState(true);
-  const [fadeOutIntro, setFadeOutIntro] = useState(false);
 
   // Load tickers and saved API key on mount
   useEffect(() => {
@@ -39,23 +42,6 @@ export function TickerSearch() {
       setGroqApiKey(savedKey);
     }
   }, []);
-
-  // Intro loading delay
-  useEffect(() => {
-    const fadeTimeout = setTimeout(() => {
-      setFadeOutIntro(true);
-    }, 2600);
-
-    const removeTimeout = setTimeout(() => {
-      setShowIntro(false);
-    }, 3100);
-
-    return () => {
-      clearTimeout(fadeTimeout);
-      clearTimeout(removeTimeout);
-    };
-  }, []);
-
 
   const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -151,43 +137,43 @@ export function TickerSearch() {
   }
 
   return (
-    <>
-      {showIntro && (
-        <div
-          className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-white text-black transition-opacity duration-500 ${fadeOutIntro ? "opacity-0 pointer-events-none" : "opacity-100"
-            }`}
-        >
-          <div className="text-center">
-            <div className="candle-wrapper">
-              <div className="candle-chart">
-                {[...Array(18)].map((_, i) => (
-                  <div key={i} className="candle" />
-                ))}
-              </div>
-            </div>
-            <h1 className="mt-6 font-mono text-[13px] tracking-[0.25em] text-black uppercase animate-pulse">
-              Artha Analytics
-            </h1>
-            <p className="mt-2 font-mono text-[10px] tracking-wider text-zinc-400 uppercase">
-              Connecting to Indian markets
-            </p>
-          </div>
+    <div className="flex min-h-screen flex-col bg-white">
+      {/* Navbar matching report page style */}
+      <header className="flex h-16 shrink-0 items-center justify-between border-b border-[var(--border)] bg-white px-5 w-full">
+        <div className="flex items-center">
+          <img
+            src="/navbar.png"
+            alt="Artha Analytics"
+            className="h-14 object-contain"
+          />
         </div>
-      )}
 
-      <div
-        className={`flex min-h-screen items-center justify-center px-6 transition-all duration-700 ${fadeOutIntro ? "opacity-100 scale-100" : "opacity-0 scale-95"
-          }`}
-      >
+        {user && onLogout && (
+          <div className="flex items-center gap-4 font-mono text-[12px] text-[var(--muted-foreground)]">
+            <span className="hidden sm:inline truncate max-w-[240px]">{user.name || user.email.split("@")[0]}</span>
+            <span className="h-4 w-px bg-[var(--border)] hidden sm:block" />
+            <button
+              type="button"
+              onClick={onLogout}
+              className="text-[var(--foreground)] hover:text-[#d4a84c] transition-colors font-semibold tracking-wider cursor-pointer"
+            >
+              LOGOUT
+            </button>
+          </div>
+        )}
+      </header>
+
+      {/* Main search panel container */}
+      <main className="flex flex-1 items-center justify-center px-6 py-12">
         <div className="w-full max-w-[420px]">
           {/* Landing Page Hero Logo */}
-          <div className="mb-6 flex justify-center">
+          {/* <div className="mb-6 flex justify-center">
             <img
               src="/landing_hero.png"
               alt="Artha Analytics Logo"
               className="w-60 h-60 object-contain"
             />
-          </div>
+          </div> */}
 
           {/* Groq API Key input */}
           <div className="mb-6">
@@ -269,25 +255,27 @@ export function TickerSearch() {
             </p>
           )}
 
-          <div className="mt-10 flex flex-col items-center gap-2.5 font-mono tracking-wider text-[var(--label)]">
-            <span className="text-[12px] mb-3">NSE EQUITY | INDIA</span>
-            <span className="text-[11px] opacity-75">MADE BY CONCEPTWORKSX</span>
-            <div className="mx-auto h-px w-full max-w-[240px] bg-[var(--border)]" />
-            <a
-              href="https://github.com/conceptworksx/Agentic-Trade-v2"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-[12px] tracking-wider text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]"
-            >
-              <svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor" aria-hidden="true">
-                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
-              </svg>
-              <span>Contribute on GitHub</span>
-            </a>
-          </div>
         </div>
-      </div>
-    </>
+      </main>
+
+      {/* Footer pushed to the bottom of the page */}
+      <footer className="w-full py-5 border-t border-[var(--border)] bg-zinc-50/20 flex flex-col items-center gap-1.5 font-mono tracking-wider text-[var(--label)] text-center mt-auto">
+        <span className="text-[11px] font-semibold text-[var(--muted-foreground)]">NSE EQUITY | INDIA</span>
+        <span className="text-[10px] opacity-75">MADE BY CONCEPTWORKSX</span>
+        <div className="h-px w-24 bg-[var(--border)] my-0.5" />
+        <a
+          href="https://github.com/conceptworksx/Agentic-Trade-v2"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 text-[11px] tracking-wider text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]"
+        >
+          <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor" aria-hidden="true">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+          </svg>
+          <span>Contribute on GitHub</span>
+        </a>
+      </footer>
+    </div>
   );
 }
 

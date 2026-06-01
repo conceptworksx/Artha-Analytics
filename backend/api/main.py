@@ -4,13 +4,22 @@ from typing import Any, Optional
 
 import uvicorn
 from fastapi.responses import JSONResponse
-from fastapi import FastAPI, HTTPException, Request, Header
+from fastapi import Depends, FastAPI, HTTPException, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
+from api.auth import (
+    AuthRequest,
+    AuthResponse,
+    AuthUser,
+    get_current_user,
+    init_auth_store,
+    login_user,
+    signup_user,
+)
 from api.validators import (
     validate_ticker_format,
     validate_ticker_exists,
@@ -52,6 +61,7 @@ _ERROR_MAP: dict[type, tuple[int, str]] = {
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Preload NSE ticker cache at startup."""
+    init_auth_store()
     logger.info("Preloading NSE ticker cache...")
     _refresh_cache_if_stale()
     logger.info("NSE ticker cache ready")
@@ -111,12 +121,28 @@ def health_check():
     return {"status": "ok"}
 
 
+@app.post("/auth/signup", response_model=AuthResponse)
+def signup(body: AuthRequest):
+    return signup_user(body)
+
+
+@app.post("/auth/login", response_model=AuthResponse)
+def login(body: AuthRequest):
+    return login_user(body)
+
+
+@app.get("/auth/me", response_model=AuthUser)
+def me(user: AuthUser = Depends(get_current_user)):
+    return user
+
+
 @app.post("/analyze", response_model=AnalyzeResponse)
 @limiter.limit("3/minute")
 async def analyze(
     request: Request,
     body: AnalyzeRequest,
     groq_api_key: str = Header(..., alias="Groq-API-Key"),
+    user: AuthUser = Depends(get_current_user),
 ):
     ticker = body.ticker.strip().upper()
     logger.info(f"Analyze request received | ticker={ticker}")

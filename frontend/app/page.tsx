@@ -1,5 +1,5 @@
-import { TickerSearch } from "@/components/TickerSearch";
+import { AppGate } from "@/components/AppGate";
 
 export default function Home() {
-  return <TickerSearch />;
+  return <AppGate />;
 }

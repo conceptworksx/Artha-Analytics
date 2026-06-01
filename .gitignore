@@ -134,6 +134,8 @@ lerna-debug.log*
 
 backend/logs/
 backend/pdfs/
+backend/auth.db
+backend/auth.db-*
 
 # ==============================================================================
 # Deployment / Runtime

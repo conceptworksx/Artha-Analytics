@@ -23,4 +23,6 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "pypdf>=4.0.0",
     "slowapi>=0.1.9",
+    "pymongo>=4.17.0",
+    "dnspython>=2.8.0",
 ]
