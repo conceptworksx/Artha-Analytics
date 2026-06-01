@@ -16,6 +16,8 @@ export interface AnalyseResponse {
   };
   research_verdict: { decision: Decision; rationale: string };
   status: string;
+  company_info?: any;
+  historical_prices?: any[];
 }
 
 const DEFAULT_DEBATE = {
@@ -84,6 +86,8 @@ export async function analyseTicker(ticker: string, groqApiKey: string): Promise
     investment_debate: rawData.investment_debate || DEFAULT_DEBATE,
     research_verdict: rawData.research_verdict || DEFAULT_VERDICT,
     status: rawData.status || "success",
+    company_info: rawData.company_info || null,
+    historical_prices: rawData.historical_prices || [],
   };
 
   return data;

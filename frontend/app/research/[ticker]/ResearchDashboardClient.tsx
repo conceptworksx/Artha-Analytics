@@ -13,13 +13,14 @@ import { LoadingScreen } from "@/components/LoadingScreen";
 import { Sidebar, type ViewKey } from "@/components/Sidebar";
 import { ReportView } from "@/components/ReportView";
 import { DebateRoom } from "@/components/DebateRoom";
+import { StockPriceView } from "@/components/StockPriceView";
 import { decisionColor } from "@/components/VerdictBadge";
 
 export default function ResearchDashboardClient({ ticker }: { ticker: string }) {
   const router = useRouter();
   const [data, setData] = useState<AnalyseResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState<ViewKey>("news");
+  const [view, setView] = useState<ViewKey>("overview");
 
   useEffect(() => {
     let cancelled = false;
@@ -123,6 +124,8 @@ function ViewSwitch({
   const t = data.ticker;
 
   switch (view) {
+    case "overview":
+      return <StockPriceView data={data} />;
     case "news":
       return (
         <ReportView

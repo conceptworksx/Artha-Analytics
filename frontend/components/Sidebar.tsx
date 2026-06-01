@@ -4,10 +4,12 @@ import {
   BarChart2,
   Globe,
   Layers,
+  Activity,
   type LucideIcon,
 } from "lucide-react";
 
 export type ViewKey =
+  | "overview"
   | "news"
   | "technical"
   | "fundamental"
@@ -40,7 +42,13 @@ export function Sidebar({
 }) {
   return (
     <aside className="flex w-60 shrink-0 flex-col overflow-y-auto border-r border-[var(--border)] bg-white">
-      <div className="flex-1">
+      <div className="flex-1 py-4">
+        <Row
+          item={{ key: "overview", label: "Equity Overview", icon: Activity }}
+          active={active === "overview"}
+          onSelect={onSelect}
+        />
+        
         <SectionLabel>ANALYSTS</SectionLabel>
         {ANALYSTS.map((it) => (
           <Row key={it.key} item={it} active={active === it.key} onSelect={onSelect} />

@@ -32,6 +32,26 @@ def process_prefetch_result(raw_data: dict) -> dict:
         ticker=raw_data.get("ticker", ""), prefetched_info=raw_data.get("info", {})
     )
 
+    # Attach raw company info and serialized ohlcv data for frontend charts/overview
+    processed_bundle["company_info"] = raw_data.get("info", {})
+    
+    ohlcv_df = raw_data.get("ohlcv")
+    ohlcv_list = []
+    if ohlcv_df is not None and not ohlcv_df.empty:
+        try:
+            for date, row in ohlcv_df.iterrows():
+                ohlcv_list.append({
+                    "date": date.strftime("%Y-%m-%d"),
+                    "open": float(row["Open"]),
+                    "high": float(row["High"]),
+                    "low": float(row["Low"]),
+                    "close": float(row["Close"]),
+                    "volume": int(row["Volume"]) if "Volume" in row else 0
+                })
+        except Exception:
+            pass
+    processed_bundle["historical_prices"] = ohlcv_list
+
     # with open("data.json",'w+') as f:
     #     json.dump(processed_bundle,f,indent=2)
 
