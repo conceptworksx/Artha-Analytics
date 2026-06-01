@@ -224,17 +224,27 @@ export async function analyseTicker({
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
 export function saveAuthSession(session: AuthResponse) {
-  localStorage.setItem(AUTH_TOKEN_KEY, session.token);
+  const expires = new Date();
+  expires.setTime(expires.getTime() + 7 * 24 * 60 * 60 * 1000);
+  document.cookie = `${AUTH_TOKEN_KEY}=${session.token}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
   localStorage.setItem(AUTH_USER_KEY, JSON.stringify(session.user));
 }
 
 export function clearAuthSession() {
-  localStorage.removeItem(AUTH_TOKEN_KEY);
+  document.cookie = `${AUTH_TOKEN_KEY}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`;
   localStorage.removeItem(AUTH_USER_KEY);
 }
 
 export function getAuthToken() {
-  return localStorage.getItem(AUTH_TOKEN_KEY) || "";
+  if (typeof document === "undefined") return "";
+  const nameEQ = `${AUTH_TOKEN_KEY}=`;
+  const ca = document.cookie.split(";");
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === " ") c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+  }
+  return "";
 }
 
 export function getAuthUser(): AuthUser | null {
@@ -282,6 +292,50 @@ export async function authRequest({
       message:
         detail.message ||
         "Please check your email and password, then try again.",
+    });
+  }
+
+  return res.json();
+}
+
+export async function changePassword({
+  currentPassword,
+  newPassword,
+  authToken,
+}: {
+  currentPassword: string;
+  newPassword: string;
+  authToken: string;
+}): Promise<{ status: string; message: string }> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE_URL}/auth/change-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({
+        current_password: currentPassword,
+        new_password: newPassword,
+      }),
+    });
+  } catch {
+    throw new AnalysisError({
+      title: "CONNECTION FAILED",
+      message: "Unable to reach the authentication server.",
+    });
+  }
+
+  if (!res.ok) {
+    let detail: BackendErrorDetail = {};
+    try {
+      const errorBody = await res.json();
+      detail = errorBody?.detail ?? errorBody ?? {};
+    } catch {}
+    throw new AnalysisError({
+      title: "PASSWORD CHANGE FAILED",
+      message: detail.message || "Failed to change password. Please check your credentials.",
     });
   }
 

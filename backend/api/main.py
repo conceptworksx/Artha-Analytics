@@ -16,6 +16,8 @@ from api.auth import (
     AuthRequest,
     AuthResponse,
     AuthUser,
+    ChangePasswordRequest,
+    change_password_user,
     get_current_user,
     init_auth_store,
     login_user,
@@ -135,6 +137,15 @@ def login(body: AuthRequest):
 @app.get("/auth/me", response_model=AuthUser)
 def me(user: AuthUser = Depends(get_current_user)):
     return user
+
+
+@app.post("/auth/change-password")
+def change_password(
+    body: ChangePasswordRequest,
+    user: AuthUser = Depends(get_current_user),
+):
+    change_password_user(user, body)
+    return {"status": "success", "message": "Password updated successfully."}
 
 
 @app.post("/analyze", response_model=AnalyzeResponse)

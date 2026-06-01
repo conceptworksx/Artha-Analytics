@@ -88,6 +88,11 @@ class AuthResponse(BaseModel):
     user: AuthUser
 
 
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(min_length=8, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
 def init_auth_store() -> None:
     try:
         users_collection.create_index("email", unique=True)
@@ -208,6 +213,35 @@ def login_user(credentials: AuthRequest) -> AuthResponse:
         name=user_row.get("name"),
     )
     return AuthResponse(token=_create_token(user.id, user.email), user=user)
+
+
+def change_password_user(current_user: AuthUser, data: ChangePasswordRequest) -> None:
+    user_row = _get_user_by_id(current_user.id)
+    if not user_row:
+        raise HTTPException(
+            status_code=404,
+            detail={"error": "user_not_found", "message": "User not found."},
+        )
+
+    if not _verify_password(data.current_password, user_row["password_hash"]):
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "invalid_current_password",
+                "message": "Current password is incorrect.",
+            },
+        )
+
+    try:
+        users_collection.update_one(
+            {"_id": ObjectId(current_user.id)},
+            {"$set": {"password_hash": _hash_password(data.new_password)}},
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={"error": "database_error", "message": f"Failed to update password: {e}"},
+        )
 
 
 def get_current_user(

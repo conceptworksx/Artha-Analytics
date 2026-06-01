@@ -3,9 +3,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Fuse from "fuse.js";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { clearCached, type AuthUser } from "@/lib/api";
+import { motion, AnimatePresence } from "framer-motion";
+import { User } from "lucide-react";
+import { MdErrorOutline } from "react-icons/md";
+import { Toaster } from "sonner";
+import {
+  clearCached,
+  type AuthUser,
+} from "@/lib/api";
 import { LoadingScreen } from "./LoadingScreen";
+import { ProfileModal } from "./ProfileModal";
 
 interface Ticker {
   symbol: string;
@@ -27,21 +34,23 @@ export function TickerSearch({
   const [selected, setSelected] = useState<Ticker | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [groqApiKey, setGroqApiKey] = useState("");
+  const [showProfile, setShowProfile] = useState(false);
+  const [hasApiKey, setHasApiKey] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  // Load tickers and saved API key on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setHasApiKey(!!localStorage.getItem("groq_api_key")?.trim());
+    }
+  }, []);
+
+  // Load tickers on mount
   useEffect(() => {
     fetch("/nse-tickers.json")
       .then((r) => r.json())
       .then(setTickers)
       .catch(() => setTickers([]));
-
-    const savedKey = localStorage.getItem("groq_api_key");
-    if (savedKey) {
-      setGroqApiKey(savedKey);
-    }
   }, []);
 
   const fuse = useMemo(
@@ -176,8 +185,26 @@ export function TickerSearch({
 
         {user && onLogout && (
           <div className="flex items-center gap-4 font-mono text-[12px] text-[var(--muted-foreground)]">
-            <span className="hidden sm:inline truncate max-w-[240px]">{user.name || user.email.split("@")[0]}</span>
-            <span className="h-4 w-px bg-[var(--border)] hidden sm:block" />
+            <button
+              type="button"
+              onClick={() => setShowProfile(true)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all font-semibold tracking-wider cursor-pointer shadow-sm animate-none ${
+                hasApiKey
+                  ? "border-black/10 hover:border-[#d4a84c]/50 bg-neutral-50/50 hover:bg-neutral-50 text-neutral-700 hover:text-[#d4a84c]"
+                  : "border-red-500 hover:border-red-600 bg-red-50/30 hover:bg-red-50 text-red-600 font-bold"
+              }`}
+            >
+              {hasApiKey ? (
+                <User size={13} className="text-[#d4a84c]" />
+              ) : (
+                <MdErrorOutline size={14} className="text-red-500 animate-pulse shrink-0" />
+              )}
+              <span className="truncate max-w-[150px]">
+                {user.name || user.email.split("@")[0]}
+              </span>
+              {!hasApiKey && <span className="text-[11px] font-bold text-red-500">!</span>}
+            </button>
+            <span className="h-4 w-px bg-black/10 hidden sm:block" />
             <button
               type="button"
               onClick={onLogout}
@@ -192,6 +219,13 @@ export function TickerSearch({
       {/* Main search panel container */}
       <main className="flex flex-1 items-center justify-center px-6 py-12 relative z-10">
         <div className="w-full max-w-[400px]">
+          {!hasApiKey && (
+            <div className="mb-4 rounded-lg border border-red-200/50 bg-red-50/40 p-3 text-center animate-pulse">
+              <p className="font-mono text-[11px] font-bold text-red-600">
+                ⚠️ Groq API Key is missing. Click your profile name above to add it.
+              </p>
+            </div>
+          )}
           <label className="mb-2 ml-3 block font-mono text-[13px] tracking-wider text-[var(--label)]">
             SEARCH NSE TICKER
           </label>
@@ -275,6 +309,18 @@ export function TickerSearch({
           <span>Contribute on GitHub</span>
         </a>
       </footer>
+
+      <Toaster richColors position="top-center" />
+      {user && (
+        <ProfileModal
+          user={user}
+          isOpen={showProfile}
+          onClose={() => {
+            setShowProfile(false);
+            setHasApiKey(!!localStorage.getItem("groq_api_key")?.trim());
+          }}
+        />
+      )}
     </div>
   );
 }
