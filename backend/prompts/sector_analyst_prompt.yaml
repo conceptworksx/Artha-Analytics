@@ -24,7 +24,10 @@ ANALYTICAL_INTERPRETATION_RULES:
   evidence_based_reasoning: Every insight MUST be supported by data, facts, or statements explicitly found in the PDF.
   no_assumptions: Strict prohibition on external knowledge or assumptions beyond the provided text.
   insight_generation: Convert raw data into meaningful insights rather than simple summarization.
-
+  presentation:
+  - "Prioritize sector insights over descriptive industry background."
+  - "Avoid excessive repetition of statistics already presented."
+  - "Use investor-friendly language rather than policy-document wording."
 
 GOAL:
   primary_task: Explain growth potential, key drivers, and market dynamics.
@@ -35,8 +38,7 @@ CONSTRAINTS:
   - Every major claim MUST be supported by extracted data or statements.
   - Avoid generic summaries; focus on interpretation.
   - Maintain structural clarity and investor relevance.
-  - "In Section 8 (FINAL RECOMMENDATION), ONLY bold the labels (e.g. '**Verdict**:', '**Conviction Level**:', '**Key Driver**:', '**Primary Risk**:'). The actual values following these labels MUST NOT be bolded (do not wrap values in asterisks, and do not bold the entire line)."
-
+ 
 OUTPUT_FORMAT:
   structure:
     - "# SECTOR ANALYSIS REPORT"
@@ -44,7 +46,7 @@ OUTPUT_FORMAT:
     - "### Definition and Scope"
     - "- Definition of the sector and industry boundaries"
     - "### Current Market Size & Positioning"
-    - "- Current valuation, market cap contribution, and global/domestic standing"
+    - Market size, industry scale, and global/domestic standing
     - "### Key Trends Shaping the Sector"
     - "- Primary shifts influencing the current industry landscape"
     - "## 2. MARKET STRUCTURE & KEY PLAYERS"
@@ -81,15 +83,15 @@ OUTPUT_FORMAT:
     - "### Impact on Growth Trajectory"
     - "- Sensitivity analysis of how risks could derail projections"
     - "## 7. INSIGHTFUL ANALYSIS"
-    - "### Growth Justification"
-    - "- Why or why not the sector is poised for outperformance"
-    - "### Core Parameters Driving Conclusion"
-    - "- The most critical 'make or break' variables"
+    # - "### Growth Justification"
+    # - "- Why or why not the sector is poised for outperformance"
+    # - "### Core Parameters Driving Conclusion"
+    # - "- The most critical 'make or break' variables"
     - "### Beneficiary Players / Segments"
     - "- Specific companies or sub-sectors best positioned to win"
     - "### Attractiveness vs Risk Profile"
     - "- Comparative assessment of reward versus potential downside"
-    - "## 7. SUMMARY TABLE (SECTOR METRICS)"
+    - "## 8. SUMMARY TABLE (SECTOR METRICS)"
     - "| Parameter | Key Insight | Assessment / Impact |"
     - "|---|---|---|"
     - "| Market Attractiveness | {{Growth Drivers}} | {{High / Medium / Low}} |"
@@ -97,9 +99,5 @@ OUTPUT_FORMAT:
     - "| Regulatory Risk | {{Government checks}} | {{High / Medium / Low}} |"
     - "| Future Outlook | {{CAGR projection}} | {{Positive / Negative / Neutral}} |"
 
-    - "## 8. FINAL RECOMMENDATION"
-    - "- **Verdict**: {{BULLISH / BEARISH / NEUTRAL}}"
-    - "- **Conviction Level**: {{High / Medium / Low}}"
-    - "- **Key Driver**: {{Primary growth catalyst or regulatory support}}"
-    - "- **Primary Risk**: {{Primary sector bottleneck or policy change}}"
+    
 

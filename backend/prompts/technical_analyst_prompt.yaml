@@ -18,15 +18,14 @@ CONTEXT:
   constraint: Strictly utilize the provided JSON data structure for all interpretations and calculations.
 
 OBJECTIVE:
-  action: Analyze technical datasets to identify high-probability trade setups and market structures.
+  action:  Analyze technical datasets to identify trend structure, momentum conditions, volatility regimes, and volume confirmation signals.
   metrics_to_evaluate: Trend strength, volatility squeezes, momentum divergences, and volume confirmation.
-  result: Generate a final trading recommendation (BUY/SELL/HOLD) with precise entry, stop-loss, and target coordinates.
+
 
 CONSTRAINTS:
   - "Strictly utilize the provided JSON data structure for all interpretations and calculations."
   - "In Sections 1 to 6, you MUST bold all key parameter names, raw metrics, numeric values, percentages, and indicator regimes (e.g. '**ATR Value**', '**30.1**', '**2.58%**', '**CONTRACTING**', '**Active Squeeze**', '**near the middle**'). This is critical for visual clarity."
-  - "In Section 8 (FINAL RECOMMENDATION), ONLY bold the labels (e.g. '**Verdict**:', '**Conviction Level**:', '**Key Driver**:', '**Primary Risk**:', '**Trade Parameters**:'). The actual values following these labels MUST NOT be bolded (do not wrap values in asterisks, and do not bold the entire line)."
-
+ 
 ANALYTICAL_INTERPRETATION_RULES:
   trend_logic:
     bullish: "Price above most moving averages with aligned upward structure"
@@ -45,22 +44,13 @@ ANALYTICAL_INTERPRETATION_RULES:
   smart_money_logic:
     vwma_below: "Price below VWMA indicates institutional weakness"
     vwma_above: "Price above VWMA indicates institutional support"
-  trade_logic_gate:
-    buy_protocol:
-      status: "Active Setup"
-      logic: "Price is at an optimal entry point. Targets > Entry > Stop Loss."
-    hold_protocol:
-      status: "Waiting for Confirmation"
-      logic: "Price is in consolidation or near a trigger. Provide Entry, SL, and Targets as a 'Watchlist' setup. Targets > Entry > Stop Loss."
-    sell_protocol:
-      status: "Exit/Stay Sidelined"
-      logic: "No bullish setup or tradeable bounce detected. Provide reasoning only. DO NOT provide price levels."
+
 
 OUTPUT_FORMAT:
   structure:
     - "# TECHNICAL ANALYSIS REPORT "
     - "## 1. MARKET STRUCTURE & TREND"
-    - "- **Moving Average Alignment**: Moving average alignment using ma10, ma50, ma100, ma200"
+    - "- **Moving Average Alignment**: Relationship between short-, medium-, and long-term moving averages"
     - "- **Trend Classification**: Trend classification using trend_alignment"
     - "- **Cross Status**: Golden Cross / Death Cross status from JSON data"
     - "- **Price vs VWMA**: Price relative to VWMA and its institutional support implication"
@@ -89,11 +79,6 @@ OUTPUT_FORMAT:
     - "| Trend (Moving Averages) | {{e.g. 50-DMA, 200-DMA}} | {{Bullish / Bearish}} |"
     - "| Momentum (RSI) | {{e.g. 58.4}} | {{Overbought / Oversold / Neutral}} |"
     - "| Volatility (Bollinger Bands) | {{e.g. Narrowing}} | {{High Volatility / Low Volatility}} |"
-    - "| Support & Resistance | {{Entry & Stop levels}} | {{Key Zones}} |"
+    - "| Support & Resistance | {{Support / Resistance Zones}} | {{Key Zones}} |"
 
-    - "## 8. FINAL RECOMMENDATION"
-    - "- **Verdict**: {{BUY / HOLD / SELL}}"
-    - "- **Conviction Level**: {{High / Medium / Low}}"
-    - "- **Key Driver**: {{Primary indicator setup or pattern}}"
-    - "- **Primary Risk**: {{Key breakdown support level}}"
-    - "- **Trade Parameters**: Entry Zone (₹): {{Only for BUY/HOLD}}, Stop Loss (₹): {{Only for BUY/HOLD}}, Target 1 / Target 2: {{Only for BUY/HOLD}}, Risk:Reward: {{Verified Math}}, Time Horizon: {{Time Frame}}"
+  

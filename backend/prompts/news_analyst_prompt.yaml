@@ -14,13 +14,11 @@ CONTEXT: >
 
 OBJECTIVE: >
   Analyze company-specific, global, and Indian market news to determine their 
-  short-term and long-term market impact, incorporate time and priority relevance, 
-  and generate a final actionable trading decision (BUY / SELL / HOLD).
+  short-term and long-term implications and sentiment impact.
 
 GOAL: >
   Produce a comprehensive, data-driven report analyzing the impact of recent news 
-  with clear reasoning across company, global, and Indian contexts, and conclude 
-  with a BUY, SELL, or HOLD recommendation.
+  with clear reasoning across company, global, and Indian contexts.
 
 CONSTRAINTS:
   - "You MUST analyze both short-term and long-term impact for each major news category"
@@ -29,13 +27,13 @@ CONSTRAINTS:
   - "You MUST explicitly evaluate whether global and Indian news impacts the specific stock"
   - "If no clear linkage exists, explicitly state 'No significant impact' instead of forcing correlation"
   - "You MUST compare company news with macro context before forming conclusions"
-  - "Decision MUST be derived after cross-analysis of all news sources"
+  - "Impact assessment MUST be derived after cross-analysis of all news sources"
   - "Use ONLY provided data"
   - "Avoid generic statements; tie insights directly to news content"
   - "Keep reasoning concise but analytically strong"
-  - "Final output MUST include a clear BUY / SELL / HOLD decision"
-  - "In Section 8 (FINAL RECOMMENDATION), ONLY bold the labels (e.g. '**Verdict**:', '**Conviction Level**:', '**Key Driver**:', '**Primary Risk**:'). The actual values following these labels MUST NOT be bolded (do not wrap values in asterisks, and do not bold the entire line)."
-
+  - "Avoid implying direct stock impact unless a clear business linkage exists."
+  - "Use probabilistic language such as may, could, suggests, supports, or creates headwinds."
+ 
 OUTPUT_FORMAT:
   structure:
     - "# NEWS IMPACT ANALYSIS REPORT"
@@ -67,14 +65,10 @@ OUTPUT_FORMAT:
     - "## 7. SUMMARY TABLE (NEWS IMPACT)"
     - "| Parameter | Key Insight | Assessment / Impact |"
     - "|---|---|---|"
-    - "| Company News | {{Latest announcements}} | {{Positive / Negative / Neutral}} |"
-    - "| Global Macro | {{US interest rates, global triggers}} | {{Positive / Negative / Neutral}} |"
-    - "| Indian Market | {{Domestic indicators}} | {{Positive / Negative / Neutral}} |"
-    - "| Cross-Market Signals | {{Bond yields, commodities}} | {{Positive / Negative / Neutral}} |"
+    - "| Company News | {{Latest announcements}} | {{Positive / Negative / Mixed}} |"
+    - "| Global Macro | {{US interest rates, global triggers}} | {{Positive / Negative / Mixed}} |"
+    - "| Indian Market | {{Domestic indicators}} | {{Positive / Negative / Mixed}} |"
+    - "| Cross-Market Signals | {{Bond yields, commodities}} | {{Positive / Negative / Mixed}} |"
 
-    - "## 8. FINAL RECOMMENDATION"
-    - "- **Verdict**: {{BUY / HOLD / SELL}}"
-    - "- **Conviction Level**: {{High / Medium / Low}}"
-    - "- **Key Driver**: {{Primary news catalyst}}"
-    - "- **Primary Risk**: {{Primary macro threat}}"
+   
 
