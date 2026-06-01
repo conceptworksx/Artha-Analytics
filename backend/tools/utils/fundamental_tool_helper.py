@@ -1,12 +1,33 @@
+import math
 import warnings
 import numpy as np
 import pandas as pd
 import yfinance as yf
-from typing import Any
+from typing import Any, Optional
 from core.logging import get_logger
 
 logger = get_logger(__name__)
 warnings.filterwarnings("ignore")
+
+# ── Currency formatting helpers ───────────────────────────────────────────────
+
+_CRORE = 1_00_00_000  # 1 Crore = 10,000,000
+
+
+def _to_cr(value: float | None) -> str | None:
+    """
+    Safely convert a raw-rupee value to '₹ X.XX Cr' string.
+    Returns None if value is None, not a number, or zero.
+
+    >>> _to_cr(2_161_219_840)  →  '₹ 216.12 Cr'
+    >>> _to_cr(None)           →  None
+    """
+    try:
+        if value is None:
+            return None
+        return f"₹ {float(value) / _CRORE:,.2f} Cr"
+    except (TypeError, ValueError):
+        return None
 
 
 def _series_to_dict(series: pd.Series) -> dict[str, Any]:

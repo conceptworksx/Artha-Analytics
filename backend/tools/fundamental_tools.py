@@ -14,6 +14,7 @@ from tools.utils.fundamental_tool_helper import (
     _ratio_dict,
     _safe_get,
     _margin,
+    _to_cr,
 )
 from core.yf_context import YFinance401Error, yf_call
 from tools.utils.retry_utils import with_retry
@@ -92,9 +93,17 @@ def fetch_income_stmt(df: pd.DataFrame) -> dict[str, Any]:
 
     try:
         result["income_statement"] = {
-            "revenue": _df_row(df, "Total Revenue"),
-            "ebitda": _df_row(df, "EBITDA", "Normalized EBITDA"),
-            "net_income": _df_row(df, "Net Income", "Net Income Common Stockholders"),
+            "revenue": {k: _to_cr(v) for k, v in _df_row(df, "Total Revenue").items()},
+            "ebitda": {
+                k: _to_cr(v)
+                for k, v in _df_row(df, "EBITDA", "Normalized EBITDA").items()
+            },
+            "net_income": {
+                k: _to_cr(v)
+                for k, v in _df_row(
+                    df, "Net Income", "Net Income Common Stockholders"
+                ).items()
+            },
             "eps_diluted": _df_row(df, "Diluted EPS"),
         }
 
@@ -132,21 +141,29 @@ def fetch_balance_sheet(df: pd.DataFrame, info: dict) -> dict[str, Any]:
         return result
 
     try:
-        equity = _df_row(df, "Stockholders Equity", "Common Stock Equity")
 
         result["balance_sheet"] = {
-            "cash": _df_row(
-                df,
-                "Cash And Cash Equivalents",
-                "Cash Cash Equivalents And Short Term Investments",
-            ),
-            "total_liabilities": _df_row(
-                df,
-                "Total Liabilities Net Minority Interest",
-                "Total Liabilities",
-            ),
-            "total_debt": _df_row(df, "Total Debt"),
-            "shareholders_equity": equity,
+            "cash": {
+                k: _to_cr(v)
+                for k, v in _df_row(
+                    df,
+                    "Cash And Cash Equivalents",
+                    "Cash Cash Equivalents And Short Term Investments",
+                ).items()
+            },
+            "total_liabilities": {
+                k: _to_cr(v)
+                for k, v in _df_row(
+                    df, "Total Liabilities Net Minority Interest", "Total Liabilities"
+                ).items()
+            },
+            "total_debt": {k: _to_cr(v) for k, v in _df_row(df, "Total Debt").items()},
+            "shareholders_equity": {
+                k: _to_cr(v)
+                for k, v in _df_row(
+                    df, "Stockholders Equity", "Common Stock Equity"
+                ).items()
+            },
         }
 
         logger.info("Balance sheet processed successfully")
@@ -194,7 +211,7 @@ def fetch_cash_flow(df: pd.DataFrame) -> dict[str, Any]:
 
         free_cash_flow = {
             date: (
-                round(ocf[date] + capex[date], 2)
+                round(ocf[date] - abs(capex[date]), 2)
                 if ocf.get(date) is not None and capex.get(date) is not None
                 else None
             )
@@ -202,8 +219,8 @@ def fetch_cash_flow(df: pd.DataFrame) -> dict[str, Any]:
         }
 
         result["cash_flow"] = {
-            "operating_cash_flow": ocf,
-            "free_cash_flow": free_cash_flow,
+            "operating_cash_flow": {k: _to_cr(v) for k, v in ocf.items()},
+            "free_cash_flow": {k: _to_cr(v) for k, v in free_cash_flow.items()},
         }
 
         logger.info("Cash Flow processed successfully")
@@ -375,7 +392,7 @@ def fetch_valuation(info: dict, major_holders: pd.DataFrame | None) -> dict[str,
         div_yield = _safe_get(info, "dividendYield")
 
         result["valuation"] = {
-            "market_cap": _safe_get(info, "marketCap"),
+            "market_cap": _to_cr(_safe_get(info, "marketCap")),
             "valuation_ratios": {
                 "pe_ratio": round(pe, 2) if pe is not None else None,
                 "ev_ebitda": round(ev_ebitda, 2) if ev_ebitda is not None else None,

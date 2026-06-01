@@ -1,5 +1,6 @@
 import asyncio
 from contextlib import asynccontextmanager
+from typing import Any, Optional
 
 import uvicorn
 from fastapi.responses import JSONResponse
@@ -104,6 +105,7 @@ class AnalyzeResponse(BaseModel):
     status: str
     company_info: dict | None = None
     historical_prices: list | None = None
+    charts_data: Optional[dict] = None
 
 
 @app.get("/health")
@@ -170,6 +172,7 @@ async def analyze(
             sector_report=final_state.get("sector_analyst_report", ""),
             company_info=data_bundle.get("company_info"),
             historical_prices=data_bundle.get("historical_prices"),
+            charts_data=final_state.get("charts_data"),
             status="success",
         )
 
