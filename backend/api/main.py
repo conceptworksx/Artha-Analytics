@@ -1,66 +1,16 @@
-import asyncio
-import os
 from contextlib import asynccontextmanager
-from typing import Any, Optional
-import time
 import uvicorn
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from fastapi import Depends, FastAPI, HTTPException, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
 
-from api.auth import (
-    AuthRequest,
-    AuthResponse,
-    AuthUser,
-    ChangePasswordRequest,
-    GoogleAuthRequest,
-    authenticate_google_user,
-    change_password_user,
-    get_current_user,
-    init_auth_store,
-    login_user,
-    signup_user,
-)
-from api.validators import (
-    validate_ticker_format,
-    validate_ticker_exists,
-    validate_api_keys,
-    _refresh_cache_if_stale,
-)
-from core.error import (
-    AgentError,
-    AuthenticationError,
-    LLMRateLimitError,
-    TokenLimitError,
-    ModelUnavailableError,
-    MaxRetriesExceeded,
-    NodeExecutionError,
-    DataFetchError,
-    ToolCallError,
-)
+from api.controllers import init_auth_store, _refresh_cache_if_stale
+from api.routes import router, limiter
 from core.logging import setup_logging, get_logger
-from graph.builder import build_graph
 
 setup_logging()
 logger = get_logger(__name__)
-
-
-# ── Error map ───────────────────────────────────────────────────────────────────
-_ERROR_MAP: dict[type, tuple[int, str]] = {
-    AuthenticationError: (401, "invalid_groq_api_key"),
-    LLMRateLimitError: (429, "llm_rate_limit"),
-    TokenLimitError: (422, "token_limit_exceeded"),
-    ModelUnavailableError: (503, "llm_unavailable"),
-    MaxRetriesExceeded: (503, "max_retries_exceeded"),
-    DataFetchError: (422, "data_fetch_failed"),
-    ToolCallError: (500, "tool_call_failed"),
-    NodeExecutionError: (500, "node_execution_failed"),
-    AgentError: (500, "analysis_failed"),
-}
 
 
 @asynccontextmanager
@@ -80,7 +30,6 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 
 
@@ -105,170 +54,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(router)
 
-class AnalyzeRequest(BaseModel):
-    ticker: str
-
-
-class AnalyzeResponse(BaseModel):
-    ticker: str
-    news_report: str
-    technical_report: str
-    fundamental_report: str
-    market_report: str
-    sector_report: str
-    status: str
-    company_info: dict | None = None
-    historical_prices: list | None = None
-    charts_data: Optional[dict] = None
-
-
-class VerifyGroqKeyRequest(BaseModel):
-    groq_api_key: str
-
-
-@app.get("/health")
-def health_check():
-    return {"status": "ok"}
-
-
-@app.post("/auth/signup", response_model=AuthResponse)
-def signup(body: AuthRequest):
-    return signup_user(body)
-
-
-@app.post("/auth/login", response_model=AuthResponse)
-def login(body: AuthRequest):
-    return login_user(body)
-
-
-@app.post("/auth/google", response_model=AuthResponse)
-def google_auth(body: GoogleAuthRequest):
-    return authenticate_google_user(body)
-
-
-@app.get("/auth/me", response_model=AuthUser)
-def me(user: AuthUser = Depends(get_current_user)):
-    return user
-
-
-@app.post("/auth/change-password")
-def change_password(
-    body: ChangePasswordRequest,
-    user: AuthUser = Depends(get_current_user),
-):
-    change_password_user(user, body)
-    return {"status": "success", "message": "Password updated successfully."}
-
-
-@app.post("/auth/verify-groq-key")
-def verify_groq_key(
-    body: VerifyGroqKeyRequest,
-    user: AuthUser = Depends(get_current_user),
-):
-    is_valid, err_msg = validate_api_keys(groq_api_key=body.groq_api_key)
-    if not is_valid:
-        raise HTTPException(
-            status_code=400,
-            detail={"error": "invalid_groq_api_key", "message": err_msg or "The Groq API key is invalid."}
-        )
-    return {"valid": True}
-
-
-@app.post("/analyze", response_model=AnalyzeResponse)
-@limiter.limit("3/minute")
-async def analyze(
-    request: Request,
-    body: AnalyzeRequest,
-    groq_api_key: Optional[str] = Header(None, alias="Groq-API-Key"),
-    user: AuthUser = Depends(get_current_user),
-):
-    ticker = body.ticker.strip().upper()
-    logger.info(f"Analyze request received | ticker={ticker}")
-
-    # Fallback to backend environment variable if not provided or empty
-    if not groq_api_key or groq_api_key == "undefined" or groq_api_key == "null" or not groq_api_key.strip():
-        groq_api_key = os.getenv("GROQ_API_KEY", "")
-
-    # Validate API key format
-    is_valid_key, key_error = validate_api_keys(groq_api_key=groq_api_key)
-    if not is_valid_key:
-        logger.warning(f"Invalid API key format | ticker={ticker}")
-        raise HTTPException(
-            status_code=401,
-            detail={"error": "invalid_api_key", "message": key_error},
-        )
-
-    # Validate ticker format
-    is_valid_format, format_error = validate_ticker_format(ticker)
-    if not is_valid_format:
-        logger.warning(f"Invalid ticker format | ticker={ticker}")
-        raise HTTPException(
-            status_code=422,
-            detail={
-                "error": "invalid_ticker_format",
-                "message": format_error,
-            },
-        )
-
-    # Validate ticker exists
-    is_valid_ticker, ticker_error = validate_ticker_exists(ticker)
-    if not is_valid_ticker:
-        logger.warning(f"Ticker not found | ticker={ticker}")
-        raise HTTPException(
-            status_code=404,
-            detail={"error": "ticker_not_found", "message": ticker_error},
-        )
-
-    # Run LangGraph workflow
-    try:
-        logger.info(f"Starting graph execution | ticker={ticker}")
-        graph = build_graph(groq_api_key=groq_api_key)
-        final_state = await asyncio.to_thread(
-            graph.invoke, {"ticker_of_company": ticker}
-        )
-        logger.info(f"Graph execution completed | ticker={ticker}")
-
-        data_bundle = final_state.get("data_bundle", {})
-        return AnalyzeResponse(
-            ticker=ticker,
-            news_report=final_state.get("news_analyst_report", ""),
-            technical_report=final_state.get("technical_analyst_report", ""),
-            fundamental_report=final_state.get("fundamental_analyst_report", ""),
-            market_report=final_state.get("market_analyst_report", ""),
-            sector_report=final_state.get("sector_analyst_report", ""),
-            company_info=data_bundle.get("company_info"),
-            historical_prices=data_bundle.get("historical_prices"),
-            charts_data=final_state.get("charts_data"),
-            status="success",
-        )
-
-    except AgentError as e:
-        # AgentErrors are typed and classified
-        status_code, error_code = next(
-            (v for k, v in _ERROR_MAP.items() if type(e) is k),
-            (500, "analysis_failed"),
-        )
-        logger.error(
-            f"Analysis failed | ticker={ticker} | "
-            f"error={error_code} | {type(e).__name__}: {e}"
-        )
-        raise HTTPException(
-            status_code=status_code,
-            detail={
-                "error": error_code,
-                "message": e.message,
-            },
-        )
-
-    except Exception as e:
-        logger.exception(f"Unexpected error | ticker={ticker} | error={e}")
-        raise HTTPException(
-            status_code=500,
-            detail={"error": "unexpected_error", "message": str(e)},
-        )
-
-
-# ── Local run ───────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     uvicorn.run("api.main:app", host="0.0.0.0", port=8000, reload=False)
