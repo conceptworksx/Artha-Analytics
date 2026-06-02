@@ -10,6 +10,8 @@ import urllib.parse
 from typing import Annotated
 
 import jwt
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -91,6 +93,10 @@ class AuthResponse(BaseModel):
 class ChangePasswordRequest(BaseModel):
     current_password: str = Field(min_length=8, max_length=128)
     new_password: str = Field(min_length=8, max_length=128)
+
+
+class GoogleAuthRequest(BaseModel):
+    credential_token: str
 
 
 def init_auth_store() -> None:
@@ -195,7 +201,8 @@ def signup_user(credentials: AuthRequest) -> AuthResponse:
 
 def login_user(credentials: AuthRequest) -> AuthResponse:
     user_row = _get_user_by_email(credentials.email.lower())
-    if not user_row or not _verify_password(
+    # Block standard email login if user only registered via Google and has no password hash set
+    if not user_row or not user_row.get("password_hash") or not _verify_password(
         credentials.password,
         user_row["password_hash"],
     ):
@@ -273,3 +280,79 @@ def get_current_user(
             status_code=401,
             detail={"error": "invalid_token", "message": "Session expired."},
         )
+
+
+def authenticate_google_user(body: GoogleAuthRequest) -> AuthResponse:
+    google_client_id = os.getenv("GOOGLE_CLIENT_ID", "").strip()
+    if not google_client_id:
+        raise HTTPException(
+            status_code=500,
+            detail={"error": "config_error", "message": "Google Client ID is not configured on backend."},
+        )
+
+    try:
+        id_info = id_token.verify_oauth2_token(
+            body.credential_token,
+            google_requests.Request(),
+            google_client_id,
+        )
+
+        if not id_info.get("email_verified"):
+            raise HTTPException(
+                status_code=400,
+                detail={"error": "unverified_email", "message": "Google email is not verified."},
+            )
+
+        email = id_info["email"].lower()
+        name = id_info.get("name", "")
+        google_id = id_info["sub"]
+    except ValueError as e:
+        raise HTTPException(
+            status_code=401,
+            detail={"error": "invalid_google_token", "message": f"Token verification failed: {e}"},
+        )
+
+    user_doc = _get_user_by_email(email)
+
+    if not user_doc:
+        try:
+            new_user = {
+                "email": email,
+                "name": name,
+                "google_id": google_id,
+                "password_hash": "",
+                "created_at": int(time.time()),
+            }
+            result = users_collection.insert_one(new_user)
+            user_id = str(result.inserted_id)
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail={"error": "database_error", "message": f"Failed to register Google user: {e}"},
+            )
+    else:
+        user_id = str(user_doc["_id"])
+        update_fields = {}
+        if "google_id" not in user_doc:
+            update_fields["google_id"] = google_id
+        if not user_doc.get("name") and name:
+            update_fields["name"] = name
+
+        if update_fields:
+            try:
+                users_collection.update_one(
+                    {"_id": user_doc["_id"]},
+                    {"$set": update_fields},
+                )
+            except Exception as e:
+                raise HTTPException(
+                    status_code=500,
+                    detail={"error": "database_error", "message": f"Failed to link Google account: {e}"},
+                )
+
+    user = AuthUser(
+        id=user_id,
+        email=email,
+        name=user_doc.get("name") if user_doc else name,
+    )
+    return AuthResponse(token=_create_token(user.id, user.email), user=user)

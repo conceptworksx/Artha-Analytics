@@ -316,6 +316,34 @@ export async function authRequest({
   return res.json();
 }
 
+export async function authenticateWithGoogle(credentialToken: string): Promise<AuthResponse> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE_URL}/auth/google`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ credential_token: credentialToken }),
+    });
+  } catch {
+    throw new AnalysisError({
+      title: "CONNECTION FAILED",
+      message: "Unable to reach the authentication server.",
+    });
+  }
+
+  const rawData = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    const detail = rawData?.detail ?? rawData ?? {};
+    throw new AnalysisError({
+      title: "AUTHENTICATION FAILED",
+      message: detail.message || "Google authentication failed.",
+    });
+  }
+
+  return rawData as AuthResponse;
+}
+
 export async function changePassword({
   currentPassword,
   newPassword,

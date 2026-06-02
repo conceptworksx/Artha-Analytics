@@ -17,6 +17,8 @@ from api.auth import (
     AuthResponse,
     AuthUser,
     ChangePasswordRequest,
+    GoogleAuthRequest,
+    authenticate_google_user,
     change_password_user,
     get_current_user,
     init_auth_store,
@@ -134,6 +136,11 @@ def signup(body: AuthRequest):
 @app.post("/auth/login", response_model=AuthResponse)
 def login(body: AuthRequest):
     return login_user(body)
+
+
+@app.post("/auth/google", response_model=AuthResponse)
+def google_auth(body: GoogleAuthRequest):
+    return authenticate_google_user(body)
 
 
 @app.get("/auth/me", response_model=AuthUser)

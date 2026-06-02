@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Lock, ArrowRight, User } from "lucide-react";
+import { FaGoogle } from "react-icons/fa";
 import { Toaster, toast } from "sonner";
+import Script from "next/script";
 import {
   AnalysisError,
   authRequest,
+  authenticateWithGoogle,
   saveAuthSession,
   type AuthUser,
 } from "@/lib/api";
@@ -20,6 +23,12 @@ export function AuthPanel({ onAuthed }: { onAuthed: (user: AuthUser) => void }) 
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [googleHovered, setGoogleHovered] = useState(false);
+
+  const successCallbackRef = useRef<any>(null);
+  useEffect(() => {
+    successCallbackRef.current = handleGoogleSuccess;
+  });
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -51,12 +60,73 @@ export function AuthPanel({ onAuthed }: { onAuthed: (user: AuthUser) => void }) 
     toast.info("Password reset link is not configured for local dev.");
   };
 
-  const handleGoogleAuth = () => {
-    toast.info("Google authentication is not configured for local dev.");
+  const handleGoogleSuccess = async (response: any) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const session = await authenticateWithGoogle(response.credential);
+      saveAuthSession(session);
+      toast.success("Signed in with Google successfully!");
+      onAuthed(session.user);
+    } catch (err) {
+      const errMsg = err instanceof AnalysisError ? err.message : "Google sign in failed.";
+      setError(errMsg);
+      toast.error(errMsg);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    const initGoogleGis = () => {
+      const google = (window as any).google;
+      if (google) {
+        if (!(window as any).__googleGisInitialized) {
+          google.accounts.id.initialize({
+            client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+            callback: (res: any) => successCallbackRef.current?.(res),
+            auto_select: false,
+          });
+          (window as any).__googleGisInitialized = true;
+        }
+        const btnEl = document.getElementById("google-signin-btn");
+        if (btnEl) {
+          google.accounts.id.renderButton(
+            btnEl,
+            {
+              theme: "filled_black",
+              size: "large",
+              width: 312,
+              text: "continue_with",
+              shape: "rectangular",
+            }
+          );
+        } else {
+          setTimeout(initGoogleGis, 100);
+        }
+      }
+    };
+
+    if ((window as any).google) {
+      initGoogleGis();
+    } else {
+      window.addEventListener("google-gis-loaded", initGoogleGis);
+    }
+
+    return () => {
+      window.removeEventListener("google-gis-loaded", initGoogleGis);
+    };
+  }, []);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-white text-black">
+      <Script
+        src="https://accounts.google.com/gsi/client"
+        strategy="afterInteractive"
+        onLoad={() => {
+          window.dispatchEvent(new Event("google-gis-loaded"));
+        }}
+      />
       <Toaster richColors position="top-center" />
 
       {/* Animated gold aurora */}
@@ -267,13 +337,31 @@ export function AuthPanel({ onAuthed }: { onAuthed: (user: AuthUser) => void }) 
                 <div className="h-px flex-1 bg-black/10" />
               </div>
 
-              <button
-                id="google-auth-btn"
-                onClick={handleGoogleAuth}
-                className="w-full rounded-lg border border-black/10 bg-white py-2.5 text-xs font-medium tracking-wider text-neutral-700 transition-all hover:border-[#d4a84c]/50 hover:bg-neutral-50 animate-none"
+              <div 
+                className="relative w-full h-[40px] flex justify-center mt-1"
+                onMouseEnter={() => setGoogleHovered(true)}
+                onMouseLeave={() => setGoogleHovered(false)}
               >
-                Continue with Google
-              </button>
+                {/* Visual custom button */}
+                <motion.div
+                  animate={{ 
+                    scale: googleHovered ? 1.01 : 1,
+                    backgroundColor: googleHovered ? "#262626" : "#000000"
+                  }}
+                  className="group relative w-full h-full overflow-hidden rounded-lg text-white flex items-center justify-center font-semibold text-xs tracking-[0.2em] border border-black/10 shadow-[0_2px_4px_rgba(0,0,0,0.05)] cursor-pointer select-none"
+                >
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    <FaGoogle size={13} className="text-white" />
+                    CONTINUE WITH GOOGLE
+                  </span>
+                </motion.div>
+
+                {/* Google Native button overlay */}
+                <div 
+                  id="google-signin-btn" 
+                  className="absolute inset-0 w-full h-full opacity-0 z-20 cursor-pointer overflow-hidden [&_iframe]:w-full [&_iframe]:h-full"
+                />
+              </div>
             </motion.div>
           </motion.div>
         </div>
