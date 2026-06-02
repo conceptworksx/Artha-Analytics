@@ -30,7 +30,7 @@ const ANALYSTS: Item[] = [
   { key: "news", label: "News Analyst", icon: Newspaper },
 ];
 
-export function Sidebar({
+export function AppSidebar({
   active,
   onSelect,
 }: {

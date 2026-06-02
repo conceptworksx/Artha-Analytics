@@ -8,15 +8,15 @@ import { User } from "lucide-react";
 import { MdErrorOutline } from "react-icons/md";
 import { Toaster } from "sonner";
 import { clearCached, getSavedGroqApiKey, type AuthUser } from "@/lib/api";
-import { LoadingScreen } from "./LoadingScreen";
-import { ProfileModal } from "./ProfileModal";
+import { LoadingView } from "./LoadingView";
+import { ProfileDialog } from "@/components/auth/ProfileDialog";
 
 interface Ticker {
   symbol: string;
   name: string;
 }
 
-export function TickerSearch({ user, onLogout }: { user?: AuthUser; onLogout?: () => void }) {
+export function SearchView({ user, onLogout }: { user?: AuthUser; onLogout?: () => void }) {
   const router = useRouter();
   const [tickers, setTickers] = useState<Ticker[]>([]);
   const [query, setQuery] = useState("");
@@ -112,7 +112,7 @@ export function TickerSearch({ user, onLogout }: { user?: AuthUser; onLogout?: (
   };
 
   if (loading) {
-    return <LoadingScreen ticker={selected?.symbol ?? ""} user={user} onLogout={onLogout} />;
+    return <LoadingView ticker={selected?.symbol ?? ""} user={user} onLogout={onLogout} />;
   }
 
   return (
@@ -271,7 +271,7 @@ export function TickerSearch({ user, onLogout }: { user?: AuthUser; onLogout?: (
 
       <Toaster richColors position="top-center" />
       {user && (
-        <ProfileModal
+        <ProfileDialog
           user={user}
           isOpen={showProfile}
           onClose={() => {

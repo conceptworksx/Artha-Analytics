@@ -11,12 +11,12 @@ import { AnalysisError, authRequest, authenticateWithGoogle, saveAuthSession, ty
 type Tab = "login" | "signup";
 
 const colTrans = (delay = 0) => ({
-  x: { duration: 0.8, ease: [0.22, 1, 0.36, 1], delay },
-  opacity: { duration: 0.8, ease: [0.22, 1, 0.36, 1], delay },
-  layout: { type: "spring", stiffness: 220, damping: 26 },
+  x: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as const, delay },
+  opacity: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as const, delay },
+  layout: { type: "spring" as const, stiffness: 220, damping: 26 },
 });
 
-export function AuthPanel({ onAuthed }: { onAuthed: (user: AuthUser) => void }) {
+export function AuthCard({ onAuthed }: { onAuthed: (user: AuthUser) => void }) {
   const [tab, setTab] = useState<Tab>("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");

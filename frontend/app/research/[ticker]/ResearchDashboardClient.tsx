@@ -14,12 +14,12 @@ import {
   getSavedGroqApiKey,
   type AnalyseResponse,
 } from "@/lib/api";
-import { LoadingScreen } from "@/components/LoadingScreen";
-import { Sidebar, type ViewKey } from "@/components/Sidebar";
-import { ReportView } from "@/components/ReportView";
-import { StockPriceView } from "@/components/StockPriceView";
-import { TechnicalChart } from "@/components/TechnicalChart";
-import { FundamentalChart } from "@/components/FundamentalChart";
+import { LoadingView } from "@/components/research/LoadingView";
+import { AppSidebar, type ViewKey } from "@/components/layout/AppSidebar";
+import { ReportView } from "@/components/research/ReportView";
+import { StockMetricsPanel } from "@/components/charts/StockMetricsPanel";
+import { TechnicalChart } from "@/components/charts/TechnicalChart";
+import { FundamentalChart } from "@/components/charts/FundamentalChart";
 
 interface ErrorInfo {
   title: string;
@@ -169,7 +169,7 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
   }
 
   // ── Loading screen ─────────────────────────────────────────────────────
-  if (loading || !data) return <LoadingScreen ticker={ticker} />;
+  if (loading || !data) return <LoadingView ticker={ticker} />;
 
   // ── Dashboard ──────────────────────────────────────────────────────────
   return (
@@ -197,7 +197,7 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
       </header>
 
       <div className="flex min-h-0 flex-1">
-        <Sidebar active={view} onSelect={setView} />
+        <AppSidebar active={view} onSelect={setView} />
 
         <main className="flex-1 overflow-y-auto bg-[var(--background)] p-8">
           <ViewSwitch view={view} data={data} />
@@ -218,7 +218,7 @@ function ViewSwitch({
 
   switch (view) {
     case "overview":
-      return <StockPriceView data={data} />;
+      return <StockMetricsPanel data={data} />;
     case "news":
       return (
         <ReportView

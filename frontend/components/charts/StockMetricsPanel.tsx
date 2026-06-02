@@ -18,11 +18,11 @@ interface PricePoint {
   dateStr: string;
 }
 
-interface StockPriceViewProps {
+interface StockMetricsPanelProps {
   data: any;
 }
 
-export function StockPriceView({ data }: StockPriceViewProps) {
+export function StockMetricsPanel({ data }: StockMetricsPanelProps) {
   const [timeframe, setTimeframe] = useState<"1M" | "3M" | "6M" | "1Y">("1M");
   const [showFullSummary, setShowFullSummary] = useState(false);
 

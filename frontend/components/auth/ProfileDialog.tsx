@@ -14,13 +14,13 @@ import {
   type AuthUser,
 } from "@/lib/api";
 
-interface ProfileModalProps {
+interface ProfileDialogProps {
   user: AuthUser;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function ProfileModal({ user, isOpen, onClose }: ProfileModalProps) {
+export function ProfileDialog({ user, isOpen, onClose }: ProfileDialogProps) {
   const [keyState, setKeyState] = useState({ value: "", visible: false, loading: false });
   const [pwState, setPwState] = useState({ error: null as string | null, loading: false });
 

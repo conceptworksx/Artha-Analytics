@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import DebateLoader from "./DebateLoader";
+import { RiRobot3Line } from "react-icons/ri";
+import { BiMessageRoundedDots } from "react-icons/bi";
 import type { AuthUser } from "@/lib/api";
 
 const STEPS = [
@@ -13,7 +14,7 @@ const STEPS = [
   "Manager reviewing verdict",
 ];
 
-export function LoadingScreen({
+export function LoadingView({
   ticker,
   user,
   onLogout,
@@ -111,9 +112,41 @@ export function LoadingScreen({
           <p className="font-mono text-[13px] text-neutral-600 font-semibold">
             Initialising agents for {ticker.split(".")[0].toUpperCase()}...
           </p>
-          <div className="my-6 w-full flex justify-center">
-            <DebateLoader />
-          </div>
+            <div className="debate mx-auto my-4">
+              {/* Left Robot */}
+              <div className="robot left">
+                <RiRobot3Line />
+              </div>
+
+              {/* Left Thinking Bubble */}
+              <div className="thinking-bubble left-thinking">
+                <div className="dot"></div>
+                <div className="dot"></div>
+                <div className="dot"></div>
+              </div>
+
+              {/* Message flying Left to Right */}
+              <div className="message send-right">
+                <BiMessageRoundedDots />
+              </div>
+
+              {/* Right Thinking Bubble */}
+              <div className="thinking-bubble right-thinking">
+                <div className="dot"></div>
+                <div className="dot"></div>
+                <div className="dot"></div>
+              </div>
+
+              {/* Message flying Right to Left */}
+              <div className="message send-left">
+                <BiMessageRoundedDots />
+              </div>
+
+              {/* Right Robot */}
+              <div className="robot right">
+                <RiRobot3Line />
+              </div>
+            </div>
           <p className="font-mono text-[13px] text-neutral-800 font-medium tracking-wide">
             {STEPS[step]}
           </p>

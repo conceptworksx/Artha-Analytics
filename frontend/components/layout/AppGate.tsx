@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { clearAuthSession, getAuthUser, type AuthUser } from "@/lib/api";
-import { AuthPanel } from "@/components/AuthPanel";
-import { TickerSearch } from "@/components/TickerSearch";
+import { AuthCard } from "@/components/auth/AuthCard";
+import { SearchView } from "@/components/research/SearchView";
 
 export function AppGate() {
   const [showIntro, setShowIntro] = useState(true);
@@ -28,7 +28,7 @@ export function AppGate() {
   };
 
   return (
-    <>
+    <>  
       {showIntro && (
         <div
           className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-white text-black transition-opacity duration-500 ${
@@ -59,9 +59,9 @@ export function AppGate() {
         }`}
       >
         {user ? (
-          <TickerSearch user={user} onLogout={handleLogout} />
+          <SearchView user={user} onLogout={handleLogout} />
         ) : (
-          <AuthPanel onAuthed={setUser} />
+          <AuthCard onAuthed={setUser} />
         )}
       </div>
     </>
