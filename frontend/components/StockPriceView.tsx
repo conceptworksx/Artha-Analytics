@@ -172,7 +172,7 @@ export function StockPriceView({ data }: StockPriceViewProps) {
   const baselinePrice = chartData[0]?.price || prevClose;
 
   // Time stamp string
-  const timeString = `Historical prices up to ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })} · Disclaimer`;
+  const timeString = `Historical prices up to ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`;
 
   return (
     <div className="mx-auto max-w-[920px] rounded-2xl border border-[var(--border)] bg-white p-6 shadow-sm">
@@ -322,53 +322,34 @@ export function StockPriceView({ data }: StockPriceViewProps) {
         <h3 className="font-sans text-xs font-extrabold uppercase tracking-widest text-zinc-400">
           Key Statistics
         </h3>
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 font-mono text-[14px]">
-          {/* Column 1 */}
-          <div className="flex flex-col gap-3">
-            <div className="flex border-b border-zinc-50 pb-1.5">
-              <span className="w-24 shrink-0 text-zinc-400">Open</span>
-              <span className="font-semibold text-zinc-900">{formatValue(openPrice)}</span>
-            </div>
-            <div className="flex border-b border-zinc-50 pb-1.5">
-              <span className="w-24 shrink-0 text-zinc-400">High</span>
-              <span className="font-semibold text-zinc-900">{formatValue(dayHigh)}</span>
-            </div>
-            <div className="flex border-b border-zinc-50 pb-1.5">
-              <span className="w-24 shrink-0 text-zinc-400">Low</span>
-              <span className="font-semibold text-zinc-900">{formatValue(dayLow)}</span>
-            </div>
-          </div>
-
-          {/* Column 2 */}
-          <div className="flex flex-col gap-3">
-            <div className="flex border-b border-zinc-50 pb-1.5">
-              <span className="w-24 shrink-0 text-zinc-400">Mkt Cap</span>
-              <span className="font-semibold text-zinc-900">{formatMarketCap(mktCap)}</span>
-            </div>
-            <div className="flex border-b border-zinc-50 pb-1.5">
-              <span className="w-24 shrink-0 text-zinc-400">P/E ratio</span>
-              <span className="font-semibold text-zinc-900">{peRatio ? peRatio.toFixed(2) : "N/A"}</span>
-            </div>
-            <div className="flex border-b border-zinc-50 pb-1.5">
-              <span className="w-24 shrink-0 text-zinc-400">Volume</span>
-              <span className="font-semibold text-zinc-900">{formatVolume(volume)}</span>
-            </div>
-          </div>
-
-          {/* Column 3 */}
-          <div className="flex flex-col gap-3">
-            <div className="flex border-b border-zinc-50 pb-1.5">
-              <span className="w-24 shrink-0 text-zinc-400">Prev close</span>
-              <span className="font-semibold text-zinc-900">{formatValue(prevClose)}</span>
-            </div>
-            <div className="flex border-b border-zinc-50 pb-1.5">
-              <span className="w-24 shrink-0 text-zinc-400">52W high</span>
-              <span className="font-semibold text-zinc-900">{formatValue(fiftyTwoWeekHigh)}</span>
-            </div>
-            <div className="flex border-b border-zinc-50 pb-1.5">
-              <span className="w-24 shrink-0 text-zinc-400">52W low</span>
-              <span className="font-semibold text-zinc-900">{formatValue(fiftyTwoWeekLow)}</span>
-            </div>
+        <div className="mt-4 rounded-xl bg-zinc-50 p-4 border border-zinc-100">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 font-mono text-[14px]">
+            {[
+              [
+                { label: "Open", val: formatValue(openPrice) },
+                { label: "High", val: formatValue(dayHigh) },
+                { label: "Low", val: formatValue(dayLow) },
+              ],
+              [
+                { label: "Mkt Cap", val: formatMarketCap(mktCap) },
+                { label: "P/E ratio", val: peRatio ? peRatio.toFixed(2) : "N/A" },
+                { label: "Volume", val: formatVolume(volume) },
+              ],
+              [
+                { label: "Prev close", val: formatValue(prevClose) },
+                { label: "52W high", val: formatValue(fiftyTwoWeekHigh) },
+                { label: "52W low", val: formatValue(fiftyTwoWeekLow) },
+              ],
+            ].map((col, cIdx) => (
+              <div key={cIdx} className="flex flex-col gap-3">
+                {col.map(({ label, val }) => (
+                  <div key={label} className="flex border-b border-zinc-200/50 pb-1.5 last:border-b-0 md:last:border-b">
+                    <span className="w-24 shrink-0 text-zinc-400">{label}</span>
+                    <span className="font-semibold text-zinc-900">{val}</span>
+                  </div>
+                ))}
+              </div>
+            ))}
           </div>
         </div>
       </div>

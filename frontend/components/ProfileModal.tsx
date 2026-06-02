@@ -21,28 +21,19 @@ interface ProfileModalProps {
 }
 
 export function ProfileModal({ user, isOpen, onClose }: ProfileModalProps) {
-  const [groqApiKey, setGroqApiKey] = useState("");
-  const [showKey, setShowKey] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordLoading, setPasswordLoading] = useState(false);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [keyLoading, setKeyLoading] = useState(false);
+  const [keyState, setKeyState] = useState({ value: "", visible: false, loading: false });
+  const [pwState, setPwState] = useState({ error: null as string | null, loading: false });
 
   useEffect(() => {
     if (isOpen) {
-      setGroqApiKey(getSavedGroqApiKey());
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      setPasswordError(null);
+      setKeyState({ value: getSavedGroqApiKey(), visible: false, loading: false });
+      setPwState({ error: null, loading: false });
     }
   }, [isOpen]);
 
   const handleSaveApiKey = async (e: React.FormEvent) => {
     e.preventDefault();
-    const keyToSave = groqApiKey.trim();
+    const keyToSave = keyState.value.trim();
 
     if (!keyToSave) {
       saveGroqApiKey("");
@@ -50,7 +41,7 @@ export function ProfileModal({ user, isOpen, onClose }: ProfileModalProps) {
       return;
     }
 
-    setKeyLoading(true);
+    setKeyState((prev) => ({ ...prev, loading: true }));
     try {
       const token = getAuthToken();
       await verifyGroqApiKey({ groqApiKey: keyToSave, authToken: token });
@@ -60,45 +51,45 @@ export function ProfileModal({ user, isOpen, onClose }: ProfileModalProps) {
       const errMsg = err instanceof AnalysisError ? err.message : "Invalid Groq API Key.";
       toast.error(errMsg);
     } finally {
-      setKeyLoading(false);
+      setKeyState((prev) => ({ ...prev, loading: false }));
     }
   };
 
-  const handlePasswordSubmit = async (e: React.FormEvent) => {
+  const handlePasswordSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setPasswordError(null);
+    setPwState({ error: null, loading: false });
+
+    const formData = new FormData(e.currentTarget);
+    const currentPassword = (formData.get("currentPassword") as string) || "";
+    const newPassword = (formData.get("newPassword") as string) || "";
+    const confirmPassword = (formData.get("confirmPassword") as string) || "";
 
     if (newPassword.length < 8) {
-      setPasswordError("New password must be at least 8 characters.");
-      toast.error("New password must be at least 8 characters.");
+      const errMsg = "New password must be at least 8 characters.";
+      setPwState((prev) => ({ ...prev, error: errMsg }));
+      toast.error(errMsg);
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setPasswordError("New passwords do not match.");
-      toast.error("New passwords do not match.");
+      const errMsg = "New passwords do not match.";
+      setPwState((prev) => ({ ...prev, error: errMsg }));
+      toast.error(errMsg);
       return;
     }
 
-    setPasswordLoading(true);
+    setPwState((prev) => ({ ...prev, loading: true }));
     try {
       const token = getAuthToken();
-      await changePassword({
-        currentPassword,
-        newPassword,
-        authToken: token,
-      });
+      await changePassword({ currentPassword, newPassword, authToken: token });
       toast.success("Password changed successfully!");
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
+      e.currentTarget.reset();
     } catch (err) {
-      const errMsg =
-        err instanceof AnalysisError ? err.message : "Failed to change password.";
-      setPasswordError(errMsg);
+      const errMsg = err instanceof AnalysisError ? err.message : "Failed to change password.";
+      setPwState((prev) => ({ ...prev, error: errMsg }));
       toast.error(errMsg);
     } finally {
-      setPasswordLoading(false);
+      setPwState((prev) => ({ ...prev, loading: false }));
     }
   };
 
@@ -129,12 +120,8 @@ export function ProfileModal({ user, isOpen, onClose }: ProfileModalProps) {
                   <User size={16} />
                 </div>
                 <div>
-                  <h3 className="font-sans text-sm font-bold tracking-wide text-black">
-                    PROFILE SETTINGS
-                  </h3>
-                  <p className="font-mono text-[9px] uppercase tracking-wider text-neutral-400">
-                    Manage your account
-                  </p>
+                  <h3 className="font-sans text-sm font-bold tracking-wide text-black">PROFILE SETTINGS</h3>
+                  <p className="font-mono text-[9px] uppercase tracking-wider text-neutral-400">Manage your account</p>
                 </div>
               </div>
               <button
@@ -159,26 +146,24 @@ export function ProfileModal({ user, isOpen, onClose }: ProfileModalProps) {
 
             {/* Groq API Key Section */}
             <form onSubmit={handleSaveApiKey} className="flex flex-col gap-2.5">
-              <label className="font-mono text-[10px] font-bold tracking-wider text-neutral-500">
-                GROQ API KEY
-              </label>
+              <label className="font-mono text-[10px] font-bold tracking-wider text-neutral-500">GROQ API KEY</label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
                   <Key size={14} />
                 </span>
                 <input
-                  type={showKey ? "text" : "password"}
+                  type={keyState.visible ? "text" : "password"}
                   placeholder="gsk_..."
-                  value={groqApiKey}
-                  onChange={(e) => setGroqApiKey(e.target.value)}
+                  value={keyState.value}
+                  onChange={(e) => setKeyState((prev) => ({ ...prev, value: e.target.value }))}
                   className="w-full rounded-lg border border-black/10 bg-white py-2 pl-9 pr-10 text-xs font-mono text-black placeholder:text-neutral-300 focus:border-[#d4a84c] focus:outline-none focus:ring-4 focus:ring-[#d4a84c]/10"
                 />
                 <button
                   type="button"
-                  onClick={() => setShowKey(!showKey)}
+                  onClick={() => setKeyState((prev) => ({ ...prev, visible: !prev.visible }))}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-black transition-colors"
                 >
-                  {showKey ? <EyeOff size={14} /> : <Eye size={14} />}
+                  {keyState.visible ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
               </div>
               <div className="flex justify-between items-center mt-1">
@@ -195,10 +180,10 @@ export function ProfileModal({ user, isOpen, onClose }: ProfileModalProps) {
                 </span>
                 <button
                   type="submit"
-                  disabled={keyLoading}
+                  disabled={keyState.loading}
                   className="rounded-lg bg-black px-4 py-1.5 font-mono text-[10px] font-bold tracking-widest text-white hover:bg-neutral-800 disabled:opacity-50 transition-colors cursor-pointer"
                 >
-                  {keyLoading ? "VERIFYING..." : "SAVE API KEY"}
+                  {keyState.loading ? "VERIFYING..." : "SAVE API KEY"}
                 </button>
               </div>
             </form>
@@ -207,52 +192,44 @@ export function ProfileModal({ user, isOpen, onClose }: ProfileModalProps) {
 
             {/* Change Password Section */}
             <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-3">
-              <label className="font-mono text-[10px] font-bold tracking-wider text-neutral-500">
-                CHANGE PASSWORD
-              </label>
+              <label className="font-mono text-[10px] font-bold tracking-wider text-neutral-500">CHANGE PASSWORD</label>
 
               <div className="flex flex-col gap-2">
-                {/* Current Password */}
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
                     <Lock size={14} />
                   </span>
                   <input
+                    name="currentPassword"
                     type="password"
                     placeholder="Current Password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
                     required
                     className="w-full rounded-lg border border-black/10 bg-white py-2 pl-9 pr-3 text-xs text-black placeholder:text-neutral-400 focus:border-[#d4a84c] focus:outline-none focus:ring-4 focus:ring-[#d4a84c]/10"
                   />
                 </div>
 
-                {/* New Password */}
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
                     <Lock size={14} />
                   </span>
                   <input
+                    name="newPassword"
                     type="password"
                     placeholder="New Password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
                     required
                     minLength={8}
                     className="w-full rounded-lg border border-black/10 bg-white py-2 pl-9 pr-3 text-xs text-black placeholder:text-neutral-400 focus:border-[#d4a84c] focus:outline-none focus:ring-4 focus:ring-[#d4a84c]/10"
                   />
                 </div>
 
-                {/* Confirm New Password */}
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
                     <Lock size={14} />
                   </span>
                   <input
+                    name="confirmPassword"
                     type="password"
                     placeholder="Confirm New Password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                     minLength={8}
                     className="w-full rounded-lg border border-black/10 bg-white py-2 pl-9 pr-3 text-xs text-black placeholder:text-neutral-400 focus:border-[#d4a84c] focus:outline-none focus:ring-4 focus:ring-[#d4a84c]/10"
@@ -260,18 +237,16 @@ export function ProfileModal({ user, isOpen, onClose }: ProfileModalProps) {
                 </div>
               </div>
 
-              {passwordError && (
-                <p className="text-[10px] font-bold text-red-500 tracking-wide">
-                  {passwordError}
-                </p>
+              {pwState.error && (
+                <p className="text-[10px] font-bold text-red-500 tracking-wide">{pwState.error}</p>
               )}
 
               <button
                 type="submit"
-                disabled={passwordLoading}
+                disabled={pwState.loading}
                 className="self-end rounded-lg bg-black px-4 py-1.5 font-mono text-[10px] font-bold tracking-widest text-white hover:bg-neutral-800 disabled:opacity-50 transition-colors cursor-pointer"
               >
-                {passwordLoading ? "CHANGING..." : "UPDATE PASSWORD"}
+                {pwState.loading ? "CHANGING..." : "UPDATE PASSWORD"}
               </button>
             </form>
           </motion.div>

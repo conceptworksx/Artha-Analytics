@@ -3,15 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Fuse from "fuse.js";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { User } from "lucide-react";
 import { MdErrorOutline } from "react-icons/md";
 import { Toaster } from "sonner";
-import {
-  clearCached,
-  getSavedGroqApiKey,
-  type AuthUser,
-} from "@/lib/api";
+import { clearCached, getSavedGroqApiKey, type AuthUser } from "@/lib/api";
 import { LoadingScreen } from "./LoadingScreen";
 import { ProfileModal } from "./ProfileModal";
 
@@ -20,13 +16,7 @@ interface Ticker {
   name: string;
 }
 
-export function TickerSearch({
-  user,
-  onLogout,
-}: {
-  user?: AuthUser;
-  onLogout?: () => void;
-}) {
+export function TickerSearch({ user, onLogout }: { user?: AuthUser; onLogout?: () => void }) {
   const router = useRouter();
   const [tickers, setTickers] = useState<Ticker[]>([]);
   const [query, setQuery] = useState("");
@@ -37,14 +27,12 @@ export function TickerSearch({
   const [error, setError] = useState<string | null>(null);
   const [showProfile, setShowProfile] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(true);
-  const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setHasApiKey(!!getSavedGroqApiKey()?.trim());
   }, []);
 
-  // Load tickers on mount
   useEffect(() => {
     fetch("/nse-tickers.json")
       .then((r) => r.json())
@@ -53,13 +41,8 @@ export function TickerSearch({
   }, []);
 
   const fuse = useMemo(
-    () =>
-      new Fuse(tickers, {
-        keys: ["symbol", "name"],
-        threshold: 0.3,
-        ignoreLocation: true,
-      }),
-    [tickers],
+    () => new Fuse(tickers, { keys: ["symbol", "name"], threshold: 0.3, ignoreLocation: true }),
+    [tickers]
   );
 
   const results = useMemo(() => {
@@ -73,71 +56,63 @@ export function TickerSearch({
     setOpen(false);
   };
 
+  const scrollToItem = (index: number) => {
+    requestAnimationFrame(() => {
+      listRef.current?.children[index]?.scrollIntoView({ block: "nearest" });
+    });
+  };
+
   const handleKey = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
       e.preventDefault();
       if (!open && results.length > 0) {
         setOpen(true);
         setHighlight(0);
-        return;
+      } else if (results.length > 0) {
+        setHighlight((h) => {
+          const next = Math.min(h + 1, results.length - 1);
+          scrollToItem(next);
+          return next;
+        });
       }
-      if (results.length === 0) return;
-      setHighlight((h) => {
-        const next = Math.min(h + 1, results.length - 1);
-        scrollToItem(next);
-        return next;
-      });
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      if (!open || results.length === 0) return;
-      setHighlight((h) => {
-        const next = Math.max(h - 1, 0);
-        scrollToItem(next);
-        return next;
-      });
-    } else if (e.key === "Enter") {
       if (open && results.length > 0) {
-        e.preventDefault();
+        setHighlight((h) => {
+          const next = Math.max(h - 1, 0);
+          scrollToItem(next);
+          return next;
+        });
+      }
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (open && results.length > 0) {
         handleSelect(results[highlight]);
+      } else if (selected) {
+        handleAnalyse(selected);
       }
     } else if (e.key === "Escape") {
       setOpen(false);
     }
   };
 
-  const scrollToItem = (index: number) => {
-    requestAnimationFrame(() => {
-      const list = listRef.current;
-      if (!list) return;
-      const item = list.children[index] as HTMLElement | undefined;
-      item?.scrollIntoView({ block: "nearest" });
-    });
-  };
-
-  const handleAnalyse = async () => {
-    if (!selected) return;
+  const handleAnalyse = async (t?: Ticker) => {
+    const target = t || selected;
+    if (!target) return;
 
     setLoading(true);
     setError(null);
     try {
-      clearCached(selected.symbol);
-      router.push(`/research/${selected.symbol}`);
+      clearCached(target.symbol);
+      router.push(`/research/${target.symbol}`);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to reach analysis service",
-      );
+      setError(err instanceof Error ? err.message : "Failed to reach analysis service");
       setLoading(false);
     }
   };
 
   if (loading) {
-    return (
-      <LoadingScreen
-        ticker={selected?.symbol ?? ""}
-        user={user}
-        onLogout={onLogout}
-      />
-    );
+    return <LoadingScreen ticker={selected?.symbol ?? ""} user={user} onLogout={onLogout} />;
   }
 
   return (
@@ -163,23 +138,14 @@ export function TickerSearch({
           className="absolute h-1 w-1 rounded-full bg-[#d4a84c]/50"
           style={{ left: `${(i * 67) % 100}%`, top: `${(i * 41) % 100}%` }}
           animate={{ y: [0, -35, 0], opacity: [0.15, 0.8, 0.15] }}
-          transition={{
-            duration: 5 + (i % 6),
-            repeat: Infinity,
-            delay: i * 0.4,
-            ease: "easeInOut",
-          }}
+          transition={{ duration: 5 + (i % 6), repeat: Infinity, delay: i * 0.4, ease: "easeInOut" }}
         />
       ))}
 
       {/* Navbar matching report page style */}
       <header className="flex h-16 shrink-0 items-center justify-between border-b border-black/10 bg-white/70 backdrop-blur-md px-5 w-full z-10">
         <div className="flex items-center">
-          <img
-            src="/navbar.png"
-            alt="Artha Analytics"
-            className="h-14 object-contain"
-          />
+          <img src="/navbar.png" alt="Artha Analytics" className="h-14 object-contain" />
         </div>
 
         {user && onLogout && (
@@ -198,9 +164,7 @@ export function TickerSearch({
               ) : (
                 <MdErrorOutline size={14} className="text-red-500 animate-pulse shrink-0" />
               )}
-              <span className="truncate max-w-[150px]">
-                {user.name || user.email.split("@")[0]}
-              </span>
+              <span className="truncate max-w-[150px]">{user.name || user.email.split("@")[0]}</span>
               {!hasApiKey && <span className="text-[11px] font-bold text-red-500">!</span>}
             </button>
             <span className="h-4 w-px bg-black/10 hidden sm:block" />
@@ -231,7 +195,6 @@ export function TickerSearch({
           {/* Ticker Search Input wrapper */}
           <div className="relative w-full">
             <input
-              ref={inputRef}
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value);
@@ -247,7 +210,11 @@ export function TickerSearch({
             />
 
             {open && results.length > 0 && (
-              <div ref={listRef} role="listbox" className="absolute left-0 right-0 top-full mt-2 z-10 max-h-[300px] overflow-y-auto border border-black/5 bg-white/95 backdrop-blur-md rounded-lg shadow-lg">
+              <div
+                ref={listRef}
+                role="listbox"
+                className="absolute left-0 right-0 top-full mt-2 z-10 max-h-[300px] overflow-y-auto border border-black/5 bg-white/95 backdrop-blur-md rounded-lg shadow-lg"
+              >
                 {results.map((t, i) => (
                   <button
                     key={t.symbol}
@@ -259,15 +226,12 @@ export function TickerSearch({
                       handleSelect(t);
                     }}
                     onMouseEnter={() => setHighlight(i)}
-                    className={`flex h-10 w-full items-center justify-between px-4 text-left transition-colors duration-100 ${i === highlight ? "bg-black/5" : "bg-transparent"
-                      }`}
+                    className={`flex h-10 w-full items-center justify-between px-4 text-left transition-colors duration-100 ${
+                      i === highlight ? "bg-black/5" : "bg-transparent"
+                    }`}
                   >
-                    <span className="font-mono text-[13px] font-bold text-black">
-                      {t.symbol}
-                    </span>
-                    <span className="ml-4 truncate text-[12px] text-neutral-500">
-                      {t.name}
-                    </span>
+                    <span className="font-mono text-[13px] font-bold text-black">{t.symbol}</span>
+                    <span className="ml-4 truncate text-[12px] text-neutral-500">{t.name}</span>
                   </button>
                 ))}
               </div>
@@ -276,18 +240,14 @@ export function TickerSearch({
 
           {selected && (
             <button
-              onClick={handleAnalyse}
+              onClick={() => handleAnalyse()}
               className="mt-3 block h-11 w-full bg-black text-[13px] font-medium text-white transition-colors hover:bg-neutral-800 rounded-lg shadow-sm font-sans tracking-widest cursor-pointer"
             >
               ANALYSE {selected.symbol} →
             </button>
           )}
 
-          {error && (
-            <p className="mt-4 text-center font-mono text-[11px] text-[var(--sell)]">
-              {error}
-            </p>
-          )}
+          {error && <p className="mt-4 text-center font-mono text-[11px] text-[var(--sell)]">{error}</p>}
         </div>
       </main>
 
@@ -323,4 +283,3 @@ export function TickerSearch({
     </div>
   );
 }
-

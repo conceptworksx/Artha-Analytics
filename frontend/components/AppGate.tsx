@@ -1,11 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  clearAuthSession,
-  getAuthUser,
-  type AuthUser,
-} from "@/lib/api";
+import { clearAuthSession, getAuthUser, type AuthUser } from "@/lib/api";
 import { AuthPanel } from "@/components/AuthPanel";
 import { TickerSearch } from "@/components/TickerSearch";
 
@@ -16,16 +12,9 @@ export function AppGate() {
 
   useEffect(() => {
     setUser(getAuthUser());
-  }, []);
 
-  useEffect(() => {
-    const fadeTimeout = setTimeout(() => {
-      setFadeOutIntro(true);
-    }, 2600);
-
-    const removeTimeout = setTimeout(() => {
-      setShowIntro(false);
-    }, 3100);
+    const fadeTimeout = setTimeout(() => setFadeOutIntro(true), 2600);
+    const removeTimeout = setTimeout(() => setShowIntro(false), 3100);
 
     return () => {
       clearTimeout(fadeTimeout);
@@ -49,7 +38,7 @@ export function AppGate() {
           <div className="text-center">
             <div className="candle-wrapper">
               <div className="candle-chart">
-                {[...Array(18)].map((_, i) => (
+                {Array.from({ length: 18 }).map((_, i) => (
                   <div key={i} className="candle" />
                 ))}
               </div>

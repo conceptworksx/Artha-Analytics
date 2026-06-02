@@ -166,27 +166,13 @@ def verify_groq_key(
     body: VerifyGroqKeyRequest,
     user: AuthUser = Depends(get_current_user),
 ):
-    import httpx
-    try:
-        res = httpx.get(
-            "https://api.groq.com/openai/v1/models",
-            headers={"Authorization": f"Bearer {body.groq_api_key}"},
-            timeout=5.0
-        )
-        if res.status_code == 200:
-            return {"valid": True}
-        else:
-            raise HTTPException(
-                status_code=400,
-                detail={"error": "invalid_groq_api_key", "message": "The Groq API key is invalid or unauthorized."}
-            )
-    except HTTPException:
-        raise
-    except Exception as e:
+    is_valid, err_msg = validate_api_keys(groq_api_key=body.groq_api_key)
+    if not is_valid:
         raise HTTPException(
-            status_code=500,
-            detail={"error": "verification_failed", "message": f"Could not contact Groq servers: {e}"}
+            status_code=400,
+            detail={"error": "invalid_groq_api_key", "message": err_msg or "The Groq API key is invalid."}
         )
+    return {"valid": True}
 
 
 @app.post("/analyze", response_model=AnalyzeResponse)

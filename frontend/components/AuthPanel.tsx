@@ -2,19 +2,19 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, ArrowRight, User } from "lucide-react";
+import { Mail, Lock, ArrowRight, User, Eye, EyeOff } from "lucide-react";
 import { FaGoogle } from "react-icons/fa";
 import { Toaster, toast } from "sonner";
 import Script from "next/script";
-import {
-  AnalysisError,
-  authRequest,
-  authenticateWithGoogle,
-  saveAuthSession,
-  type AuthUser,
-} from "@/lib/api";
+import { AnalysisError, authRequest, authenticateWithGoogle, saveAuthSession, type AuthUser } from "@/lib/api";
 
 type Tab = "login" | "signup";
+
+const colTrans = (delay = 0) => ({
+  x: { duration: 0.8, ease: [0.22, 1, 0.36, 1], delay },
+  opacity: { duration: 0.8, ease: [0.22, 1, 0.36, 1], delay },
+  layout: { type: "spring", stiffness: 220, damping: 26 },
+});
 
 export function AuthPanel({ onAuthed }: { onAuthed: (user: AuthUser) => void }) {
   const [tab, setTab] = useState<Tab>("login");
@@ -23,12 +23,9 @@ export function AuthPanel({ onAuthed }: { onAuthed: (user: AuthUser) => void }) 
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [googleHovered, setGoogleHovered] = useState(false);
 
   const successCallbackRef = useRef<any>(null);
-  useEffect(() => {
-    successCallbackRef.current = handleGoogleSuccess;
-  });
+  useEffect(() => { successCallbackRef.current = handleGoogleSuccess; });
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -91,16 +88,13 @@ export function AuthPanel({ onAuthed }: { onAuthed: (user: AuthUser) => void }) 
         }
         const btnEl = document.getElementById("google-signin-btn");
         if (btnEl) {
-          google.accounts.id.renderButton(
-            btnEl,
-            {
-              theme: "filled_black",
-              size: "large",
-              width: 312,
-              text: "continue_with",
-              shape: "rectangular",
-            }
-          );
+          google.accounts.id.renderButton(btnEl, {
+            theme: "filled_black",
+            size: "large",
+            width: 312,
+            text: "continue_with",
+            shape: "rectangular",
+          });
         } else {
           setTimeout(initGoogleGis, 100);
         }
@@ -112,10 +106,7 @@ export function AuthPanel({ onAuthed }: { onAuthed: (user: AuthUser) => void }) 
     } else {
       window.addEventListener("google-gis-loaded", initGoogleGis);
     }
-
-    return () => {
-      window.removeEventListener("google-gis-loaded", initGoogleGis);
-    };
+    return () => window.removeEventListener("google-gis-loaded", initGoogleGis);
   }, []);
 
   return (
@@ -123,9 +114,7 @@ export function AuthPanel({ onAuthed }: { onAuthed: (user: AuthUser) => void }) 
       <Script
         src="https://accounts.google.com/gsi/client"
         strategy="afterInteractive"
-        onLoad={() => {
-          window.dispatchEvent(new Event("google-gis-loaded"));
-        }}
+        onLoad={() => window.dispatchEvent(new Event("google-gis-loaded"))}
       />
       <Toaster richColors position="top-center" />
 
@@ -151,47 +140,26 @@ export function AuthPanel({ onAuthed }: { onAuthed: (user: AuthUser) => void }) 
           className="absolute h-1 w-1 rounded-full bg-[#d4a84c]/60"
           style={{ left: `${(i * 53) % 100}%`, top: `${(i * 37) % 100}%` }}
           animate={{ y: [0, -30, 0], opacity: [0.2, 1, 0.2] }}
-          transition={{
-            duration: 4 + (i % 5),
-            repeat: Infinity,
-            delay: i * 0.3,
-            ease: "easeInOut",
-          }}
+          transition={{ duration: 4 + (i % 5), repeat: Infinity, delay: i * 0.3, ease: "easeInOut" }}
         />
       ))}
 
       <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-8 w-full max-w-[900px] mx-auto">
         <motion.div layout className="grid w-full grid-cols-1 items-center gap-10 md:grid-cols-2 md:gap-16">
-          
           {/* Left Column: Logo + AI info */}
           <motion.div
             layout
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{
-              x: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
-              opacity: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
-              layout: { type: "spring", stiffness: 220, damping: 26 }
-            }}
-            className={`flex flex-col items-center text-center ${
-              tab === "login" ? "md:order-2" : "md:order-1"
-            }`}
+            transition={colTrans(0)}
+            className={`flex flex-col items-center text-center ${tab === "login" ? "md:order-2" : "md:order-1"}`}
           >
             <div className="relative mb-4">
               <div className="absolute inset-0 rounded-full bg-[#d4a84c]/10 blur-2xl" />
-              <img
-                src="/landing_hero.png"
-                alt="Artha Logo"
-                className="relative h-72 w-72 object-contain md:h-80 md:w-80"
-              />
+              <img src="/landing_hero.png" alt="Artha Logo" className="relative h-72 w-72 object-contain md:h-80 md:w-80" />
             </div>
-            
-            <h1 className="text-2xl font-bold tracking-tight text-black md:text-3xl font-sans">
-              Artha Analytics
-            </h1>
-            <p className="mt-3 text-sm font-semibold tracking-wider text-[#d4a84c] font-mono">
-              Multi-Agent AI. Singular Market Edge
-            </p>
+            <h1 className="text-2xl font-bold tracking-tight text-black md:text-3xl font-sans">Artha Analytics</h1>
+            <p className="mt-3 text-sm font-semibold tracking-wider text-[#d4a84c] font-mono">Multi-Agent AI. Singular Market Edge</p>
           </motion.div>
 
           {/* Right Column: Card */}
@@ -199,14 +167,8 @@ export function AuthPanel({ onAuthed }: { onAuthed: (user: AuthUser) => void }) 
             layout
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{
-              x: { duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.1 },
-              opacity: { duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.1 },
-              layout: { type: "spring", stiffness: 220, damping: 26 }
-            }}
-            className={`w-full max-w-[360px] mx-auto ${
-              tab === "login" ? "md:order-1" : "md:order-2"
-            }`}
+            transition={colTrans(0.1)}
+            className={`w-full max-w-[360px] mx-auto ${tab === "login" ? "md:order-1" : "md:order-2"}`}
           >
             <motion.div
               className="relative rounded-2xl border border-black/10 bg-white/70 p-6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.2)] backdrop-blur-xl h-[465px] flex flex-col justify-between w-full"
@@ -223,13 +185,8 @@ export function AuthPanel({ onAuthed }: { onAuthed: (user: AuthUser) => void }) 
                   <button
                     key={t}
                     id={`tab-${t}-btn`}
-                    onClick={() => {
-                      setTab(t);
-                      setError(null);
-                    }}
-                    className={`relative z-10 py-2 text-xs font-semibold tracking-[0.2em] transition-colors ${
-                      tab === t ? "text-white" : "text-neutral-600 hover:text-black"
-                    }`}
+                    onClick={() => { setTab(t); setError(null); }}
+                    className={`relative z-10 py-2 text-xs font-semibold tracking-[0.2em] transition-colors ${tab === t ? "text-white" : "text-neutral-600 hover:text-black"}`}
                   >
                     {t.toUpperCase()}
                   </button>
@@ -287,15 +244,9 @@ export function AuthPanel({ onAuthed }: { onAuthed: (user: AuthUser) => void }) 
                       minLength={8}
                       autoComplete={tab === "login" ? "current-password" : "new-password"}
                     />
-
                     {tab === "login" && (
                       <div className="flex justify-end">
-                        <a
-                          id="forgot-password-link"
-                          href="#"
-                          onClick={handleForgotPassword}
-                          className="text-[11px] text-neutral-500 transition-colors hover:text-[#d4a84c]"
-                        >
+                        <a id="forgot-password-link" href="#" onClick={handleForgotPassword} className="text-[11px] text-neutral-500 transition-colors hover:text-[#d4a84c]">
                           Forgot password?
                         </a>
                       </div>
@@ -304,15 +255,10 @@ export function AuthPanel({ onAuthed }: { onAuthed: (user: AuthUser) => void }) 
 
                   <div className="space-y-3">
                     {error && (
-                      <motion.p
-                        initial={{ opacity: 0, y: -4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="text-xs font-semibold text-red-500 text-center tracking-wide"
-                      >
+                      <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="text-xs font-semibold text-red-500 text-center tracking-wide">
                         {error}
                       </motion.p>
                     )}
-
                     <motion.button
                       id="auth-submit-btn"
                       whileHover={{ scale: 1.01 }}
@@ -322,7 +268,7 @@ export function AuthPanel({ onAuthed }: { onAuthed: (user: AuthUser) => void }) 
                       className="group relative w-full overflow-hidden rounded-lg bg-black py-2.5 text-xs font-semibold tracking-[0.3em] text-white disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       <span className="relative z-10 flex items-center justify-center gap-1.5">
-                        {loading ? "PLEASE WAIT..." : (tab === "login" ? "LOGIN" : "CREATE ACCOUNT")}
+                        {loading ? "PLEASE WAIT..." : tab === "login" ? "LOGIN" : "CREATE ACCOUNT"}
                         {!loading && <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />}
                       </span>
                       {!loading && (
@@ -344,30 +290,16 @@ export function AuthPanel({ onAuthed }: { onAuthed: (user: AuthUser) => void }) 
                 <div className="h-px flex-1 bg-black/10" />
               </div>
 
-              <div 
-                className="relative w-full h-[40px] flex justify-center mt-1"
-                onMouseEnter={() => setGoogleHovered(true)}
-                onMouseLeave={() => setGoogleHovered(false)}
-              >
+              <div className="group relative w-full h-[40px] flex justify-center mt-1">
                 {/* Visual custom button */}
-                <motion.div
-                  animate={{ 
-                    scale: googleHovered ? 1.01 : 1,
-                    backgroundColor: googleHovered ? "#262626" : "#000000"
-                  }}
-                  className="group relative w-full h-full overflow-hidden rounded-lg text-white flex items-center justify-center font-semibold text-xs tracking-[0.2em] border border-black/10 shadow-[0_2px_4px_rgba(0,0,0,0.05)] cursor-pointer select-none"
-                >
+                <div className="relative w-full h-full overflow-hidden rounded-lg bg-black text-white flex items-center justify-center font-semibold text-xs tracking-[0.2em] border border-black/10 cursor-pointer select-none transition-all duration-200 group-hover:scale-[1.01]">
                   <span className="relative z-10 flex items-center justify-center gap-2">
                     <FaGoogle size={13} className="text-white" />
                     CONTINUE WITH GOOGLE
                   </span>
-                </motion.div>
-
+                </div>
                 {/* Google Native button overlay */}
-                <div 
-                  id="google-signin-btn" 
-                  className="absolute inset-0 w-full h-full opacity-0 z-20 cursor-pointer overflow-hidden [&_iframe]:w-full [&_iframe]:h-full"
-                />
+                <div id="google-signin-btn" className="absolute inset-0 w-full h-full opacity-0 z-20 cursor-pointer overflow-hidden [&_iframe]:w-full [&_iframe]:h-full" />
               </div>
             </motion.div>
           </motion.div>
@@ -377,18 +309,7 @@ export function AuthPanel({ onAuthed }: { onAuthed: (user: AuthUser) => void }) 
   );
 }
 
-function Field({
-  icon,
-  label,
-  type,
-  placeholder,
-  value,
-  onChange,
-  id,
-  required,
-  minLength,
-  autoComplete,
-}: {
+interface FieldProps {
   icon: React.ReactNode;
   label: string;
   type: string;
@@ -399,27 +320,38 @@ function Field({
   required?: boolean;
   minLength?: number;
   autoComplete?: string;
-}) {
+}
+
+function Field({ icon, label, type, placeholder, value, onChange, id, required, minLength, autoComplete }: FieldProps) {
+  const [showPassword, setShowPassword] = useState(false);
+  const isPassword = type === "password";
+  const inputType = isPassword ? (showPassword ? "text" : "password") : type;
+
   return (
     <div className="group">
-      <label className="mb-1 block text-[9px] font-semibold tracking-[0.2em] text-neutral-500">
-        {label}
-      </label>
+      <label className="mb-1 block text-[9px] font-semibold tracking-[0.2em] text-neutral-500">{label}</label>
       <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 transition-colors group-focus-within:text-[#d4a84c]">
-          {icon}
-        </span>
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 transition-colors group-focus-within:text-[#d4a84c]">{icon}</span>
         <input
           id={id}
-          type={type}
+          type={inputType}
           placeholder={placeholder}
           value={value}
           onChange={onChange}
           required={required}
           minLength={minLength}
           autoComplete={autoComplete}
-          className="w-full rounded-lg border border-black/10 bg-white/60 py-2.5 pl-9 pr-3 text-sm text-black placeholder:text-neutral-400 transition-all focus:border-[#d4a84c] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#d4a84c]/15"
+          className="w-full rounded-lg border border-black/10 bg-white/60 py-2.5 pl-9 pr-10 text-sm text-black placeholder:text-neutral-400 transition-all focus:border-[#d4a84c] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#d4a84c]/15"
         />
+        {isPassword && (
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-black transition-colors"
+          >
+            {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+          </button>
+        )}
       </div>
     </div>
   );
