@@ -191,8 +191,6 @@ export async function analyseTicker({
     fundamental_report: rawData.fundamental_report || "No fundamental report available.",
     market_report: rawData.market_report || "No market report available.",
     sector_report: rawData.sector_report || "No sector report available.",
-    investment_debate: rawData.investment_debate || DEFAULT_DEBATE,
-    research_verdict: rawData.research_verdict || DEFAULT_VERDICT,
     status: rawData.status || "success",
     company_info: rawData.company_info || null,
     historical_prices: rawData.historical_prices || [],
@@ -210,7 +208,6 @@ export async function analyseTicker({
     throw new AnalysisError(buildErrorMessage(res.status, detail));
   }
 
-  const data: AnalyseResponse = await res.json();
   return data;
 }
 

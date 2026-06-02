@@ -28,12 +28,10 @@ interface ErrorInfo {
 export default function ResearchDashboardClient({ ticker }: { ticker: string }) {
   const router = useRouter();
   const [data, setData] = useState<AnalyseResponse | null>(null);
-
-  const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<ViewKey>("overview");
   const [error, setError] = useState<ErrorInfo | null>(null);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<ViewKey>("technical");
+  // const [view, setView] = useState<ViewKey>("technical");
   const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
