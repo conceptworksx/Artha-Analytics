@@ -9,6 +9,7 @@ import { MdErrorOutline } from "react-icons/md";
 import { Toaster } from "sonner";
 import {
   clearCached,
+  getSavedGroqApiKey,
   type AuthUser,
 } from "@/lib/api";
 import { LoadingScreen } from "./LoadingScreen";
@@ -40,9 +41,7 @@ export function TickerSearch({
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setHasApiKey(!!localStorage.getItem("groq_api_key")?.trim());
-    }
+    setHasApiKey(!!getSavedGroqApiKey()?.trim());
   }, []);
 
   // Load tickers on mount
@@ -317,7 +316,7 @@ export function TickerSearch({
           isOpen={showProfile}
           onClose={() => {
             setShowProfile(false);
-            setHasApiKey(!!localStorage.getItem("groq_api_key")?.trim());
+            setHasApiKey(!!getSavedGroqApiKey()?.trim());
           }}
         />
       )}

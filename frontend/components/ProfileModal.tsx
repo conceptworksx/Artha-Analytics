@@ -8,6 +8,8 @@ import {
   changePassword,
   getAuthToken,
   verifyGroqApiKey,
+  getSavedGroqApiKey,
+  saveGroqApiKey,
   AnalysisError,
   type AuthUser,
 } from "@/lib/api";
@@ -30,7 +32,7 @@ export function ProfileModal({ user, isOpen, onClose }: ProfileModalProps) {
 
   useEffect(() => {
     if (isOpen) {
-      setGroqApiKey(localStorage.getItem("groq_api_key") || "");
+      setGroqApiKey(getSavedGroqApiKey());
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -43,7 +45,7 @@ export function ProfileModal({ user, isOpen, onClose }: ProfileModalProps) {
     const keyToSave = groqApiKey.trim();
 
     if (!keyToSave) {
-      localStorage.removeItem("groq_api_key");
+      saveGroqApiKey("");
       toast.success("Groq API Key cleared successfully.");
       return;
     }
@@ -52,7 +54,7 @@ export function ProfileModal({ user, isOpen, onClose }: ProfileModalProps) {
     try {
       const token = getAuthToken();
       await verifyGroqApiKey({ groqApiKey: keyToSave, authToken: token });
-      localStorage.setItem("groq_api_key", keyToSave);
+      saveGroqApiKey(keyToSave);
       toast.success("Groq API Key verified & saved successfully!");
     } catch (err) {
       const errMsg = err instanceof AnalysisError ? err.message : "Invalid Groq API Key.";

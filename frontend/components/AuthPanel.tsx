@@ -161,45 +161,52 @@ export function AuthPanel({ onAuthed }: { onAuthed: (user: AuthUser) => void }) 
       ))}
 
       <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-8 w-full max-w-[900px] mx-auto">
-        <div className="grid w-full grid-cols-1 items-center gap-10 md:grid-cols-2 md:gap-16">
+        <motion.div layout className="grid w-full grid-cols-1 items-center gap-10 md:grid-cols-2 md:gap-16">
           
           {/* Left Column: Logo + AI info */}
           <motion.div
+            layout
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="flex flex-col items-center text-center md:items-start md:text-left"
+            transition={{
+              x: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
+              opacity: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
+              layout: { type: "spring", stiffness: 220, damping: 26 }
+            }}
+            className={`flex flex-col items-center text-center ${
+              tab === "login" ? "md:order-2" : "md:order-1"
+            }`}
           >
-            <motion.div
-              className="relative mb-4"
-              whileHover={{ scale: 1.04, rotate: -1 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <div className="absolute inset-0 rounded-full bg-[#d4a84c]/20 blur-2xl" />
+            <div className="relative mb-4">
+              <div className="absolute inset-0 rounded-full bg-[#d4a84c]/10 blur-2xl" />
               <img
                 src="/landing_hero.png"
                 alt="Artha Logo"
-                className="relative h-44 w-44 object-contain md:h-52 md:w-52"
+                className="relative h-72 w-72 object-contain md:h-80 md:w-80"
               />
-            </motion.div>
+            </div>
             
             <h1 className="text-2xl font-bold tracking-tight text-black md:text-3xl font-sans">
               Artha Analytics
             </h1>
-            <p className="mt-3 text-sm font-semibold tracking-widest text-[#d4a84c] uppercase font-mono">
-              Stock Market AI Intelligence
-            </p>
-            <p className="mt-3 max-w-[340px] text-xs font-mono leading-relaxed text-neutral-500">
-              Supercharge your investments using advanced multi-agent reasoning to fetch, process, and analyze market data in real-time.
+            <p className="mt-3 text-sm font-semibold tracking-wider text-[#d4a84c] font-mono">
+              Multi-Agent AI. Singular Market Edge
             </p>
           </motion.div>
 
           {/* Right Column: Card */}
           <motion.div
+            layout
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-            className="w-full max-w-[360px] mx-auto"
+            transition={{
+              x: { duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.1 },
+              opacity: { duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.1 },
+              layout: { type: "spring", stiffness: 220, damping: 26 }
+            }}
+            className={`w-full max-w-[360px] mx-auto ${
+              tab === "login" ? "md:order-1" : "md:order-2"
+            }`}
           >
             <motion.div
               className="relative rounded-2xl border border-black/10 bg-white/70 p-6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.2)] backdrop-blur-xl h-[465px] flex flex-col justify-between w-full"
@@ -364,7 +371,7 @@ export function AuthPanel({ onAuthed }: { onAuthed: (user: AuthUser) => void }) 
               </div>
             </motion.div>
           </motion.div>
-        </div>
+        </motion.div>
       </div>
     </main>
   );

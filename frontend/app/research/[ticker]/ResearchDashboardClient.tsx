@@ -11,14 +11,13 @@ import {
   readCached,
   clearCached,
   getAuthToken,
+  getSavedGroqApiKey,
   type AnalyseResponse,
 } from "@/lib/api";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { Sidebar, type ViewKey } from "@/components/Sidebar";
 import { ReportView } from "@/components/ReportView";
-import { DebateRoom } from "@/components/DebateRoom";
 import { StockPriceView } from "@/components/StockPriceView";
-import { decisionColor } from "@/components/VerdictBadge";
 import { TechnicalChart } from "@/components/TechnicalChart";
 import { FundamentalChart } from "@/components/FundamentalChart";
 
@@ -61,7 +60,7 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
     setError(null);
     setData(null);
 
-    const groqApiKey = localStorage.getItem("groq_api_key") || "";
+    const groqApiKey = getSavedGroqApiKey();
 
     analyseTicker({
       ticker,

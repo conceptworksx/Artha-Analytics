@@ -274,6 +274,34 @@ export function getAuthUser(): AuthUser | null {
   }
 }
 
+export function getSavedGroqApiKey(): string {
+  if (typeof window === "undefined") return "";
+  const user = getAuthUser();
+  if (!user) return "";
+  try {
+    localStorage.removeItem("groq_api_key");
+  } catch {}
+  try {
+    return localStorage.getItem(`groq_api_key_${user.email}`) || "";
+  } catch {
+    return "";
+  }
+}
+
+export function saveGroqApiKey(key: string) {
+  if (typeof window === "undefined") return;
+  const user = getAuthUser();
+  if (!user) return;
+  const trimmed = key.trim();
+  try {
+    if (!trimmed) {
+      localStorage.removeItem(`groq_api_key_${user.email}`);
+    } else {
+      localStorage.setItem(`groq_api_key_${user.email}`, trimmed);
+    }
+  } catch {}
+}
+
 export async function authRequest({
   mode,
   email,
