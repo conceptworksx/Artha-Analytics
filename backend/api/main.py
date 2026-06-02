@@ -116,6 +116,8 @@ class AnalyzeResponse(BaseModel):
     market_report: str
     sector_report: str
     status: str
+    company_info: dict | None = None
+    historical_prices: list | None = None
     charts_data: Optional[dict] = None
 
 
@@ -202,6 +204,7 @@ async def analyze(
         )
         logger.info(f"Graph execution completed | ticker={ticker}")
 
+        data_bundle = final_state.get("data_bundle", {})
         return AnalyzeResponse(
             ticker=ticker,
             news_report=final_state.get("news_analyst_report", ""),
@@ -209,6 +212,8 @@ async def analyze(
             fundamental_report=final_state.get("fundamental_analyst_report", ""),
             market_report=final_state.get("market_analyst_report", ""),
             sector_report=final_state.get("sector_analyst_report", ""),
+            company_info=data_bundle.get("company_info"),
+            historical_prices=data_bundle.get("historical_prices"),
             charts_data=final_state.get("charts_data"),
             status="success",
         )

@@ -16,6 +16,9 @@ import {
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { Sidebar, type ViewKey } from "@/components/Sidebar";
 import { ReportView } from "@/components/ReportView";
+import { DebateRoom } from "@/components/DebateRoom";
+import { StockPriceView } from "@/components/StockPriceView";
+import { decisionColor } from "@/components/VerdictBadge";
 import { TechnicalChart } from "@/components/TechnicalChart";
 import { FundamentalChart } from "@/components/FundamentalChart";
 
@@ -27,9 +30,10 @@ interface ErrorInfo {
 export default function ResearchDashboardClient({ ticker }: { ticker: string }) {
   const router = useRouter();
   const [data, setData] = useState<AnalyseResponse | null>(null);
+  const [view, setView] = useState<ViewKey>("overview");
   const [error, setError] = useState<ErrorInfo | null>(null);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<ViewKey>("technical");
+  // const [view, setView] = useState<ViewKey>("technical");
   const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
@@ -214,6 +218,8 @@ function ViewSwitch({
   const t = data.ticker;
 
   switch (view) {
+    case "overview":
+      return <StockPriceView data={data} />;
     case "news":
       return (
         <ReportView

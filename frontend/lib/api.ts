@@ -6,6 +6,9 @@ export interface AnalyseResponse {
   market_report: string;
   sector_report: string;
   status: string;
+  company_info?: any;
+  historical_prices?: any[];
+
   charts_data?: {
     technical_history: Array<{
       date: string;
@@ -205,6 +208,21 @@ export async function analyseTicker({
     });
   }
 
+  const rawData = await res.json();
+
+  // Inject fallback dummy values if they are missing from the backend response
+  const data: AnalyseResponse = {
+    ticker: rawData.ticker ?? cleanTicker,
+    news_report: rawData.news_report || "No news report available.",
+    technical_report: rawData.technical_report || "No technical report available.",
+    fundamental_report: rawData.fundamental_report || "No fundamental report available.",
+    market_report: rawData.market_report || "No market report available.",
+    sector_report: rawData.sector_report || "No sector report available.",
+    status: rawData.status || "success",
+    company_info: rawData.company_info || null,
+    historical_prices: rawData.historical_prices || [],
+  };
+
   if (!res.ok) {
     let detail: BackendErrorDetail = {};
     try {
@@ -217,7 +235,6 @@ export async function analyseTicker({
     throw new AnalysisError(buildErrorMessage(res.status, detail));
   }
 
-  const data: AnalyseResponse = await res.json();
   return data;
 }
 
