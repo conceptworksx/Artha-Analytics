@@ -221,6 +221,7 @@ export async function analyseTicker({
     status: rawData.status || "success",
     company_info: rawData.company_info || null,
     historical_prices: rawData.historical_prices || [],
+    charts_data: rawData.charts_data,
   };
 
   if (!res.ok) {
@@ -380,7 +381,13 @@ export function readCached(ticker: string): AnalyseResponse | null {
   try {
     const clean = normalizeTicker(ticker);
     const raw = sessionStorage.getItem(KEY(clean));
-    return raw ? (JSON.parse(raw) as AnalyseResponse) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as AnalyseResponse;
+    if (!parsed.charts_data) {
+      sessionStorage.removeItem(KEY(clean));
+      return null;
+    }
+    return parsed;
   } catch {
     return null;
   }

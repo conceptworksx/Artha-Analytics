@@ -58,7 +58,7 @@ export function TechnicalChart({ data }: { data?: TechDataPoint[] }) {
         {/* Price Sub-chart */}
         <div className="h-[280px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} syncId="techChart" margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <AreaChart data={data} syncId="techChart" margin={{ top: 10, right: 25, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorClose" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.05} />
@@ -72,6 +72,7 @@ export function TechnicalChart({ data }: { data?: TechDataPoint[] }) {
                 tickLine={false}
                 axisLine={false}
                 tick={{ fill: "var(--muted-foreground)", fontSize: 10, fontFamily: "monospace" }}
+                minTickGap={50}
               />
               <YAxis
                 domain={["auto", "auto"]}
@@ -79,6 +80,7 @@ export function TechnicalChart({ data }: { data?: TechDataPoint[] }) {
                 axisLine={false}
                 tickFormatter={(v) => `₹${v}`}
                 tick={{ fill: "var(--muted-foreground)", fontSize: 10, fontFamily: "monospace" }}
+                tickCount={5}
               />
               <Tooltip
                 contentStyle={{
@@ -149,7 +151,7 @@ export function TechnicalChart({ data }: { data?: TechDataPoint[] }) {
             MOMENTUM (RSI 14)
           </div>
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} syncId="techChart" margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+            <LineChart data={data} syncId="techChart" margin={{ top: 5, right: 25, left: -20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
               <XAxis
                 dataKey="date"
@@ -173,8 +175,8 @@ export function TechnicalChart({ data }: { data?: TechDataPoint[] }) {
                 }}
                 labelFormatter={formatDate}
               />
-              <ReferenceLine y={70} stroke="#f43f5e" strokeDasharray="3 3" label={{ value: "OB", fill: "#f43f5e", fontSize: 9, position: "insideLeft", fontFamily: "monospace" }} />
-              <ReferenceLine y={30} stroke="#10b981" strokeDasharray="3 3" label={{ value: "OS", fill: "#10b981", fontSize: 9, position: "insideLeft", fontFamily: "monospace" }} />
+              <ReferenceLine y={70} stroke="#f43f5e" strokeDasharray="3 3" />
+              <ReferenceLine y={30} stroke="#10b981" strokeDasharray="3 3" />
               <ReferenceLine y={50} stroke="#cbd5e1" strokeDasharray="2 2" />
               <Line
                 name="RSI"

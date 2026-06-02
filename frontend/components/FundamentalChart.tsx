@@ -121,7 +121,7 @@ export function FundamentalChart({ data }: { data?: FinancialsHistory }) {
         <TabsContent value="growth" className="mt-0 outline-none">
           <div className="h-[280px] w-full mt-4">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 5 }}>
+              <BarChart data={chartData} margin={{ top: 10, right: 25, left: 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                 <XAxis
                   dataKey="year"
@@ -135,6 +135,7 @@ export function FundamentalChart({ data }: { data?: FinancialsHistory }) {
                   tickFormatter={formatValue}
                   width={90}
                   tick={{ fill: "var(--muted-foreground)", fontSize: 10, fontFamily: "monospace" }}
+                  tickCount={5}
                 />
                 <Tooltip
                   formatter={(value: number | string) => [formatValue(Number(value)), ""]}
@@ -164,7 +165,7 @@ export function FundamentalChart({ data }: { data?: FinancialsHistory }) {
         <TabsContent value="profitability" className="mt-0 outline-none">
           <div className="h-[280px] w-full mt-4">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 5 }}>
+              <LineChart data={chartData} margin={{ top: 10, right: 25, left: 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                 <XAxis
                   dataKey="year"
@@ -179,6 +180,7 @@ export function FundamentalChart({ data }: { data?: FinancialsHistory }) {
                   axisLine={false}
                   tickFormatter={(v) => `${v}%`}
                   tick={{ fill: "var(--muted-foreground)", fontSize: 10, fontFamily: "monospace" }}
+                  tickCount={5}
                 />
                 {/* Secondary Axis: Debt/Equity ratio */}
                 <YAxis
@@ -188,6 +190,7 @@ export function FundamentalChart({ data }: { data?: FinancialsHistory }) {
                   axisLine={false}
                   tickFormatter={(v) => `${v}x`}
                   tick={{ fill: "var(--muted-foreground)", fontSize: 10, fontFamily: "monospace" }}
+                  tickCount={5}
                 />
                 <Tooltip
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any

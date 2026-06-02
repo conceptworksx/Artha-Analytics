@@ -242,7 +242,7 @@ export function StockPriceView({ data }: StockPriceViewProps) {
       <div className="mt-6 h-[260px] w-full">
         {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ top: 10, right: 5, left: -20, bottom: 0 }}>
+            <AreaChart data={chartData} margin={{ top: 10, right: 25, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor={strokeColor} stopOpacity={0.06} />
@@ -257,6 +257,7 @@ export function StockPriceView({ data }: StockPriceViewProps) {
                 tickLine={false}
                 axisLine={false}
                 dy={8}
+                minTickGap={50}
               />
               <YAxis
                 domain={["auto", "auto"]}
@@ -266,6 +267,7 @@ export function StockPriceView({ data }: StockPriceViewProps) {
                 tickLine={false}
                 axisLine={false}
                 dx={-8}
+                tickCount={5}
               />
               <Tooltip
                 content={({ active, payload }) => {
@@ -323,48 +325,48 @@ export function StockPriceView({ data }: StockPriceViewProps) {
         <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 font-mono text-[14px]">
           {/* Column 1 */}
           <div className="flex flex-col gap-3">
-            <div className="flex justify-between border-b border-zinc-50 pb-1.5">
-              <span className="text-zinc-400">Open</span>
+            <div className="flex border-b border-zinc-50 pb-1.5">
+              <span className="w-24 shrink-0 text-zinc-400">Open</span>
               <span className="font-semibold text-zinc-900">{formatValue(openPrice)}</span>
             </div>
-            <div className="flex justify-between border-b border-zinc-50 pb-1.5">
-              <span className="text-zinc-400">High</span>
+            <div className="flex border-b border-zinc-50 pb-1.5">
+              <span className="w-24 shrink-0 text-zinc-400">High</span>
               <span className="font-semibold text-zinc-900">{formatValue(dayHigh)}</span>
             </div>
-            <div className="flex justify-between border-b border-zinc-50 pb-1.5">
-              <span className="text-zinc-400">Low</span>
+            <div className="flex border-b border-zinc-50 pb-1.5">
+              <span className="w-24 shrink-0 text-zinc-400">Low</span>
               <span className="font-semibold text-zinc-900">{formatValue(dayLow)}</span>
             </div>
           </div>
 
           {/* Column 2 */}
           <div className="flex flex-col gap-3">
-            <div className="flex justify-between border-b border-zinc-50 pb-1.5">
-              <span className="text-zinc-400">Mkt Cap</span>
+            <div className="flex border-b border-zinc-50 pb-1.5">
+              <span className="w-24 shrink-0 text-zinc-400">Mkt Cap</span>
               <span className="font-semibold text-zinc-900">{formatMarketCap(mktCap)}</span>
             </div>
-            <div className="flex justify-between border-b border-zinc-50 pb-1.5">
-              <span className="text-zinc-400">P/E ratio</span>
+            <div className="flex border-b border-zinc-50 pb-1.5">
+              <span className="w-24 shrink-0 text-zinc-400">P/E ratio</span>
               <span className="font-semibold text-zinc-900">{peRatio ? peRatio.toFixed(2) : "N/A"}</span>
             </div>
-            <div className="flex justify-between border-b border-zinc-50 pb-1.5">
-              <span className="text-zinc-400">Volume</span>
+            <div className="flex border-b border-zinc-50 pb-1.5">
+              <span className="w-24 shrink-0 text-zinc-400">Volume</span>
               <span className="font-semibold text-zinc-900">{formatVolume(volume)}</span>
             </div>
           </div>
 
           {/* Column 3 */}
           <div className="flex flex-col gap-3">
-            <div className="flex justify-between border-b border-zinc-50 pb-1.5">
-              <span className="text-zinc-400">Prev close</span>
+            <div className="flex border-b border-zinc-50 pb-1.5">
+              <span className="w-24 shrink-0 text-zinc-400">Prev close</span>
               <span className="font-semibold text-zinc-900">{formatValue(prevClose)}</span>
             </div>
-            <div className="flex justify-between border-b border-zinc-50 pb-1.5">
-              <span className="text-zinc-400">52W high</span>
+            <div className="flex border-b border-zinc-50 pb-1.5">
+              <span className="w-24 shrink-0 text-zinc-400">52W high</span>
               <span className="font-semibold text-zinc-900">{formatValue(fiftyTwoWeekHigh)}</span>
             </div>
-            <div className="flex justify-between border-b border-zinc-50 pb-1.5">
-              <span className="text-zinc-400">52W low</span>
+            <div className="flex border-b border-zinc-50 pb-1.5">
+              <span className="w-24 shrink-0 text-zinc-400">52W low</span>
               <span className="font-semibold text-zinc-900">{formatValue(fiftyTwoWeekLow)}</span>
             </div>
           </div>
