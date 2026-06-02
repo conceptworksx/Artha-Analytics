@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import {
   changePassword,
   getAuthToken,
+  verifyGroqApiKey,
   AnalysisError,
   type AuthUser,
 } from "@/lib/api";
@@ -25,6 +26,7 @@ export function ProfileModal({ user, isOpen, onClose }: ProfileModalProps) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [keyLoading, setKeyLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -36,10 +38,28 @@ export function ProfileModal({ user, isOpen, onClose }: ProfileModalProps) {
     }
   }, [isOpen]);
 
-  const handleSaveApiKey = (e: React.FormEvent) => {
+  const handleSaveApiKey = async (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem("groq_api_key", groqApiKey.trim());
-    toast.success("Groq API Key saved successfully!");
+    const keyToSave = groqApiKey.trim();
+
+    if (!keyToSave) {
+      localStorage.removeItem("groq_api_key");
+      toast.success("Groq API Key cleared successfully.");
+      return;
+    }
+
+    setKeyLoading(true);
+    try {
+      const token = getAuthToken();
+      await verifyGroqApiKey({ groqApiKey: keyToSave, authToken: token });
+      localStorage.setItem("groq_api_key", keyToSave);
+      toast.success("Groq API Key verified & saved successfully!");
+    } catch (err) {
+      const errMsg = err instanceof AnalysisError ? err.message : "Invalid Groq API Key.";
+      toast.error(errMsg);
+    } finally {
+      setKeyLoading(false);
+    }
   };
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
@@ -173,9 +193,10 @@ export function ProfileModal({ user, isOpen, onClose }: ProfileModalProps) {
                 </span>
                 <button
                   type="submit"
-                  className="rounded-lg bg-black px-4 py-1.5 font-mono text-[10px] font-bold tracking-widest text-white hover:bg-neutral-800 transition-colors cursor-pointer"
+                  disabled={keyLoading}
+                  className="rounded-lg bg-black px-4 py-1.5 font-mono text-[10px] font-bold tracking-widest text-white hover:bg-neutral-800 disabled:opacity-50 transition-colors cursor-pointer"
                 >
-                  SAVE API KEY
+                  {keyLoading ? "VERIFYING..." : "SAVE API KEY"}
                 </button>
               </div>
             </form>

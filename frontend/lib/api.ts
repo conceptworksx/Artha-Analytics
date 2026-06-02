@@ -388,6 +388,47 @@ export async function changePassword({
   return res.json();
 }
 
+export async function verifyGroqApiKey({
+  groqApiKey,
+  authToken,
+}: {
+  groqApiKey: string;
+  authToken: string;
+}): Promise<{ valid: boolean }> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE_URL}/auth/verify-groq-key`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({
+        groq_api_key: groqApiKey,
+      }),
+    });
+  } catch {
+    throw new AnalysisError({
+      title: "CONNECTION FAILED",
+      message: "Unable to reach the authentication server.",
+    });
+  }
+
+  if (!res.ok) {
+    let detail: BackendErrorDetail = {};
+    try {
+      const errorBody = await res.json();
+      detail = errorBody?.detail ?? errorBody ?? {};
+    } catch {}
+    throw new AnalysisError({
+      title: "KEY VALIDATION FAILED",
+      message: detail.message || "Failed to verify the Groq API key.",
+    });
+  }
+
+  return res.json();
+}
+
 // ── Session cache ──────────────────────────────────────────────────────────────
 
 const KEY = (t: string) => `arbor:research:${t.toUpperCase()}`;
