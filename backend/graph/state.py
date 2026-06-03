@@ -45,22 +45,40 @@ class AgentState(TypedDict):
 
     # --- Analyst Insights ---
     market_analyst_report: Annotated[
-        str,
-        "Comprehensive analysis of broader market regimes (Bullish/Bearish/Neutral).",
+        str, "Comprehensive analysis of broader market regimes (Bullish/Bearish/Neutral).",
     ]
+    market_analyst_summary: Annotated[
+        dict, "Structured market summary for Bull/Bear debate."
+    ]
+
     fundamental_analyst_report: Annotated[
-        str,
-        "Evaluation of financial health, including P/E ratios, debt levels, and earnings.",
+        str,  "Evaluation of financial health, including P/E ratios, debt levels, and earnings.",
     ]
-    sector_analyst_report: Annotated[
-        str, "Specific analysis of sector-level trends, tailwinds, and headwinds."
+    fundamental_analyst_summary: Annotated[
+        dict, "Structured summary used by Bull/Bear agents.",
     ]
+  
     technical_analyst_report: Annotated[
         str, "Technical strength of the stock based on the indicator parameters"
     ]
+    technical_analyst_summary: Annotated[
+        dict, "Structured technical summary for Bull/Bear debate."
+    ]
+    
     news_analyst_report: Annotated[
         str, "Summary of recent high-impact news and PR events."
     ]
+    news_analyst_summary: Annotated[
+        dict, "Structured news summary for Bull/Bear debate."
+    ]
+
+    # sector_analyst_report: Annotated[
+    #     str, "Specific analysis of sector-level trends, tailwinds, and headwinds."
+    # ]
+    # sector_analyst_summary: Annotated[
+    # dict, "Structured sector summary for Bull/Bear debate."
+    # ]
+
     final_report: Annotated[
         str, "single concatenated report combining all analyst report"
     ]

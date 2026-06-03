@@ -1,3 +1,5 @@
+from unittest import result
+
 from graph.state import AgentState
 from tools.data_preftech import prefetch_ticker_bundle
 from tools.data_processor import process_prefetch_result
@@ -24,7 +26,7 @@ def make_nodes(groq_api_key: str) -> dict:
     fundamental_agent = FundamentalAnalyst(groq_api_key=groq_api_key)
     technical_agent   = TechnicalAnalyst(groq_api_key=groq_api_key)
     news_agent        = NewsAnalyst(groq_api_key=groq_api_key)
-    sector_agent      = SectorAnalyst(groq_api_key=groq_api_key)
+    # sector_agent      = SectorAnalyst(groq_api_key=groq_api_key)
 
     # ── Node functions ────────────────────────────────────────────────────
 
@@ -35,25 +37,47 @@ def make_nodes(groq_api_key: str) -> dict:
         charts_data      = processed_bundle.get("charts_data", {})
         return {"data_bundle": processed_bundle, "charts_data": charts_data}
 
+    
     @handle_node_errors("market_analyst")
     def run_market_analyst(state: AgentState) -> dict:
-        return {"market_analyst_report": market_agent.run(state)}
+        result = market_agent.run(state)
+
+        return {
+            "market_analyst_report": result.report,
+            "market_analyst_summary": result.summary.model_dump(),
+        }
 
     @handle_node_errors("fundamental_analyst")
     def run_fundamental_analyst(state: AgentState) -> dict:
-        return {"fundamental_analyst_report": fundamental_agent.run(state)}
+        result = fundamental_agent.run(state)
 
+        return {
+            "fundamental_analyst_report": result.report,
+            "fundamental_analyst_summary": result.summary.model_dump(),
+        }
+        
     @handle_node_errors("technical_analyst")
     def run_technical_analyst(state: AgentState) -> dict:
-        return {"technical_analyst_report": technical_agent.run(state)}
 
+        result = technical_agent.run(state)
+
+        return {
+            "technical_analyst_report": result.report,
+            "technical_analyst_summary": result.summary.model_dump(),
+        }
+    
     @handle_node_errors("news_analyst")
     def run_news_analyst(state: AgentState) -> dict:
-        return {"news_analyst_report": news_agent.run(state)}
+        result = news_agent.run(state)
 
-    @handle_node_errors("sector_analyst")
-    def run_sector_analyst(state: AgentState) -> dict:
-        return {"sector_analyst_report": sector_agent.run(state)}
+        return {
+            "news_analyst_report": result.report,
+            "news_analyst_summary": result.summary.model_dump(),
+        }
+
+    # @handle_node_errors("sector_analyst")
+    # def run_sector_analyst(state: AgentState) -> dict:
+    #     return {"sector_analyst_report": sector_agent.run(state)}
 
     @handle_node_errors("aggregator")
     def run_aggregator(state: AgentState) -> dict:
@@ -63,7 +87,7 @@ def make_nodes(groq_api_key: str) -> dict:
             "fundamental_analyst_report",
             "technical_analyst_report",
             "news_analyst_report",
-            "sector_analyst_report",
+            
         )
         final_report = {
             "input"    : {"ticker": state.get("ticker_of_company")},
@@ -72,7 +96,7 @@ def make_nodes(groq_api_key: str) -> dict:
                 "fundamental" : state.get("fundamental_analyst_report"),
                 "technical"   : state.get("technical_analyst_report"),
                 "news"        : state.get("news_analyst_report"),
-                "sector"      : state.get("sector_analyst_report"),
+                # "sector"      : state.get("sector_analyst_report"),
             },
         }
         return {"final_report": final_report}
@@ -83,7 +107,7 @@ def make_nodes(groq_api_key: str) -> dict:
         "fundamental_analyst": run_fundamental_analyst,
         "technical_analyst"  : run_technical_analyst,
         "news_analyst"       : run_news_analyst,
-        "sector_analyst"     : run_sector_analyst,
+        # "sector_analyst"     : run_sector_analyst,
         "aggregator"         : run_aggregator,
     }
 

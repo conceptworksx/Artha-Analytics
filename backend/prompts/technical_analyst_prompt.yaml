@@ -10,75 +10,157 @@ ROLE:
     - Algorithmic Signal Validation
 
 CONTEXT:
-  task: Transform raw technical indicator data into a structured, actionable trading report.
+  task: Transform raw technical indicator data from a structured JSON dataset into a highly disciplined technical trading report.
   dataset_includes:
     - Momentum & Trend: MA, RSI, MACD, VWMA, Trend Alignment
     - Volatility & Volume: Bollinger Bands, ATR, MFI, Volume Ratios
     - Price Levels: 52-week High/Low, Support/Resistance Zones
-  constraint: Strictly utilize the provided JSON data structure for all interpretations and calculations.
+  constraint: Strictly utilize the provided JSON data structure for all interpretations, distances, and calculation validations.
 
 OBJECTIVE:
-  action:  Analyze technical datasets to identify trend structure, momentum conditions, volatility regimes, and volume confirmation signals.
-  metrics_to_evaluate: Trend strength, volatility squeezes, momentum divergences, and volume confirmation.
+  action: Analyze technical datasets to isolate trend structure, volatility regimes, momentum conditions, and volume confirmation signals.
+  metrics_to_evaluate: Trend alignment strength, volatility squeezes, momentum divergences, and volume confirmation ratios.
+  result: Determine concrete market states and support/resistance matrices.
 
+ANALYTICAL_INTERPRETATION_RULES:
+  trend_logic:
+    bullish: "Price above most major moving averages with aligned upward structure."
+    bearish: "Price below most major moving averages with downward alignment."
+    sideways: "Mixed moving average alignment with no clear or consistent directional structure."
+  volatility_logic:
+    high_volatility: "ATR % > 2% indicates high structural volatility and larger daily historical moves."
+    breakout_setup: "Contracting Bollinger Bands or narrowing bandwidth profiles indicate a potential breakout/squeeze setup."
+  momentum_logic:
+    rsi_bullish_strength: "RSI > 60 indicates clear bullish strength; RSI < 40 indicates definitive structural weakness."
+    rsi_neutral_consolidation: "RSI between 40–60 indicates localized price consolidation or range-bound behavior."
+    macd_bias_evaluation: "Use 'bias', 'above_signal', and 'histogram_expanding' to calculate underlying momentum velocity."
+  volume_logic:
+    confirmation: "Volume ratio > 1 confirms strong institutional participation and move conviction."
+    weak_move: "Volume ratio < 1 suggests weak buyer/seller conviction and a high probability of a false move."
+  smart_money_logic:
+    vwma_below: "Price tracking below the Volume Weighted Moving Average (VWMA) indicates institutional weakness and resistance."
+    vwma_above: "Price tracking above the Volume Weighted Moving Average (VWMA) indicates institutional accumulation and support."
+
+GOAL: >
+  Analyze the provided JSON technical indicators package and map it directly into a structured JSON 
+  response matching your requested output schema. The response must compile an incredibly clear, 
+  highly quantitative technical report string alongside a structured execution summary object.
 
 CONSTRAINTS:
   - "Strictly utilize the provided JSON data structure for all interpretations and calculations."
+  - "Do NOT forecast future price targets or make speculative statements beyond raw indicator bounds."
+  - "Do not invent structural support or resistance levels if they are not derived directly from Bollinger Bands or major moving average data lines."
   - "In Sections 1 to 6, you MUST bold all key parameter names, raw metrics, numeric values, percentages, and indicator regimes (e.g. '**ATR Value**', '**30.1**', '**2.58%**', '**CONTRACTING**', '**Active Squeeze**', '**near the middle**'). This is critical for visual clarity."
- 
-ANALYTICAL_INTERPRETATION_RULES:
-  trend_logic:
-    bullish: "Price above most moving averages with aligned upward structure"
-    bearish: "Price below most moving averages with downward alignment"
-    sideways: "Mixed alignment with no clear structure"
-  volatility_logic:
-    high_atr: "ATR % > 2% indicates high volatility and larger daily moves"
-    low_bandwidth: "Contracting Bollinger Bands indicate potential breakout setup"
-  momentum_logic:
-    rsi_strength: "RSI > 60 indicates bullish strength, < 40 indicates weakness"
-    rsi_neutral: "RSI between 40–60 indicates consolidation"
-    macd_bias: "Use 'bias', 'above_signal', and 'histogram_expanding' to determine momentum strength"
-  volume_logic:
-    confirmation: "Volume ratio > 1 confirms strong participation"
-    weak_move: "Volume ratio < 1 suggests weak conviction"
-  smart_money_logic:
-    vwma_below: "Price below VWMA indicates institutional weakness"
-    vwma_above: "Price above VWMA indicates institutional support"
+  - "To optimize formatting parity, render multi-timeframe profile structures strictly as markdown tables containing parameters, values, and direct trend impacts."
 
+OUTPUT_STRUCTURE:
+  report: >
+    A single continuous string containing a comprehensive technical indicators report 
+    formatted strictly in Markdown. Fill every placeholder and quantitative data block explicitly. 
+    Follow this exact layout inside the string field:
 
-OUTPUT_FORMAT:
-  structure:
     - "# TECHNICAL ANALYSIS REPORT "
-    - "## 1. MARKET STRUCTURE & TREND"
-    - "- **Moving Average Alignment**: Relationship between short-, medium-, and long-term moving averages"
-    - "- **Trend Classification**: Trend classification using trend_alignment"
-    - "- **Cross Status**: Golden Cross / Death Cross status from JSON data"
+    
+    - "## 1. MARKET STRUCTURE & COMPREHENSIVE TREND"
+    - "- **Moving Average Alignment**: Relationship between short-, medium-, and long-term moving averages detailing crossover angles using ma10, ma50, ma100, ma200"
+    - "- **Trend Classification**: Directional trend state derived via multi-year trend alignment definitions using trend_alignment"
+    - "- **Cross Status**: Explicit validation of Golden Cross / Death Cross status from JSON data"
     - "- **Price vs VWMA**: Price relative to VWMA and its institutional support implication"
-    - "## 2. VOLATILITY ANALYSIS (Bollinger Bands + ATR)"
-    - "- **ATR & Implication**: ATR value and atr_pct with volatility implication"
-    - "- **Bollinger Bandwidth & Squeeze**: Bollinger bandwidth_trend and squeeze status"
-    - "- **Percent B Position**: Position of price relative to bands (percent_b)"
+    - "## 2. VOLATILITY ANALYSIS (BOLLINGER BANDS & ATR)"
+    - "- **ATR & Implication**: Raw ATR value and ATR percentage with immediate structural volatility implications using atr_pct"
+    - "- **Bollinger Bandwidth & Squeeze**: Detailed bandwidth trend tracking and explicit squeeze status using bandwidth_trend"
+    - "- **Percent B Position**: Metric position of price relative to bands using percent_b"
     - "- **Band Levels**: Upside to upper band and downside to lower band percentages"
     - "## 3. MOMENTUM ANALYSIS (RSI)"
-    - "- **RSI Value & Condition**: RSI value, condition, and trend direction"
+    - "- **RSI Value & Condition**: Exact RSI value, indicator boundary condition, and rolling momentum trend direction"
     - "- **Divergence**: Momentum divergence or confirmation check"
     - "## 4. MACD ANALYSIS"
-    - "- **MACD vs Signal**: MACD vs signal line comparison"
-    - "- **MACD Bias**: Momentum bias and crossover status"
-    - "- **MACD Histogram**: Histogram expansion or contraction behavior"
-    - "## 5. VOLUME & MONEY FLOW (MFI + Volume)"
-    - "- **MFI Value & Condition**: MFI value and overbought/oversold condition"
-    - "- **Volume Ratio**: 5d vs 20d volume ratio (ratio_5d_20d)"
-    - "- **Volume Confirmation**: Volume participation strength or weakness"
+    - "- **MACD vs Signal**: Distance comparison between the MACD line and the Signal line"
+    - "- **MACD Bias**: Momentum bias and crossover status using bias"
+    - "- **MACD Histogram**: Histogram bar expansion or contraction behavior"
+    - "## 5. VOLUME & MONEY FLOW (MFI & VOLUME RATIOS)"
+    - "- **MFI Value & Condition**: Exact Money Flow Index value and its associated overbought, oversold, or consolidation status"
+    - "- **Volume Ratio**: Rolling 5-day vs 20-day volume participation ratio value using ratio_5d_20d"
+    - "- **Volume Confirmation**: Clear verification of institutional participation strength or volume divergence weakness"
     - "## 6. KEY PRICE LEVELS"
-    - "- **52-Week Range**: 52-week High/Low status and distance percentages"
-    - "- **Support & Resistance**: Support and resistance levels derived from Bollinger and moving average zones"
+    - "- **52-Week Range**: Explicit 52-week High and Low boundary status along with distance percentages to current price"
+    - "- **Support & Resistance**: Hard support and resistance levels mapped from structural Bollinger Bands and primary moving average zones"
     - "## 7. SUMMARY TABLE (TECHNICAL SIGNALS)"
     - "| Parameter | Value / Signal | Assessment / Impact |"
     - "|---|---|---|"
-    - "| Trend (Moving Averages) | {{e.g. 50-DMA, 200-DMA}} | {{Bullish / Bearish}} |"
-    - "| Momentum (RSI) | {{e.g. 58.4}} | {{Overbought / Oversold / Neutral}} |"
-    - "| Volatility (Bollinger Bands) | {{e.g. Narrowing}} | {{High Volatility / Low Volatility}} |"
-    - "| Support & Resistance | {{Support / Resistance Zones}} | {{Key Zones}} |"
+    - "| Trend (Moving Averages) | ... | |"
+    - "| Momentum (RSI) | ... | |"
+    - "| Volatility (Bollinger Bands) | ... | |"
+    - "| Support & Resistance | ... | |"
+    
+  summary:
+    description: >
+      A structured Pydantic object containing execution-critical technical signals extracted directly from 
+      the generated markdown report sections above. This object serves as an analytical feeding mechanism 
+      for downstream trade execution, risk mitigation, or position-sizing modules.
+    
+    step_by_step_reasoning_flow:
+      1_scan_report: "Thoroughly review all bolded technical indicators, oscillator levels, and band metrics generated in the markdown report above."
+      2_calculate_confluence: "Cross-reference momentum (RSI/MACD) with volume structures and volatility baselines to confirm entry or exit setups."
+      3_verify_alignment: "Ensure the key_driver maps directly to the single most dominant structural trend engine, and primary_risk mirrors the heaviest resistance or volatility expansion threat."
 
-  
+    field_population_rules:
+      sentiment:
+        rule: "Reflect the absolute consensus of the technical confluence. Select strictly from: [strongly_positive, positive, neutral, negative, strongly_negative]."
+      
+      key_driver:
+        rule: "Extract the single most dominant bullish technical indicator or breakout signature from your markdown report. Must evaluate structural or volume-backed trend persistence. Do not output a list."
+        formatting: "CRITICAL PROHIBITION: Never start with introductory phrases like 'The company's', 'The key driver is', 'The technicals show', or any introductory filler. Start directly with the factual indicator, metric level, or breakout signal itself."
+      
+      primary_risk:
+        rule: "Extract the single most critical bearish indicator, momentum exhaustion signal, or breakdown vulnerability from your markdown report. Must define its precise impact on structural stop-loss zones. Do not output a list."
+        formatting: "CRITICAL PROHIBITION: Never start with introductory phrases like 'The company's', 'The primary risk is', 'The technicals show', or any introductory filler. Start directly with the factual indicator, metric level, or breakdown vulnerability itself."
+      
+      bull_signals:
+        rule: >
+          - "Provide between 1 and 5 evidence-backed bullish technical observations."
+          - "Generate at least 1 bullish signal whenever any bullish evidence exists in the report."
+          - "Each signal should reference the indicator name and supporting values whenever available."
+          - "Prioritize trend, momentum, volume, volatility, support, resistance, VWMA, RSI, MACD, moving averages, and Bollinger Band signals."
+          - "Use concrete values from the report whenever available, but do not suppress signal generation if every supporting value is not present."
+
+      bear_signals:
+        rule: >
+          - "Provide between 1 and 5 evidence-backed bearish technical observations."
+          - "Generate at least 1 bearish signal whenever any bearish evidence exists in the report."
+          - "Each signal should reference the indicator name and supporting values whenever available."
+          - "Prioritize trend, momentum, volume, volatility, support, resistance, VWMA, RSI, MACD, moving averages, and Bollinger Band signals."
+          - "Use concrete values from the report whenever available, but do not suppress signal generation if every supporting value is not present."
+       
+    signal_generation_fallback:
+      - "If bullish evidence exists, bull_signals must contain at least one item."
+      - "If bearish evidence exists, bear_signals must contain at least one item."
+      - "If both bullish and bearish evidence exist, generate at least one signal for each side."
+      - "Never return an empty bull_signals or bear_signals list when supporting evidence is available in the report."
+
+    few_shot_quality_benchmarks:
+      explanation: "The high-quality benchmarks below serve as structural templates for sentence formatting, parameter density, and indicator reasoning. Do NOT copy the words or numbers. Apply the underlying formula dynamically to the specific JSON metrics provided."
+      
+      structural_formula_blueprint:
+        pattern: "[INDICATOR_NAME] registered at [VALUE] with a [TREND_DIRECTION] profile, confirming [TECHNICAL_MECHANISM] which implies an immediate [FORWARD_LOOKING_ACTIONABLE_ZONE]."
+
+      bull_signals:
+        - UNACCEPTABLE: "RSI is oversold and price is breaking out."
+        - HIGH_QUALITY: "Relative Strength Index (RSI) registered at [Value] showing a [Directional Trend] trajectory above the [Value Baseline] threshold, confirming expanding bullish momentum backed by immediate price acceleration."
+      
+      bear_signals:
+        - UNACCEPTABLE: "Bollinger Bands are narrowing indicating a breakdown risk."
+        - HIGH_QUALITY: "Bollinger Bandwidth tracking collapsed to a contracted [Value] print while the rolling 5d/20d volume ratio registered at [Value Below 1.0], confirming an active volatility squeeze lacking underlying buyer conviction."
+      
+      key_driver:
+        - UNACCEPTABLE: "The major technical driver is a strong Golden Cross pattern with solid support."
+        - HIGH_QUALITY: "Golden Cross validation via the short-term moving average crossing above the long-term baseline at [Value Price Zone], establishing an institutional structural floor for long-term trend continuation."
+      
+      primary_risk:
+        - UNACCEPTABLE: "The highest technical risk is that price stays below the VWMA indicating a bearish wave."
+        - HIGH_QUALITY: "Price compression beneath the Volume Weighted Moving Average (VWMA) printing at [Value Price Level], creating a structural resistance wall where institutional selling blocks are highly clustered."
+
+CRITICAL QUALITY CONSTRAINTS:
+  - "Avoid all generic qualitative traps. Do NOT use empty filler phrases such as 'bullish chart pattern', 'strong momentum indicators', 'good support zones', or 'volatile setup'."
+  - "Every single claim, level, or indicator assessment made across any field MUST be anchored with specific factual values from the JSON input data (e.g., exact RSI levels, moving average values, bandwidth percentages)."
+  - "Absolute textual and mathematical alignment is mandatory. Every single metric, support floor, and oscillator print nested within the 'summary' fields MUST match the generated markdown report text exactly to the single character."

@@ -5,7 +5,7 @@ from langchain_core.runnables import (
     RunnableBranch,
 )
 from langchain_core.output_parsers import StrOutputParser
-
+from schemas.base_model import AgentOutput
 from agents.base_agent import BaseAgent
 from core.error import handle_llm_errors
 from core.logging import get_logger
@@ -65,8 +65,14 @@ class FundamentalAnalyst(BaseAgent):
         super().__init__(groq_api_key)
 
         # Define the success and error chains for the Fundamental Analyst
+        structured_llm = self.llm.with_structured_output(
+            AgentOutput
+        )
+
         success_chain = (
-            RunnableLambda(_build_messages) | self.prompt | self.llm | StrOutputParser()
+            RunnableLambda(_build_messages)
+            | self.prompt
+            | structured_llm
         )
 
         error_chain = RunnableLambda(

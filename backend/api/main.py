@@ -101,7 +101,6 @@ class AnalyzeResponse(BaseModel):
     technical_report: str
     fundamental_report: str
     market_report: str
-    sector_report: str
     status: str
     charts_data: Optional[dict] = None
 
@@ -166,7 +165,7 @@ async def analyze(
             technical_report=final_state.get("technical_analyst_report", ""),
             fundamental_report=final_state.get("fundamental_analyst_report", ""),
             market_report=final_state.get("market_analyst_report", ""),
-            sector_report=final_state.get("sector_analyst_report", ""),
+            # sector_report=final_state.get("sector_analyst_report", ""),
             charts_data=final_state.get("charts_data"),
             status="success",
         )

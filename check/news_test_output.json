@@ -1,0 +1,123 @@
+{
+  "company_news": {
+    "status": "success",
+    "ai_summary": "",
+    "articles": [
+      {
+        "title": "Reliance and Meta's joint venture signals India's shift from AI ambition to enterprise deployment",
+        "summary": "The decision by Reliance Industries and Meta Platforms Inc (NASDAQ:META, XETRA:FB2A, SIX:FB)to appoint a founding chief executive at their joint venture, Reliance Enterprise Intelligence Limited, sets the tone for the whole collaboration. And the choice of candidate suggests the two companies...",
+        "published_at": "2026-04-28T10:51:00Z",
+        "source": "Proactive"
+      },
+      {
+        "title": "Indian shares snap losing streak; Reliance, Axis Bank cap gains",
+        "summary": "April 27 (Reuters) - Indian shares opened higher on Monday, snapping a recent losing streak, although lacklustre quarterly earnings from conglomerate Reliance and Axis Bank and firmer crude prices",
+        "published_at": "2026-04-27T04:02:50Z",
+        "source": "Reuters"
+      },
+      {
+        "title": "Reliance Industries Ltd (WBO:RLI) Q4 2026 Earnings Call Highlights: Strong Digital Growth Amid ...",
+        "summary": "Reliance Industries Ltd (WBO:RLI) reports robust revenue growth driven by digital services and retail, while navigating currency depreciation and supply chain disruptions.",
+        "published_at": "2026-04-27T01:00:22Z",
+        "source": "GuruFocus.com"
+      },
+      {
+        "title": "Ambani's Reliance posts quarterly profit drop, misses street view",
+        "summary": "April 24 (Reuters) - Billionaire Mukesh Ambani's Reliance Industries posted a 12% slump in net profit for the fourth quarter, missing market expectations, as higher input costs weighed on key",
+        "published_at": "2026-04-24T14:05:41Z",
+        "source": "Reuters"
+      },
+      {
+        "title": "Indian court extends detention of aviation official, Reliance exec in bribery case",
+        "summary": "By Abhijith Ganapavaram and Arpan Chaturvedi NEW DELHI, April 23 (Reuters) - An Indian court on Friday extended the pre-trial detention of an aviation regulator official and a Reliance Industries",
+        "published_at": "2026-04-24T09:03:42Z",
+        "source": "Reuters"
+      }
+    ],
+    "error": null
+  },
+  "indian_news": {
+    "status": "success",
+    "ai_summary": "Based on the most recent data, Indian shares are poised to open higher on easing oil prices and the anticipation of state election results. The Nifty 50 is expected to open above its previous close of 23,997.55, with GIFT Nifty futures trading at 24,245.50 points. The Sensex and Nifty both fell about 0.7% on Thursday due to concerns over escalating oil prices and geopolitical tensions, but these worries have since eased.",
+    "articles": [
+      {
+        "title": "Indian shares poised to open higher on easing oil; state election results eyed - Reuters",
+        "source": "www.reuters.com",
+        "published_at": "2026-05-04T02:40:26Z",
+        "summary": "GIFT Nifty futures were trading at 24,245.50 ‌points, as of 8:05 a.m. IST, indicating that the benchmark Nifty 50 (.NSEI), opens new tab would open above Thursday's close of 23,997.55. Indian markets were closed on Friday for a local holiday.\n\nGet the latest news from India and how it matters to the",
+        "priority": "high"
+      },
+      {
+        "title": "Rupee to find brief support on softer oil, outlook remains bearish - Reuters",
+        "source": "www.reuters.com",
+        "published_at": "2026-05-04T02:59:22Z",
+        "summary": "# Rupee to find brief support on softer oil, outlook remains bearish | Reuters\n\nSkip to main content\n\nReport AdImage 1\n\nExclusive news, data and analytics for financial market professionals Learn more about Refinitiv\n\n - The Indian rupee is expected to inch higher at the open on Monday, supported by",
+        "priority": "medium"
+      },
+      {
+        "title": "Indian rupee, bonds set to sway to oil prices as US-Iran stalemate drags - Reuters",
+        "source": "www.reuters.com",
+        "published_at": "2026-05-04T01:31:59Z",
+        "summary": "The rupee fell to a record low of 95.33 on Thursday, ​pressured by volatile oil prices and hawkish signals from the U.S. Federal Reserve. India's financial markets were shut on Friday for ‌a local holiday.\n\nGet the latest news from India and how it matters to the world with the Reuters India File ne",
+        "priority": "medium"
+      },
+      {
+        "title": "India industrial production slows to 4.1% in March - Business Standard",
+        "source": "www.business-standard.com",
+        "published_at": "2026-04-28T11:01:45Z",
+        "summary": "Tuesday, April 28, 2026 | 04:44 PM ISTहिंदी में पढें\n\nSensex (    %)Nifty (    %)Nifty Midcap(    %)Nifty Smallcap(    %)Nifty Bank(    %)Nifty IT(    %)\n\nHome / Markets / Capital Market News / India industrial production slows to 4.1% in March\n\n# India industrial production slows to 4.1% in March\n\n",
+        "priority": "medium"
+      },
+      {
+        "title": "India File: Reliance's results offer a real-world read on the Iran war - Reuters",
+        "source": "www.reuters.com",
+        "published_at": "2026-04-28T05:25:00Z",
+        "summary": "The ⁠South Asian currency's ​40-currency real effective exchange rate, which accounts for inflation differentials between different economies, fell to 92.72, the data showed. The undervaluation, however, ​does not suggest an immediate rebound, analysts pointed out. Read here.\n\n### THIS WEEK'S MUST-R",
+        "priority": "medium"
+      }
+    ],
+    "error": null
+  },
+  "global_news": {
+    "status": "success",
+    "ai_summary": "Based on the most recent data, the S&P 500 and Nasdaq Composite finished April with their largest monthly gains since 2020, while the Dow Jones Industrial Average also saw a significant rise. Specifically, the S&P 500 and Nasdaq reached new intraday and closing highs, and the Dow rose 790.33 points during the regular session. Additionally, Apple's shares climbed more than 2% in extended trading hours following a strong earnings report.",
+    "articles": [
+      {
+        "title": "Why Kevin Warsh's arrival at the Fed may catch fixed-income investors off guard - CNBC",
+        "source": "www.cnbc.com",
+        "published_at": "2026-05-02T14:23:12Z",
+        "summary": "There was a lot of Fed news to digest this week. The Federal Reserve held interest rates steady at its meeting Wednesday, with the federal funds rate unchanged in a 3.50% to 3.75% range. But the war and the surge in oil prices has upended the policymaking assumptions of the central bank and bond tra",
+        "priority": "medium"
+      },
+      {
+        "title": "Treasury yields are flat as investors digest latest GDP and inflation data - CNBC",
+        "source": "www.cnbc.com",
+        "published_at": "2026-05-01T08:50:07Z",
+        "summary": "Joseph Wilkins\n\nWATCH LIVE\n\nThe Federal Reserve\n\nGetty Images\n\nIn this article\n\n US30Y\n US2Y\n US10Y\n\nTreasury yields were unchanged on Friday as investors digested a week of key economic data and policy releases.\n\nThe yield on the 10-year U.S. Treasury note — the key benchmark for U.S. government bo",
+        "priority": "medium"
+      },
+      {
+        "title": "Stock Market Today: Dow Futures Edge Up; Apple, Alphabet in Focus — Live Updates - WSJ",
+        "source": "www.wsj.com",
+        "published_at": "2026-05-01T08:19:42Z",
+        "summary": "Your browser does not support iframes\n\nInvestors are kicking off May on an optimistic note, with U.S. stock futures holding onto recent gains and oil prices steady.\n\nBoth the S&P 500 and Nasdaq composite finished April with their largest monthly gains since 2020, as investors looked past the war in ",
+        "priority": "medium"
+      },
+      {
+        "title": "Gold heads for weekly loss on oil-driven inflation concerns - CNBC",
+        "source": "www.cnbc.com",
+        "published_at": "2026-05-01T06:54:15Z",
+        "summary": "Spot gold eased 0.1% to $4,614.98 per ounce as of 0436 GMT, and was on track for a weekly loss of about 2%, having dropped to a one-month low on Wednesday. U.S. gold futures for June delivery fell 0.1% to $4,626.40.\n\nTrading volumes were light as financial markets in top gold consumers China and Ind",
+        "priority": "medium"
+      },
+      {
+        "title": "Treasury yields flat as Fed leaves rates unchanged; oil touches $126 overnight - CNBC",
+        "source": "www.cnbc.com",
+        "published_at": "2026-04-30T09:17:53Z",
+        "summary": "The Fed on Wednesday voted to keep the benchmark federal funds rate on hold between 3.50% to 3.75%, which investors had expected heading into the meeting.\n\nBut the meeting also saw the highest level of dissent since 1992 — with three officials voting against \"the inclusion of an easing bias in the s",
+        "priority": "medium"
+      }
+    ],
+    "error": null
+  }
+}

@@ -21,7 +21,7 @@ def build_graph(groq_api_key: str):
     work_flow.add_node("technical_analyst", nodes["technical_analyst"])
     work_flow.add_node("news_analyst", nodes["news_analyst"])
     work_flow.add_node("fundamental_analyst", nodes["fundamental_analyst"])
-    work_flow.add_node("sector_analyst", nodes["sector_analyst"])
+    # work_flow.add_node("sector_analyst", nodes["sector_analyst"])
     work_flow.add_node("aggregator", nodes["aggregator"])
 
     work_flow.add_edge(START, "data_prefetch")
@@ -29,13 +29,13 @@ def build_graph(groq_api_key: str):
     work_flow.add_edge("data_prefetch", "fundamental_analyst")
     work_flow.add_edge("data_prefetch", "technical_analyst")
     work_flow.add_edge("data_prefetch", "news_analyst")
-    work_flow.add_edge("data_prefetch", "sector_analyst")
+    # work_flow.add_edge("data_prefetch", "sector_analyst")
 
     work_flow.add_edge("market_analyst", "aggregator")
     work_flow.add_edge("fundamental_analyst", "aggregator")
     work_flow.add_edge("technical_analyst", "aggregator")
     work_flow.add_edge("news_analyst", "aggregator")
-    work_flow.add_edge("sector_analyst", "aggregator")
+    # work_flow.add_edge("sector_analyst", "aggregator")
     work_flow.add_edge("aggregator", END)
 
     return work_flow.compile(debug=False)
