@@ -12,6 +12,7 @@ import {
   clearCached,
   getAuthToken,
   getSavedGroqApiKey,
+  saveGroqApiKey,
   type AnalyseResponse,
 } from "@/lib/api";
 import { LoadingView } from "@/components/research/LoadingView";
@@ -32,8 +33,11 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
   const [view, setView] = useState<ViewKey>("overview");
   const [error, setError] = useState<ErrorInfo | null>(null);
   const [loading, setLoading] = useState(true);
-  // const [view, setView] = useState<ViewKey>("technical");
   const [retryCount, setRetryCount] = useState(0);
+
+  const authToken = getAuthToken();
+  const groqApiKey = getSavedGroqApiKey();
+  const isRedirecting = !authToken || !groqApiKey || !groqApiKey.trim();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -61,6 +65,10 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
     setData(null);
 
     const groqApiKey = getSavedGroqApiKey();
+    if (!groqApiKey || !groqApiKey.trim()) {
+      router.replace("/");
+      return;
+    }
 
     analyseTicker({
       ticker,
@@ -81,6 +89,11 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
             router.replace("/");
             return;
           }
+          if (e.title === "INVALID API KEY") {
+            saveGroqApiKey("");
+            router.replace("/");
+            return;
+          }
           setError({ title: e.title, message: e.message });
         } else {
           setError({
@@ -95,6 +108,10 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
       controller.abort();
     };
   }, [ticker, retryCount, router]);
+
+  if (isRedirecting) {
+    return null;
+  }
 
   // ── Error page ─────────────────────────────────────────────────────────
   if (error) {

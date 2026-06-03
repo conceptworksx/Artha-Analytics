@@ -210,6 +210,11 @@ export async function analyseTicker({
 
   const rawData = await res.json();
 
+  if (!res.ok) {
+    const detail = rawData?.detail ?? rawData ?? {};
+    throw new AnalysisError(buildErrorMessage(res.status, detail));
+  }
+
   // Inject fallback dummy values if they are missing from the backend response
   const data: AnalyseResponse = {
     ticker: rawData.ticker ?? cleanTicker,
@@ -223,18 +228,6 @@ export async function analyseTicker({
     historical_prices: rawData.historical_prices || [],
     charts_data: rawData.charts_data,
   };
-
-  if (!res.ok) {
-    let detail: BackendErrorDetail = {};
-    try {
-      const errorBody = await res.json();
-      // Backend sends { detail: { error, message } }
-      detail = errorBody?.detail ?? errorBody ?? {};
-    } catch {
-      // JSON parse failed — use empty detail
-    }
-    throw new AnalysisError(buildErrorMessage(res.status, detail));
-  }
 
   return data;
 }

@@ -154,14 +154,17 @@ async def analyze(
     ticker = body.ticker.strip().upper()
     logger.info(f"Analyze request received | ticker={ticker}")
 
-    # Fallback to backend environment variable if not provided or empty
+    # Ensure Groq API Key is provided
     if (
         not groq_api_key
         or groq_api_key == "undefined"
         or groq_api_key == "null"
         or not groq_api_key.strip()
     ):
-        groq_api_key = os.getenv("GROQ_API_KEY", "")
+        raise HTTPException(
+            status_code=401,
+            detail={"error": "invalid_api_key", "message": "Groq API Key is required."},
+        )
 
     # Validate API key format
     is_valid_key, key_error = validate_api_keys(groq_api_key=groq_api_key)

@@ -182,13 +182,6 @@ export function SearchView({ user, onLogout }: { user?: AuthUser; onLogout?: () 
       {/* Main search panel container */}
       <main className="flex flex-1 items-center justify-center px-6 py-12 relative z-10">
         <div className="w-full max-w-[400px]">
-          {!hasApiKey && (
-            <div className="mb-4 rounded-lg border border-red-200/50 bg-red-50/40 p-3 text-center animate-pulse">
-              <p className="font-mono text-[11px] font-bold text-red-600">
-                ⚠️ Groq API Key is missing. Click your profile name above to add it.
-              </p>
-            </div>
-          )}
           <label className="mb-2 ml-3 block font-mono text-[13px] tracking-wider text-[var(--label)]">
             SEARCH NSE TICKER
           </label>
@@ -205,7 +198,7 @@ export function SearchView({ user, onLogout }: { user?: AuthUser; onLogout?: () 
               onFocus={() => setOpen(true)}
               onBlur={() => setTimeout(() => setOpen(false), 120)}
               onKeyDown={handleKey}
-              placeholder="e.g. RELIANCE, TCS, INFY  ..."
+              placeholder="e.g. RELIANCE, TCS, WIPRO  ..."
               className="block h-12 w-full border-0 bg-white/50 backdrop-blur-md px-4 font-mono text-[14px] text-black placeholder:text-neutral-400 focus:outline-none focus:ring-0 rounded-lg shadow-md transition-all"
             />
 

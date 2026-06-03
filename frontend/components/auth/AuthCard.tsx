@@ -171,7 +171,7 @@ export function AuthCard({ onAuthed }: { onAuthed: (user: AuthUser) => void }) {
             className="w-full max-w-[360px] mx-auto md:order-2"
           >
             <motion.div
-              className="relative rounded-2xl border border-black/10 bg-white/70 p-6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.2)] backdrop-blur-xl h-[465px] flex flex-col justify-between w-full"
+              className="relative rounded-2xl border border-black/10 bg-white/70 pt-8 pb-6 px-6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.2)] backdrop-blur-xl min-h-[480px] flex flex-col justify-between w-full"
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.6 }}
@@ -253,7 +253,7 @@ export function AuthCard({ onAuthed }: { onAuthed: (user: AuthUser) => void }) {
                     )}
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-3 mt-5">
                     {error && (
                       <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="text-xs font-semibold text-red-500 text-center tracking-wide">
                         {error}

@@ -1,19 +1,34 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { clearAuthSession, getAuthUser, type AuthUser } from "@/lib/api";
+import { clearAuthSession, getAuthUser, getSavedGroqApiKey, type AuthUser } from "@/lib/api";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { SearchView } from "@/components/research/SearchView";
+import { BYOKCard } from "@/components/auth/BYOKCard";
+
+let introAlreadyShown = false;
 
 export function AppGate() {
-  const [showIntro, setShowIntro] = useState(true);
-  const [fadeOutIntro, setFadeOutIntro] = useState(false);
+  const [showIntro, setShowIntro] = useState(!introAlreadyShown);
+  const [fadeOutIntro, setFadeOutIntro] = useState(introAlreadyShown);
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [hasSavedKey, setHasSavedKey] = useState(false);
 
   useEffect(() => {
-    setUser(getAuthUser());
+    const authedUser = getAuthUser();
+    setUser(authedUser);
+    if (authedUser) {
+      setHasSavedKey(!!getSavedGroqApiKey()?.trim());
+    }
 
-    const fadeTimeout = setTimeout(() => setFadeOutIntro(true), 2600);
+    if (introAlreadyShown) {
+      return;
+    }
+
+    const fadeTimeout = setTimeout(() => {
+      setFadeOutIntro(true);
+      introAlreadyShown = true;
+    }, 2600);
     const removeTimeout = setTimeout(() => setShowIntro(false), 3100);
 
     return () => {
@@ -22,9 +37,15 @@ export function AppGate() {
     };
   }, []);
 
+  const handleAuthed = (authedUser: AuthUser) => {
+    setUser(authedUser);
+    setHasSavedKey(!!getSavedGroqApiKey()?.trim());
+  };
+
   const handleLogout = () => {
     clearAuthSession();
     setUser(null);
+    setHasSavedKey(false);
   };
 
   return (
@@ -59,9 +80,13 @@ export function AppGate() {
         }`}
       >
         {user ? (
-          <SearchView user={user} onLogout={handleLogout} />
+          hasSavedKey ? (
+            <SearchView user={user} onLogout={handleLogout} />
+          ) : (
+            <BYOKCard onKeySaved={() => setHasSavedKey(true)} onLogout={handleLogout} />
+          )
         ) : (
-          <AuthCard onAuthed={setUser} />
+          <AuthCard onAuthed={handleAuthed} />
         )}
       </div>
     </>
