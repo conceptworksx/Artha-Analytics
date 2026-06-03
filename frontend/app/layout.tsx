@@ -11,6 +11,9 @@ const mono = Geist_Mono({ variable: "--font-active-mono", subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Artha Analytics",
   description: "AI-powered equity analytics for Indian markets",
+  icons: {
+    icon: "/icon.png",
+  },
 };
 
 export default function RootLayout({
