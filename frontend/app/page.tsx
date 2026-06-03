@@ -1,5 +1,5 @@
-import { AppGate } from "@/components/layout/AppGate";
+import { HomePage } from "@/components/home/HomePage";
 
 export default function Home() {
-  return <AppGate />;
+  return <HomePage />;
 }

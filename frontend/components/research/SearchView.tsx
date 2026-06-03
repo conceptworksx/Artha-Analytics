@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Fuse from "fuse.js";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { User } from "lucide-react";
 import { MdErrorOutline } from "react-icons/md";
@@ -10,6 +11,8 @@ import { clearCached, getSavedGroqApiKey, type AuthUser } from "@/lib/api";
 import { LoadingView } from "./LoadingView";
 import { ProfileDialog } from "@/components/auth/ProfileDialog";
 import { BYOKModal } from "./BYOKModal";
+
+let hasHydrated = false;
 
 interface Ticker {
   symbol: string;
@@ -34,12 +37,18 @@ export function SearchView({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showProfile, setShowProfile] = useState(false);
-  const [hasApiKey, setHasApiKey] = useState(true);
+  const [hasApiKey, setHasApiKey] = useState(() => {
+    if (typeof window !== "undefined" && hasHydrated) {
+      return !!getSavedGroqApiKey()?.trim();
+    }
+    return true;
+  });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tickerToAnalyse, setTickerToAnalyse] = useState<Ticker | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    hasHydrated = true;
     setHasApiKey(!!getSavedGroqApiKey()?.trim());
   }, []);
 
@@ -162,7 +171,9 @@ export function SearchView({
       {/* Navbar matching report page style */}
       <header className="flex h-16 shrink-0 items-center justify-between border-b border-black/10 bg-white/70 backdrop-blur-md px-5 w-full z-10">
         <div className="flex items-center">
-          <img src="/navbar.png" alt="Artha Analytics" className="h-14 object-contain" />
+          <Link href="/">
+            <img src="/navbar.png" alt="Artha Analytics" className="h-14 object-contain cursor-pointer" />
+          </Link>
         </div>
 
         {user && onLogout ? (

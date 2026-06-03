@@ -3,30 +3,49 @@
 import { useEffect, useState } from "react";
 import { Toaster, toast } from "sonner";
 import { clearAuthSession, getAuthUser, getSavedGroqApiKey, type AuthUser } from "@/lib/api";
+import { useRouter } from "next/navigation";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { SearchView } from "@/components/research/SearchView";
 import { BYOKCard } from "@/components/auth/BYOKCard";
 
 let introAlreadyShown = false;
+let hasHydrated = false;
 
 export function AppGate() {
+  const router = useRouter();
   const [showIntro, setShowIntro] = useState(!introAlreadyShown);
   const [fadeOutIntro, setFadeOutIntro] = useState(introAlreadyShown);
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [hasSavedKey, setHasSavedKey] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    if (typeof window !== "undefined" && hasHydrated) {
+      return getAuthUser();
+    }
+    return null;
+  });
+  const [hasSavedKey, setHasSavedKey] = useState(() => {
+    if (typeof window !== "undefined" && hasHydrated) {
+      return !!getSavedGroqApiKey()?.trim();
+    }
+    return false;
+  });
   const [showAuth, setShowAuth] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
+    hasHydrated = true;
     const authedUser = getAuthUser();
     setUser(authedUser);
     if (authedUser) {
       setHasSavedKey(!!getSavedGroqApiKey()?.trim());
     }
 
-    // Check query params for guest limit reached redirect
+    // Check query params
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
+      // Show auth card if redirected from homepage with ?auth=true
+      if (params.get("auth") === "true" && !authedUser) {
+        setShowAuth(true);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
       if (params.get("limit_reached") === "true") {
         setShowAuth(true);
         const errMsg = "You have reached the limit of 3 free searches. Please sign up or log in to search more.";
@@ -65,6 +84,7 @@ export function AppGate() {
     setHasSavedKey(false);
     setShowAuth(false);
     setAuthError(null);
+    router.push("/");
   };
 
   return (
@@ -104,16 +124,19 @@ export function AppGate() {
           ) : (
             <BYOKCard onKeySaved={() => setHasSavedKey(true)} onLogout={handleLogout} />
           )
-        ) : showAuth ? (
-          <AuthCard
-            onAuthed={handleAuthed}
-            onClose={() => {
-              setShowAuth(false);
-              setAuthError(null);
-            }}
-          />
         ) : (
-          <SearchView onLoginClick={() => setShowAuth(true)} />
+          <>
+            <SearchView onLoginClick={() => setShowAuth(true)} />
+            {showAuth && (
+              <AuthCard
+                onAuthed={handleAuthed}
+                onClose={() => {
+                  setShowAuth(false);
+                  setAuthError(null);
+                }}
+              />
+            )}
+          </>
         )}
       </div>
       <Toaster richColors position="top-center" />

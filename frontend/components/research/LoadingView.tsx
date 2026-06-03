@@ -64,11 +64,13 @@ export function LoadingView({
       {/* Navbar matching report page style */}
       <header className="flex h-16 shrink-0 items-center justify-between border-b border-black/10 bg-white/70 backdrop-blur-md px-5 w-full z-10">
         <div className="flex items-center">
-          <img
-            src="/navbar.png"
-            alt="Artha Analytics"
-            className="h-14 object-contain"
-          />
+          <Link href="/">
+            <img
+              src="/navbar.png"
+              alt="Artha Analytics"
+              className="h-14 object-contain cursor-pointer"
+            />
+          </Link>
         </div>
 
         {user && onLogout ? (

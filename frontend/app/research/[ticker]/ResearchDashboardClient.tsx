@@ -61,7 +61,7 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
 
     const groqApiKey = getSavedGroqApiKey();
     if (!groqApiKey || !groqApiKey.trim()) {
-      router.replace("/");
+      router.replace("/search");
       return;
     }
 
@@ -81,17 +81,17 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
         if (e instanceof AnalysisError) {
           if (e.title === "SIGN IN REQUIRED") {
             clearAuthSession();
-            router.replace("/");
+            router.replace("/search");
             return;
           }
           if (e.title === "INVALID API KEY") {
             saveGroqApiKey("");
-            router.replace("/");
+            router.replace("/search");
             return;
           }
           if (e.title === "GUEST LIMIT REACHED") {
             clearCached(ticker);
-            router.replace("/?limit_reached=true");
+            router.replace("/search?limit_reached=true");
             return;
           }
           setError({ title: e.title, message: e.message });
@@ -174,7 +174,7 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
               ↻ Retry
             </button>
             <button
-              onClick={() => router.push("/")}
+              onClick={() => router.push("/search")}
               className="h-10 border border-[var(--border)] bg-white px-5 font-mono text-[14px] hover:border-[var(--foreground)] rounded-lg shadow-sm transition-all hover:bg-zinc-50"
             >
               ← New Analysis
@@ -194,18 +194,20 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
       {/* Navbar */}
       <header className="flex h-16 shrink-0 items-center justify-between border-b border-[var(--border)] bg-white px-5">
         <div className="flex items-center">
-          <img
-            src="/navbar.png"
-            alt="Artha Analytics"
-            className="h-14 object-contain"
-          />
+          <Link href="/">
+            <img
+              src="/navbar.png"
+              alt="Artha Analytics"
+              className="h-14 object-contain cursor-pointer"
+            />
+          </Link>
         </div>
         <div className="font-mono text-[13px] text-[var(--muted-foreground)]">
           {data.ticker.split(".")[0].toUpperCase()}.NS · NSE
         </div>
         <div className="flex items-center gap-4">
           <Link
-            href="/"
+            href="/search"
             className="font-mono text-[14px] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
           >
             ← New Analysis

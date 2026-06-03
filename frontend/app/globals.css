@@ -582,3 +582,18 @@ body {
     transform: scale(0.5) scaleX(-1);
   }
 }
+
+/* ─── Ticker Tape ─── */
+.ticker-tape-track {
+  animation: ticker-scroll 30s linear infinite;
+}
+
+@keyframes ticker-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
