@@ -37,16 +37,11 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
 
   const authToken = getAuthToken();
   const groqApiKey = getSavedGroqApiKey();
-  const isRedirecting = !authToken || !groqApiKey || !groqApiKey.trim();
+  const isRedirecting = !groqApiKey || !groqApiKey.trim();
 
   useEffect(() => {
     const controller = new AbortController();
     const authToken = getAuthToken();
-
-    if (!authToken) {
-      router.replace("/");
-      return;
-    }
 
     // Clear cache if this is a manual retry
     if (retryCount > 0) {
@@ -73,7 +68,7 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
     analyseTicker({
       ticker,
       groqApiKey,
-      authToken,
+      authToken: authToken || undefined,
       signal: controller.signal,
     })
       .then((d) => {
@@ -92,6 +87,11 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
           if (e.title === "INVALID API KEY") {
             saveGroqApiKey("");
             router.replace("/");
+            return;
+          }
+          if (e.title === "GUEST LIMIT REACHED") {
+            clearCached(ticker);
+            router.replace("/?limit_reached=true");
             return;
           }
           setError({ title: e.title, message: e.message });

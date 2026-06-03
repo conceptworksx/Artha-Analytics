@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, ArrowRight, User, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, ArrowRight, User, Eye, EyeOff, X } from "lucide-react";
 import { FaGoogle } from "react-icons/fa";
 import { Toaster, toast } from "sonner";
 import Script from "next/script";
@@ -16,7 +16,13 @@ const colTrans = (delay = 0) => ({
   layout: { type: "spring" as const, stiffness: 220, damping: 26 },
 });
 
-export function AuthCard({ onAuthed }: { onAuthed: (user: AuthUser) => void }) {
+export function AuthCard({
+  onAuthed,
+  onClose,
+}: {
+  onAuthed: (user: AuthUser) => void;
+  onClose?: () => void;
+}) {
   const [tab, setTab] = useState<Tab>("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -171,13 +177,24 @@ export function AuthCard({ onAuthed }: { onAuthed: (user: AuthUser) => void }) {
             className="w-full max-w-[360px] mx-auto md:order-2"
           >
             <motion.div
-              className="relative rounded-2xl border border-black/10 bg-white/70 pt-8 pb-6 px-6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.2)] backdrop-blur-xl min-h-[480px] flex flex-col justify-between w-full"
+              className="relative rounded-2xl border border-black/10 bg-white/70 pt-12 pb-6 px-6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.2)] backdrop-blur-xl min-h-[480px] flex flex-col justify-between w-full"
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.6 }}
             >
               {/* Gold border glow */}
               <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-[#d4a84c]/20 via-transparent to-black/10 opacity-50 [mask:linear-gradient(#000,#000)_content-box,linear-gradient(#000,#000)] [mask-composite:exclude] p-px" />
+
+              {onClose && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="absolute right-4 top-4 z-20 text-neutral-400 hover:text-black transition-colors cursor-pointer"
+                  aria-label="Close"
+                >
+                  <X size={16} />
+                </button>
+              )}
 
               {/* Tabs */}
               <div className="relative mb-5 grid grid-cols-2 rounded-lg border border-black/10 bg-neutral-100/60 p-1">

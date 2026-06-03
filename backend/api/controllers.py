@@ -64,6 +64,7 @@ PBKDF2_ITERATIONS = 210_000
 def init_auth_store() -> None:
     try:
         users_collection.create_index("email", unique=True)
+        db["ip_searches"].create_index("ip", unique=True)
         client.admin.command('ping')
     except Exception as e:
         logger.error(f"Failed to initialize MongoDB connection: {e}")

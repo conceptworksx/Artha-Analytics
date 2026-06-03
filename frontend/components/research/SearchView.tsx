@@ -6,17 +6,25 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { User } from "lucide-react";
 import { MdErrorOutline } from "react-icons/md";
-import { Toaster } from "sonner";
 import { clearCached, getSavedGroqApiKey, type AuthUser } from "@/lib/api";
 import { LoadingView } from "./LoadingView";
 import { ProfileDialog } from "@/components/auth/ProfileDialog";
+import { BYOKModal } from "./BYOKModal";
 
 interface Ticker {
   symbol: string;
   name: string;
 }
 
-export function SearchView({ user, onLogout }: { user?: AuthUser; onLogout?: () => void }) {
+export function SearchView({
+  user,
+  onLogout,
+  onLoginClick,
+}: {
+  user?: AuthUser;
+  onLogout?: () => void;
+  onLoginClick?: () => void;
+}) {
   const router = useRouter();
   const [tickers, setTickers] = useState<Ticker[]>([]);
   const [query, setQuery] = useState("");
@@ -27,6 +35,8 @@ export function SearchView({ user, onLogout }: { user?: AuthUser; onLogout?: () 
   const [error, setError] = useState<string | null>(null);
   const [showProfile, setShowProfile] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [tickerToAnalyse, setTickerToAnalyse] = useState<Ticker | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -100,6 +110,13 @@ export function SearchView({ user, onLogout }: { user?: AuthUser; onLogout?: () 
     const target = t || selected;
     if (!target) return;
 
+    const key = getSavedGroqApiKey();
+    if (!key || !key.trim()) {
+      setTickerToAnalyse(target);
+      setIsModalOpen(true);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
@@ -148,7 +165,7 @@ export function SearchView({ user, onLogout }: { user?: AuthUser; onLogout?: () 
           <img src="/navbar.png" alt="Artha Analytics" className="h-14 object-contain" />
         </div>
 
-        {user && onLogout && (
+        {user && onLogout ? (
           <div className="flex items-center gap-4 font-mono text-[12px] text-[var(--muted-foreground)]">
             <button
               type="button"
@@ -174,6 +191,16 @@ export function SearchView({ user, onLogout }: { user?: AuthUser; onLogout?: () 
               className="text-[var(--foreground)] hover:text-[#d4a84c] transition-colors font-semibold tracking-wider cursor-pointer"
             >
               LOGOUT
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-4 font-mono text-[12px]">
+            <button
+              type="button"
+              onClick={onLoginClick}
+              className="text-xs font-semibold tracking-widest text-white bg-black hover:bg-neutral-800 px-4.5 py-2 rounded-full transition-all cursor-pointer shadow-sm"
+            >
+              LOGIN / SIGN UP
             </button>
           </div>
         )}
@@ -262,7 +289,6 @@ export function SearchView({ user, onLogout }: { user?: AuthUser; onLogout?: () 
         </a>
       </footer>
 
-      <Toaster richColors position="top-center" />
       {user && (
         <ProfileDialog
           user={user}
@@ -273,6 +299,20 @@ export function SearchView({ user, onLogout }: { user?: AuthUser; onLogout?: () 
           }}
         />
       )}
+      <BYOKModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setTickerToAnalyse(null);
+        }}
+        onSuccess={() => {
+          setIsModalOpen(false);
+          setHasApiKey(true);
+          if (tickerToAnalyse) {
+            handleAnalyse(tickerToAnalyse);
+          }
+        }}
+      />
     </div>
   );
 }

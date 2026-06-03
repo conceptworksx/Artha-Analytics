@@ -145,6 +145,14 @@ function buildErrorMessage(
     };
   }
 
+  // 403 — Guest limit reached
+  if (status === 403 || errorCode === "limit_reached") {
+    return {
+      title: "GUEST LIMIT REACHED",
+      message: serverMsg || "You have reached the limit of 3 free guest searches. Please sign up or log in to search more.",
+    };
+  }
+
   // 404 — Ticker not found
   if (status === 404) {
     return {
@@ -270,10 +278,13 @@ export function getAuthUser(): AuthUser | null {
 export function getSavedGroqApiKey(): string {
   if (typeof window === "undefined") return "";
   const user = getAuthUser();
-  if (!user) return "";
-  try {
-    localStorage.removeItem("groq_api_key");
-  } catch {}
+  if (!user) {
+    try {
+      return localStorage.getItem("groq_api_key_guest") || "";
+    } catch {
+      return "";
+    }
+  }
   try {
     return localStorage.getItem(`groq_api_key_${user.email}`) || "";
   } catch {
@@ -284,8 +295,17 @@ export function getSavedGroqApiKey(): string {
 export function saveGroqApiKey(key: string) {
   if (typeof window === "undefined") return;
   const user = getAuthUser();
-  if (!user) return;
   const trimmed = key.trim();
+  if (!user) {
+    try {
+      if (!trimmed) {
+        localStorage.removeItem("groq_api_key_guest");
+      } else {
+        localStorage.setItem("groq_api_key_guest", trimmed);
+      }
+    } catch {}
+    return;
+  }
   try {
     if (!trimmed) {
       localStorage.removeItem(`groq_api_key_${user.email}`);
@@ -414,16 +434,19 @@ export async function verifyGroqApiKey({
   authToken,
 }: {
   groqApiKey: string;
-  authToken: string;
+  authToken?: string;
 }): Promise<{ valid: boolean }> {
   let res: Response;
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (authToken) {
+    headers.Authorization = `Bearer ${authToken}`;
+  }
   try {
     res = await fetch(`${API_BASE_URL}/auth/verify-groq-key`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${authToken}`,
-      },
+      headers,
       body: JSON.stringify({
         groq_api_key: groqApiKey,
       }),

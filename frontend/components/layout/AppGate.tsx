@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Toaster, toast } from "sonner";
 import { clearAuthSession, getAuthUser, getSavedGroqApiKey, type AuthUser } from "@/lib/api";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { SearchView } from "@/components/research/SearchView";
@@ -13,12 +14,28 @@ export function AppGate() {
   const [fadeOutIntro, setFadeOutIntro] = useState(introAlreadyShown);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [hasSavedKey, setHasSavedKey] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     const authedUser = getAuthUser();
     setUser(authedUser);
     if (authedUser) {
       setHasSavedKey(!!getSavedGroqApiKey()?.trim());
+    }
+
+    // Check query params for guest limit reached redirect
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("limit_reached") === "true") {
+        setShowAuth(true);
+        const errMsg = "You have reached the limit of 3 free searches. Please sign up or log in to search more.";
+        setAuthError(errMsg);
+        toast.error(errMsg, {
+          duration: 5000,
+        });
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
     }
 
     if (introAlreadyShown) {
@@ -46,6 +63,8 @@ export function AppGate() {
     clearAuthSession();
     setUser(null);
     setHasSavedKey(false);
+    setShowAuth(false);
+    setAuthError(null);
   };
 
   return (
@@ -85,10 +104,19 @@ export function AppGate() {
           ) : (
             <BYOKCard onKeySaved={() => setHasSavedKey(true)} onLogout={handleLogout} />
           )
+        ) : showAuth ? (
+          <AuthCard
+            onAuthed={handleAuthed}
+            onClose={() => {
+              setShowAuth(false);
+              setAuthError(null);
+            }}
+          />
         ) : (
-          <AuthCard onAuthed={handleAuthed} />
+          <SearchView onLoginClick={() => setShowAuth(true)} />
         )}
       </div>
+      <Toaster richColors position="top-center" />
     </>
   );
 }

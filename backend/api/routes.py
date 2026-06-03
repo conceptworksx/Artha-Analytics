@@ -27,6 +27,7 @@ from api.controllers import (
     validate_ticker_exists,
     _get_user_by_id,
     _secret_key,
+    db,
 )
 from core.error import (
     AgentError,
@@ -93,6 +94,41 @@ def get_current_user(
         )
 
 
+def get_current_user_optional(
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
+) -> Optional[AuthUser]:
+    if not credentials or credentials.scheme.lower() != "bearer":
+        return None
+
+    token = credentials.credentials
+    try:
+        claims = jwt.decode(
+            token,
+            _secret_key(),
+            algorithms=["HS256"],
+        )
+        user_row = _get_user_by_id(claims["sub"])
+        if not user_row:
+            return None
+        return AuthUser(
+            id=str(user_row["_id"]),
+            email=user_row["email"],
+            name=user_row.get("name"),
+        )
+    except Exception:
+        return None
+
+
+def get_client_ip(request: Request) -> str:
+    x_forwarded_for = request.headers.get("x-forwarded-for")
+    if x_forwarded_for:
+        return x_forwarded_for.split(",")[0].strip()
+    x_real_ip = request.headers.get("x-real-ip")
+    if x_real_ip:
+        return x_real_ip.strip()
+    return request.client.host if request.client else "127.0.0.1"
+
+
 @router.get("/health")
 def health_check():
     return {"status": "ok"}
@@ -149,10 +185,27 @@ async def analyze(
     request: Request,
     body: AnalyzeRequest,
     groq_api_key: Optional[str] = Header(None, alias="Groq-API-Key"),
-    user: AuthUser = Depends(get_current_user),
+    user: Optional[AuthUser] = Depends(get_current_user_optional),
 ):
     ticker = body.ticker.strip().upper()
     logger.info(f"Analyze request received | ticker={ticker}")
+
+    # Check search limits for guest users
+    client_ip = get_client_ip(request)
+    ip_searches_col = db["ip_searches"]
+
+    if user is None:
+        ip_record = ip_searches_col.find_one({"ip": client_ip})
+        search_count = ip_record.get("count", 0) if ip_record else 0
+        if search_count >= 3:
+            logger.warning(f"Guest search limit reached | ip={client_ip} | ticker={ticker}")
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "error": "limit_reached",
+                    "message": "You have reached the limit of 3 free searches. Please sign up or log in to search more."
+                }
+            )
 
     # Ensure Groq API Key is provided
     if (
@@ -204,6 +257,14 @@ async def analyze(
             graph.invoke, {"ticker_of_company": ticker}
         )
         logger.info(f"Graph execution completed | ticker={ticker}")
+
+        # Increment IP search count for guest users upon successful analysis
+        if user is None:
+            ip_searches_col.update_one(
+                {"ip": client_ip},
+                {"$inc": {"count": 1}},
+                upsert=True
+            )
 
         data_bundle = final_state.get("data_bundle", {})
         return AnalyzeResponse(
