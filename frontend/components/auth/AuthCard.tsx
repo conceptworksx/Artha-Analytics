@@ -152,7 +152,7 @@ export function AuthCard({ onAuthed }: { onAuthed: (user: AuthUser) => void }) {
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={colTrans(0)}
-            className={`flex flex-col items-center text-center ${tab === "login" ? "md:order-2" : "md:order-1"}`}
+            className="flex flex-col items-center text-center md:order-1"
           >
             <div className="relative mb-4">
               <div className="absolute inset-0 rounded-full bg-[#d4a84c]/10 blur-2xl" />
@@ -168,7 +168,7 @@ export function AuthCard({ onAuthed }: { onAuthed: (user: AuthUser) => void }) {
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={colTrans(0.1)}
-            className={`w-full max-w-[360px] mx-auto ${tab === "login" ? "md:order-1" : "md:order-2"}`}
+            className="w-full max-w-[360px] mx-auto md:order-2"
           >
             <motion.div
               className="relative rounded-2xl border border-black/10 bg-white/70 p-6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.2)] backdrop-blur-xl h-[465px] flex flex-col justify-between w-full"
