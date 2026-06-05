@@ -54,6 +54,21 @@ export function StockMetricsPanel({ data }: StockMetricsPanelProps) {
   const industry = info.industry || "N/A";
   const businessSummary = info.longBusinessSummary || info.description || "No business summary available.";
 
+  const bulletPoints = useMemo(() => {
+    if (!businessSummary || businessSummary === "No business summary available.") {
+      return ["No business summary available."];
+    }
+    const sentences = businessSummary
+      .split(/(?<!\b(?:Dr|Mr|Ms|Co|Inc|Ltd|Rs|No|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Oct|Nov|Dec))\.\s+/)
+      .map((s: string) => s.trim())
+      .filter((s: string) => s.length > 3);
+
+    return sentences.map((s: string) => {
+      if (s.endsWith(".")) return s;
+      return s + ".";
+    });
+  }, [businessSummary]);
+
   // Calculate change and percentage change relative to baseline
   const { priceChange, percentChange, isPositive } = useMemo(() => {
     let baseline = prevClose;
@@ -373,16 +388,20 @@ export function StockMetricsPanel({ data }: StockMetricsPanelProps) {
             </div>
           </div>
 
-          <p className="font-sans text-sm leading-relaxed text-zinc-600">
-            {showFullSummary ? businessSummary : `${businessSummary.slice(0, 240)}...`}
-          </p>
+          <ul className="list-disc pl-5 space-y-2.5 font-sans text-sm leading-relaxed text-zinc-600">
+            {(showFullSummary ? bulletPoints : bulletPoints.slice(0, 3)).map((bullet: string, idx: number) => (
+              <li key={idx} className="marker:text-zinc-400">
+                {bullet}
+              </li>
+            ))}
+          </ul>
 
-          {businessSummary.length > 240 && (
+          {bulletPoints.length > 3 && (
             <button
               onClick={() => setShowFullSummary(!showFullSummary)}
-              className="mt-2.5 font-mono text-xs font-bold uppercase tracking-wider text-zinc-900 hover:text-zinc-600 hover:underline transition-all cursor-pointer"
+              className="mt-2 font-mono text-xs font-bold uppercase tracking-wider text-zinc-900 hover:text-zinc-600 hover:underline transition-all cursor-pointer block"
             >
-              {showFullSummary ? "Show Less ▲" : "Show More ▼"}
+              {showFullSummary ? "Show Less ▲" : `Show More (${bulletPoints.length - 3} More) ▼`}
             </button>
           )}
         </div>

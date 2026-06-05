@@ -109,7 +109,7 @@ function buildErrorMessage(
   if (status === 401 && errorCode !== "invalid_api_key") {
     return {
       title: "SIGN IN REQUIRED",
-      message: serverMsg || "Your session has expired. Please sign in again.",
+      message: "Your session has expired. Please sign in again.",
     };
   }
 
@@ -149,7 +149,7 @@ function buildErrorMessage(
   if (status === 403 || errorCode === "limit_reached") {
     return {
       title: "GUEST LIMIT REACHED",
-      message: serverMsg || "You have reached the limit of 3 free guest searches. Please sign up or log in to search more.",
+      message: "You have reached the limit of 3 free guest searches. Please sign up or log in to search more.",
     };
   }
 
@@ -166,7 +166,6 @@ function buildErrorMessage(
   return {
     title: "SOMETHING WENT WRONG",
     message:
-      serverMsg ||
       "The analysis server encountered an unexpected error while processing your request. This is usually a temporary issue on our end.",
   };
 }
