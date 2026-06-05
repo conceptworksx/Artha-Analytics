@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -34,6 +34,14 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
   const [error, setError] = useState<ErrorInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
+
+  const mainRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0;
+    }
+  }, [view]);
 
   const authToken = getAuthToken();
   const groqApiKey = getSavedGroqApiKey();
@@ -218,7 +226,7 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
       <div className="flex min-h-0 flex-1">
         <AppSidebar active={view} onSelect={setView} />
 
-        <main className="flex-1 overflow-y-auto bg-[var(--background)] p-8">
+        <main ref={mainRef} className="flex-1 overflow-y-auto bg-[var(--background)] p-8">
           <ViewSwitch view={view} data={data} />
         </main>
       </div>
