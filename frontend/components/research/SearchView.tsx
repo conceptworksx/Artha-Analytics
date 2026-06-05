@@ -60,13 +60,21 @@ export function SearchView({
   }, []);
 
   const fuse = useMemo(
-    () => new Fuse(tickers, { keys: ["symbol", "name"], threshold: 0.3, ignoreLocation: true }),
-    [tickers]
+    () =>
+      new Fuse(tickers, {
+        keys: ["symbol", "name"],
+        threshold: 0.3,
+        ignoreLocation: true,
+      }),
+    [tickers],
   );
 
   const results = useMemo(() => {
     if (!query.trim()) return [];
-    return fuse.search(query).slice(0, 8).map((r) => r.item);
+    return fuse
+      .search(query)
+      .slice(0, 8)
+      .map((r) => r.item);
   }, [query, fuse]);
 
   const handleSelect = (t: Ticker) => {
@@ -132,47 +140,73 @@ export function SearchView({
       clearCached(target.symbol);
       router.push(`/research/${target.symbol}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to reach analysis service");
+      setError(
+        err instanceof Error ? err.message : "Failed to reach analysis service",
+      );
       setLoading(false);
     }
   };
 
   if (loading) {
-    return <LoadingView ticker={selected?.symbol ?? ""} user={user} onLogout={onLogout} />;
+    return (
+      <LoadingView
+        ticker={selected?.symbol ?? ""}
+        user={user}
+        onLogout={onLogout}
+      />
+    );
   }
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-white text-black">
-      {/* Animated gold aurora */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
+      {/* Animated background aurora & particles container */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <motion.div
-          className="absolute -top-40 -left-40 h-[500px] w-[500px] rounded-full bg-[#d4a84c]/20 blur-3xl"
-          animate={{ x: [0, 80, 0], y: [0, 60, 0] }}
-          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-60 -left-60 h-[600px] w-[600px] rounded-full bg-[#d4a84c]/15 blur-[100px]"
+          animate={{ x: [0, 120, 0], y: [0, 80, 0] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
-          className="absolute -bottom-40 -right-40 h-[600px] w-[600px] rounded-full bg-black/10 blur-3xl"
-          animate={{ x: [0, -60, 0], y: [0, -40, 0] }}
-          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -bottom-40 -right-40 h-[500px] w-[500px] rounded-full bg-black/8 blur-[80px]"
+          animate={{ x: [0, -80, 0], y: [0, -60, 0] }}
+          transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
         />
-      </div>
+        <motion.div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[400px] w-[400px] rounded-full bg-[#d4a84c]/8 blur-[120px]"
+          animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(0,0,0,0.04)_1px,transparent_0)] [background-size:32px_32px]" />
 
-      {/* Floating gold particles */}
-      {Array.from({ length: 15 }).map((_, i) => (
-        <motion.span
-          key={i}
-          className="absolute h-1 w-1 rounded-full bg-[#d4a84c]/50"
-          style={{ left: `${(i * 67) % 100}%`, top: `${(i * 41) % 100}%` }}
-          animate={{ y: [0, -35, 0], opacity: [0.15, 0.8, 0.15] }}
-          transition={{ duration: 5 + (i % 6), repeat: Infinity, delay: i * 0.4, ease: "easeInOut" }}
-        />
-      ))}
+        {/* Floating gold particles */}
+        {Array.from({ length: 20 }).map((_, i) => (
+          <motion.span
+            key={i}
+            className="absolute h-1 w-1 rounded-full bg-[#d4a84c]/40"
+            style={{
+              left: `${(i * 53 + 7) % 100}%`,
+              top: `${(i * 37 + 13) % 100}%`,
+            }}
+            animate={{ y: [0, -40, 0], opacity: [0.1, 0.7, 0.1] }}
+            transition={{
+              duration: 5 + (i % 4),
+              repeat: Infinity,
+              delay: i * 0.3,
+              ease: "easeInOut",
+            }}
+          />
+        ))}
+      </div>
 
       {/* Navbar matching report page style */}
       <header className="flex h-16 shrink-0 items-center justify-between border-b border-black/10 bg-white/70 backdrop-blur-md px-5 w-full z-10">
         <div className="flex items-center">
           <Link href="/">
-            <img src="/navbar.png" alt="Artha Analytics" className="h-14 object-contain cursor-pointer" />
+            <img
+              src="/navbar.png"
+              alt="Artha Analytics"
+              className="h-14 object-contain cursor-pointer"
+            />
           </Link>
         </div>
 
@@ -190,10 +224,17 @@ export function SearchView({
               {hasApiKey ? (
                 <User size={13} className="text-[#d4a84c]" />
               ) : (
-                <MdErrorOutline size={14} className="text-red-500 animate-pulse shrink-0" />
+                <MdErrorOutline
+                  size={14}
+                  className="text-red-500 animate-pulse shrink-0"
+                />
               )}
-              <span className="truncate max-w-[150px]">{user.name || user.email.split("@")[0]}</span>
-              {!hasApiKey && <span className="text-[11px] font-bold text-red-500">!</span>}
+              <span className="truncate max-w-[150px]">
+                {user.name || user.email.split("@")[0]}
+              </span>
+              {!hasApiKey && (
+                <span className="text-[11px] font-bold text-red-500">!</span>
+              )}
             </button>
             <span className="h-4 w-px bg-black/10 hidden sm:block" />
             <button
@@ -218,7 +259,7 @@ export function SearchView({
       </header>
 
       {/* Main search panel container */}
-      <main className="flex flex-1 items-center justify-center px-6 py-12 relative z-10">
+      <main className="flex flex-1 flex-col items-center justify-center px-6 py-12 relative z-10 w-full max-w-4xl mx-auto">
         <div className="w-full max-w-[400px]">
           <label className="mb-2 ml-3 block font-mono text-[13px] tracking-wider text-[var(--label)]">
             SEARCH NSE TICKER
@@ -261,8 +302,12 @@ export function SearchView({
                       i === highlight ? "bg-black/5" : "bg-transparent"
                     }`}
                   >
-                    <span className="font-mono text-[13px] font-bold text-black">{t.symbol}</span>
-                    <span className="ml-4 truncate text-[12px] text-neutral-500">{t.name}</span>
+                    <span className="font-mono text-[13px] font-bold text-black">
+                      {t.symbol}
+                    </span>
+                    <span className="ml-4 truncate text-[12px] text-neutral-500">
+                      {t.name}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -278,13 +323,43 @@ export function SearchView({
             </button>
           )}
 
-          {error && <p className="mt-4 text-center font-mono text-[11px] text-[var(--sell)]">{error}</p>}
+          {error && (
+            <p className="mt-4 text-center font-mono text-[11px] text-[var(--sell)]">
+              {error}
+            </p>
+          )}
+
+          {/* Popular Searches */}
+          <div className="mt-8">
+            <span className="block text-center font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400 mb-3">
+              Popular Searches
+            </span>
+            <div className="flex flex-wrap gap-2.5 justify-center">
+              {[
+                { symbol: "RELIANCE", name: "Reliance Industries Limited" },
+                { symbol: "TCS", name: "Tata Consultancy Services Limited" },
+                { symbol: "WIPRO", name: "Wipro Limited" },
+                { symbol: "HDFCBANK", name: "HDFC Bank Limited" },
+                { symbol: "TATAMOTORS", name: "Tata Motors Limited" },
+              ].map((t) => (
+                <button
+                  key={t.symbol}
+                  onClick={() => handleSelect(t)}
+                  className="font-mono text-[10px] bg-white/50 hover:bg-black hover:text-white border border-black/5 hover:border-black text-neutral-700 px-3 py-1.5 rounded-full shadow-sm transition-all duration-250 cursor-pointer active:scale-95"
+                >
+                  {t.symbol}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </main>
 
       {/* Footer pushed to the bottom of the page */}
       <footer className="w-full py-5 border-t border-[var(--border)] bg-zinc-50/20 flex flex-col items-center gap-1.5 font-mono tracking-wider text-[var(--label)] text-center mt-auto">
-        <span className="text-[11px] font-semibold text-[var(--muted-foreground)]">NSE EQUITY | INDIA</span>
+        <span className="text-[11px] font-semibold text-[var(--muted-foreground)]">
+          NSE EQUITY | INDIA
+        </span>
         <span className="text-[10px] opacity-75">MADE BY CONCEPTWORKSX</span>
         <div className="h-px w-24 bg-[var(--border)] my-0.5" />
         <a
@@ -293,7 +368,13 @@ export function SearchView({
           rel="noopener noreferrer"
           className="flex items-center gap-2 text-[11px] tracking-wider text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]"
         >
-          <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor" aria-hidden="true">
+          <svg
+            viewBox="0 0 16 16"
+            width="13"
+            height="13"
+            fill="currentColor"
+            aria-hidden="true"
+          >
             <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
           </svg>
           <span>Contribute on GitHub</span>
