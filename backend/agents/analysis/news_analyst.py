@@ -2,7 +2,7 @@ import json
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableParallel, RunnableLambda
 from langchain_core.output_parsers import StrOutputParser
-
+from schemas.base_model import AgentOutput
 from agents.base_agent import BaseAgent
 from tools.news_tools import (
     get_indian_market_news,
@@ -52,12 +52,14 @@ class NewsAnalyst(BaseAgent):
         )
 
         # Define the chain to process the news data and generate the report
+        structured_llm = self.llm.with_structured_output(
+            AgentOutput
+        )
         self.chain = (
             news_fetcher
             | RunnableLambda(_build_messages)
             | self.prompt
-            | self.llm
-            | StrOutputParser()
+            | structured_llm
         )
 
     @handle_llm_errors()
