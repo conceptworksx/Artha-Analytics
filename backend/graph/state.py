@@ -72,12 +72,12 @@ class AgentState(TypedDict):
         dict, "Structured news summary for Bull/Bear debate."
     ]
 
-    # sector_analyst_report: Annotated[
-    #     str, "Specific analysis of sector-level trends, tailwinds, and headwinds."
-    # ]
-    # sector_analyst_summary: Annotated[
-    # dict, "Structured sector summary for Bull/Bear debate."
-    # ]
+    sector_analyst_report: Annotated[
+        str, "Specific analysis of sector-level trends, tailwinds, and headwinds."
+    ]
+    sector_analyst_summary: Annotated[
+    dict, "Structured sector summary for Bull/Bear debate."
+    ]
 
     final_report: Annotated[
         str, "single concatenated report combining all analyst report"

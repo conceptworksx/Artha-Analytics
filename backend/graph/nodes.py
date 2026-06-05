@@ -26,7 +26,7 @@ def make_nodes(groq_api_key: str) -> dict:
     fundamental_agent = FundamentalAnalyst(groq_api_key=groq_api_key)
     technical_agent   = TechnicalAnalyst(groq_api_key=groq_api_key)
     news_agent        = NewsAnalyst(groq_api_key=groq_api_key)
-    # sector_agent      = SectorAnalyst(groq_api_key=groq_api_key)
+    sector_agent      = SectorAnalyst(groq_api_key=groq_api_key)
 
     # ── Node functions ────────────────────────────────────────────────────
 
@@ -75,9 +75,9 @@ def make_nodes(groq_api_key: str) -> dict:
             "news_analyst_summary": result.summary.model_dump(),
         }
 
-    # @handle_node_errors("sector_analyst")
-    # def run_sector_analyst(state: AgentState) -> dict:
-    #     return {"sector_analyst_report": sector_agent.run(state)}
+    @handle_node_errors("sector_analyst")
+    def run_sector_analyst(state: AgentState) -> dict:
+        return {"sector_analyst_report": sector_agent.run(state)}
 
     @handle_node_errors("aggregator")
     def run_aggregator(state: AgentState) -> dict:
@@ -87,7 +87,7 @@ def make_nodes(groq_api_key: str) -> dict:
             "fundamental_analyst_report",
             "technical_analyst_report",
             "news_analyst_report",
-            
+            "sector_analyst_report"
         )
         final_report = {
             "input"    : {"ticker": state.get("ticker_of_company")},
@@ -96,7 +96,7 @@ def make_nodes(groq_api_key: str) -> dict:
                 "fundamental" : state.get("fundamental_analyst_report"),
                 "technical"   : state.get("technical_analyst_report"),
                 "news"        : state.get("news_analyst_report"),
-                # "sector"      : state.get("sector_analyst_report"),
+                "sector"      : state.get("sector_analyst_report"),
             },
         }
         return {"final_report": final_report}
@@ -107,7 +107,7 @@ def make_nodes(groq_api_key: str) -> dict:
         "fundamental_analyst": run_fundamental_analyst,
         "technical_analyst"  : run_technical_analyst,
         "news_analyst"       : run_news_analyst,
-        # "sector_analyst"     : run_sector_analyst,
+        "sector_analyst"     : run_sector_analyst,
         "aggregator"         : run_aggregator,
     }
 
