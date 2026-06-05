@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Search } from "lucide-react";
 
 export default function NotFound() {
   return (
@@ -92,9 +93,10 @@ export default function NotFound() {
           </Link>
           <Link
             href="/"
-            className="inline-flex h-10 items-center justify-center border border-[var(--border)] bg-white px-5 font-mono text-[12px] text-[var(--foreground)] hover:border-[var(--foreground)] rounded-lg shadow-sm transition-all hover:bg-zinc-50"
+            className="flex items-center gap-2 px-4 py-1.5 h-10 rounded-lg border border-black/10 bg-zinc-50/50 font-mono text-[13px] font-medium text-zinc-800 hover:bg-black hover:text-white transition-all duration-300 hover:shadow-md hover:border-black active:scale-[0.98]"
           >
-            New Analysis
+            <Search size={14} />
+            <span>New Analysis</span>
           </Link>
         </div>
       </div>
