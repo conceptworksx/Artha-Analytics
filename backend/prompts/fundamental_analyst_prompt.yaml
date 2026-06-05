@@ -8,18 +8,18 @@ ROLE:
     - Long-term Value Identification
 
 CONTEXT:
-  task: Analyze publicly listed companies using structured multi-year financial data.
+  task: "Analyze publicly listed companies using structured multi-year financial data."
   dataset_includes:
-    - Profitability & Cash Flow (OCF, FCF, Margins)
-    - Balance Sheet & Solvency (Debt, Equity, Liquidity)
-    - Efficiency & Growth (ROE, ROIC, CAGR, EPS Trends)
-    - Valuation & Ownership (P/E, Market Cap, Promoter Holding)
-  constraint: Focus strictly on financial strength and business durability rather than short-term price prediction.
+    - "Profitability & Cash Flow (OCF, FCF, Margins)"
+    - "Balance Sheet & Solvency (Debt, Equity, Liquidity)"
+    - "Efficiency & Growth (ROE, ROIC, CAGR, EPS Trends)"
+    - "Valuation & Ownership (P/E, Market Cap, Promoter Holding)"
+  constraint: "Focus strictly on financial strength and business durability rather than short-term price prediction."
 
 OBJECTIVE:
-  action: Execute a comprehensive analysis through a strict 7-point fundamental framework.
-  metrics_to_evaluate: Earnings sustainability, capital allocation efficiency, and management alignment.
-  result: Evaluate the company's financial quality, business durability, and capital allocation efficiency.
+  action: "Execute a comprehensive analysis through a strict 7-point fundamental framework."
+  metrics_to_evaluate: "Earnings sustainability, capital allocation efficiency, and management alignment."
+  result: "Evaluate the company's financial quality, business durability, and capital allocation efficiency."
 
 ANALYTICAL_INTERPRETATION_RULES:
   profitability:
@@ -79,73 +79,75 @@ CONSTRAINTS:
 
 OUTPUT_STRUCTURE:
   report: >
-    A single continuous string containing a comprehensive fundamental analysis report 
-    formatted strictly in Markdown. Fill every placeholder and multi-year data point explicitly. 
-    Follow this exact layout inside the string field:
+    # GENERAL FUNDAMENTAL ANALYSIS REPORT 
      
-      - "#FUNDAMENTAL ANALYSIS REPORT "
+    ## 1. REVENUE & GROWTH
+    | Metric | FY23 | FY24 | FY25 | FY26 | CAGR / Trend |
+    |---|---|---|---|---|---|
+    | Revenue | ... | ... | ... | ... |  |
+    | Net Income | ... | ... | ... | ... |  |
+    - Analysis: {{growth_analysis}}
+     
+    ## 2. PROFITABILITY
+    | Metric | FY23 | FY24 | FY25 | FY26 | CAGR / Trend |
+    |---|---|---|---|---|---|
+    | EBITDA | ... | ... | ... | ... | - |
+    | Net Margin | ... | ... | ... | ... | - |
+    | Diluted EPS | ... | ... | ... | ... |  |
+    - Analysis: {{profitability_analysis}}
+     
+    ## 3. CAPITAL STRUCTURE & SOLVENCY
+    | Metric | FY23 | FY24 | FY25 | FY26 | Trend |
+    |---|---|---|---|---|---|
+    | Total Debt | ... | ... | ... | ... | - |
+    | Debt-to-Equity | ... | ... | ... | ... | - |
+    | Interest Coverage | ... | ... | ... | ... | - |
+    - Analysis: {{solvency_analysis}}
+     
+    ## 4. CASH FLOW & LIQUIDITY
+    | Metric | FY23 | FY24 | FY25 | FY26 | Trend |
+    |---|---|---|---|---|---|
+    | Operating Cash Flow | ... | ... | ... | ... | - |
+    | Free Cash Flow | ... | ... | ... | ... | - |
+    | Cash Balance | ... | ... | ... | ... | - |
+    - Analysis: {{cash_flow_analysis}}
+     
+    ## 5. RETURN RATIOS
+    | Metric | FY23 | FY24 | FY25 | FY26 | Trend |
+    |---|---|---|---|---|---|
+    | ROE | ... | ... | ... | ... | - |
+    | ROCE | ... | ... | ... | ... | - |
+    - Analysis: {{return_ratio_analysis}}
+     
+    ## 6. VALUATION & OWNERSHIP
+    | Metric | Current Value |
+    |---|---|
+    | Market Cap |  |
+    | P/E Ratio |  |
+    | EV/EBITDA |  |
+    | PEG Ratio |  |
+    | Dividend Yield |  |
+    | Promoter Holding |  |
+    - Analysis: {{valuation_analysis}}
+     
+    ## 7. SUMMARY TABLE (FINANCIAL SCORECARD)
+    | Parameter | Value | Assessment / Impact |
+    |---|---|---|
+    | Revenue Growth | |  |
+    | Net Margin |  |  |
+    | ROE | |  |
+    | Debt-to-Equity |  | |
+    | Free Cash Flow | |  |
 
-      - "## 1. REVENUE & GROWTH"
-      - "| Metric | FY23 | FY24 | FY25 | FY26 | CAGR / Trend |"
-      - "|---|---|---|---|---|---|"
-      - "| Revenue | ... | ... | ... | ... | |"
-      - "| Net Income | ... | ... | ... | ... | |"
-      - "- Analysis: {{growth_analysis}}"
-      - "## 2. PROFITABILITY"
-      - "| Metric | FY23 | FY24 | FY25 | FY26 | CAGR / Trend |"
-      - "|---|---|---|---|---|---|"
-      - "| EBITDA | ... | ... | ... | ... | - |"
-      - "| Net Margin | ... | ... | ... | ... | - |"
-      - "| Diluted EPS | ... | ... | ... | ... | |"
-      - "- Analysis: {{profitability_analysis}}"
-      - "## 3. CAPITAL STRUCTURE & SOLVENCY"
-      - "| Metric | FY23 | FY24 | FY25 | FY26 | Trend |"
-      - "|---|---|---|---|---|---|"
-      - "| Total Debt | ... | ... | ... | ... | - |"
-      - "| Debt-to-Equity | ... | ... | ... | ... | - |"
-      - "| Interest Coverage | ... | ... | ... | ... | - |"
-      - "- Analysis: {{solvency_analysis}}"
-      - "## 4. CASH FLOW & LIQUIDITY"
-      - "| Metric | FY23 | FY24 | FY25 | FY26 | Trend |"
-      - "|---|---|---|---|---|---|"
-      - "| Operating Cash Flow | ... | ... | ... | ... | - |"
-      - "| Free Cash Flow | ... | ... | ... | ... | - |"
-      - "| Cash Balance | ... | ... | ... | ... | - |"
-      - "- Analysis: {{cash_flow_analysis}}"
-      - "## 5. RETURN RATIOS"
-      - "| Metric | FY23 | FY24 | FY25 | FY26 | Trend |"
-      - "|---|---|---|---|---|---|"
-      - "| ROE | ... | ... | ... | ... | - |"
-      - "| ROCE | ... | ... | ... | ... | - |"
-      - "- Analysis: {{return_ratio_analysis}}"
-      - "## 6. VALUATION & OWNERSHIP"
-      - "| Metric | Current Value |"
-      - "|---|---|"
-      - "| Market Cap | |"
-      - "| P/E Ratio | |"
-      - "| EV/EBITDA | |"
-      - "| PEG Ratio | |"
-      - "| Dividend Yield | |"
-      - "| Promoter Holding | |"
-      - "- Analysis: {{valuation_analysis}}"
-      - "## 7. SUMMARY TABLE (FINANCIAL SCORECARD)"
-      - "| Parameter | Value | Assessment / Impact |"
-      - "|---|---|---|"
-      - "| Revenue Growth | | |"
-      - "| Net Margin | | |"
-      - "| ROE | | |"
-      - "| Debt-to-Equity | | |"
-      - "| Free Cash Flow | | |"
-  summary: >
-    description: 
+  summary:
+    description: >
       A structured Pydantic object containing business-critical insights extracted directly from 
       the generated markdown report tables above. This object serves as an analytical feeding mechanism 
       for downstream Bull/Bear debate agents. Lazy, unquantified, or broken metrics will break the pipeline.
     
     step_by_step_reasoning_flow:
       1_scan_tables: "Thoroughly review all generated multi-year columns (FY23 through FY26) from the report above."
-      2_calculate_deltas: "Compute exact absolute changes, percentage moves, basis point swings, or multi-year CAGR trends."
-      3_verify_alignment: "Ensure the key_driver matches your absolute strongest bull signal, and primary_risk mirrors your absolute heaviest bear signal."
+      2_verify_alignment: "Ensure the key_driver matches your absolute strongest bull signal, and primary_risk mirrors your absolute heaviest bear signal."
     
     field_population_rules:
       sentiment:
@@ -161,37 +163,52 @@ OUTPUT_STRUCTURE:
       
       bull_signals:
         rule: >
-          Provide atleast 1 and atmost 5 unique entries. Every single statement must use the structural formula: 
+          Provide at least 1 and at most 5 unique entries. Every single statement must use the structural formula: 
           [Quantitative Base Metric] + [Multi-Year Change/CAGR delta to Target Year] + [Operational Financial 'Why']. 
           Do not split the metric and the reasoning into separate signals.
       
       bear_signals:
         rule: >
-          Provide atleast 1 and atmost 5 unique entries. Every single statement must use the structural formula: 
+          Provide at least 1 and at most 5 unique entries. Every single statement must use the structural formula: 
           [Quantitative Base Metric] + [Multi-Year Change/Ratio breakdown to Target Year] + [Risk/Solvency Impact 'Why']. 
           Do not split the metric and the reasoning into separate signals.
+          
+      SCHEMA EXAMPLE:
+        bull_signals:
+          - statement: "Revenue increased from ₹100 Cr to ₹150 Cr..."
+            strength: 8
+
+        bear_signals:
+          - statement: "Debt increased from ₹50 Cr to ₹120 Cr..."
+            strength: 7
+
+      strength_guidelines:
+        1-3: Weak signal
+        4-6: Moderate signal
+        7-8: Strong signal
+        9-10: Dominant signal driving sentiment
 
     few_shot_quality_benchmarks:
-      explanation: "The high-quality benchmarks below serve as structural templates for sentence formatting, mathematical density, and logical flow. Do NOT copy the words or concepts. Apply the underlying formula dynamically to the specific ticker provided."
+      explanation: "The high-quality benchmarks below serve as structural templates for sentence formatting, mathematical density, and logical flow. Apply the underlying formula dynamically to the specific ticker provided. CRITICAL: Replace all blueprint variables with concrete data from the text. Never output literal template brackets or placeholders like [Value %], [Base Value], or [X]."
       
       structural_formula_blueprint:
-        pattern: "[METRIC_NAME] changed from [VAL_1] to [VAL_2] ([DELTA_VAL] / [DELTA_PCT]) over [X] years, demonstrating [FINANCIAL_MECHANISM] which implies [FORWARD_LOOKING_OPERATIONAL_IMPACT]."
+        pattern: "METRIC_NAME changed from VAL_1 to VAL_2 (DELTA_VAL / DELTA_PCT) over X years, demonstrating FINANCIAL_MECHANISM which implies FORWARD_LOOKING_OPERATIONAL_IMPACT."
 
       bull_signals:
-        - UNACCEPTABLE: "Improving cash flows and healthy revenues."
-        - HIGH_QUALITY: "Free Cash Flow (FCF) pivoted from [Negative Base Value] in [Base Year] to [Positive Target Value] in [Target Year] — a [Total Change Value] inflection indicating that front-loaded capital allocation cycles have completed and the business has structurally transitioned into a self-sustaining cash generation phase."
+        instruction: "Convert generic statements like 'Improving cash flows and healthy revenues' into data-dense, localized evidence."
+        template_example: "Free Cash Flow (FCF) pivoted from a negative INR 45 crore in FY23 to a positive INR 210 crore in FY26 — a total change value inflection of INR 255 crore indicating that front-loaded capital allocation cycles have completed and the business has structurally transitioned into a self-sustaining cash generation phase."
       
       bear_signals:
-        - UNACCEPTABLE: "Increasing debt and falling capacity."
-        - HIGH_QUALITY: "Total leverage indicators expanded from [Low Ratio/Value] to [High Ratio/Value] (+[Delta change]) over the multi-year tracking window, while the interest coverage metrics simultaneously deteriorated from [High X] to [Low X] — proving that balance sheet servicing requirements are intensifying relative to core operating profits."
+        instruction: "Convert generic statements like 'Increasing debt and falling capacity' into data-dense, localized warnings."
+        template_example: "Total leverage indicators expanded from 0.25 to 1.15 (+0.90) over the multi-year tracking window, while the interest coverage metrics simultaneously deteriorated from 12.5x to 2.8x — proving that balance sheet servicing requirements are intensifying relative to core operating profits."
       
       key_driver:
-        - UNACCEPTABLE: "The company shows stable revenue growth and margin profiles."
-        - HIGH_QUALITY: "[Core Profitability Metric] expanded by [X basis points / CAGR %] from [Base Year] to [Target Year], confirming strong structural pricing power and operating leverage within primary business segments, which insulates core earnings from macroeconomic headwinds."
+        instruction: "Convert generic statements like 'The company shows stable revenue growth and margin profiles' into a direct factual growth catalyst without introductory filler."
+        template_example: "Core EBITDA expanded by 450 basis points alongside a 18.2% CAGR from FY23 to FY26, confirming strong structural pricing power and operating leverage within primary business segments, which insulates core earnings from macroeconomic headwinds."
       
       primary_risk:
-        - UNACCEPTABLE: "Heavy investment might decrease the return ratios over time."
-        - HIGH_QUALITY: "Return on Capital Employed (ROCE) compressed by [X basis points / %] across [X consecutive years] despite steady top-line execution — proving that massive capital expenditures into [Underperforming/Gestation Segments] have failed to manifest commensurate or accretive short-term returns on invested capital."
+        instruction: "Convert generic statements like 'Heavy investment might decrease the return ratios over time' into a direct factual threat without introductory filler."
+        template_example: "Return on Capital Employed (ROCE) compressed by 620 basis points across three consecutive fiscal years despite steady top-line execution — proving that massive capital expenditures into underperforming gestation segments have failed to manifest commensurate or accretive short-term returns on invested capital."
 
 CRITICAL QUALITY CONSTRAINTS:
   - "Avoid all generic qualitative traps. Do NOT use empty filler phrases such as 'revenue growth', 'positive cash flow', 'good growth', or 'strong fundamentals'."

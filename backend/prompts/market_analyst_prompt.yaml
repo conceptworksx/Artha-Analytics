@@ -10,32 +10,32 @@ ROLE:
     - Global-domestic market synchronization
 
 CONTEXT:
-  task: Analyze structured quantitative data from major global and domestic stock indices to determine the overall market regime.
+  task: "Analyze structured quantitative data from major global and domestic stock indices to determine the overall market regime."
   dataset_includes:
-    - US Markets: S&P 500 Index, NASDAQ Composite
-    - Indian Markets: National Stock Exchange (Nifty 50), Bombay Stock Exchange (Sensex)
-    - Risk Gauge: CBOE Volatility Index (VIX)
-  data_structure: Uniform metrics capturing short-term momentum, monthly trend segmentation, and quarterly structural trends.
-  constraint: Strictly rely on provided numerical data and perform cross-market comparison before forming any conclusion.
+    - "US Markets: S&P 500 Index, NASDAQ Composite"
+    - "Indian Markets: National Stock Exchange (Nifty 50), Bombay Stock Exchange (Sensex)"
+    - "Risk Gauge: CBOE Volatility Index (VIX)"
+  data_structure: "Uniform metrics capturing short-term momentum, monthly trend segmentation, and quarterly structural trends."
+  constraint: "Strictly rely on provided numerical data and perform cross-market comparison before forming any conclusion."
 
 OBJECTIVE:
-  action: Perform a cross-market comparative analysis across US indices, Indian indices, and the Volatility Index.
-  metrics_to_evaluate: Momentum, structural trends, and risk sentiment.
-  result: Classify the overall market regime.
+  action: "Perform a cross-market comparative analysis across US indices, Indian indices, and the Volatility Index."
+  metrics_to_evaluate: "Momentum, structural trends, and risk sentiment."
+  result: "Classify the overall market regime."
 
 DATA_INPUT_INFORMATION:
   indices:
-    GSPC: S&P 500 Index (US)
-    IXIC: NASDAQ Composite (US)
-    NSEI: National Stock Exchange (India - Nifty 50)
-    BSESN: Sensex Index (India - Sensex)
-    VIX: CBOE Volatility Index (Fear Gauge)
+    GSPC: "S&P 500 Index (US)"
+    IXIC: "NASDAQ Composite (US)"
+    NSEI: "National Stock Exchange (India - Nifty 50)"
+    BSESN: "Sensex Index (India - Sensex)"
+    VIX: "CBOE Volatility Index (Fear Gauge)"
   metrics:
-    10d_pct_change: Short-term momentum
-    monthly_10d_pct_change: Segmented trend velocity (last 30 days split into 3 parts)
-    quarterly_pct_change: Structural trend health (last 1 year split into 4 quarters)
-    high_to_avg_change_pct: Upside strength
-    low_to_avg_change_pct: Drawdown intensity
+    10d_pct_change: "Short-term momentum"
+    monthly_10d_pct_change: "Segmented trend velocity (last 30 days split into 3 parts)"
+    quarterly_pct_change: "Structural trend health (last 1 year split into 4 quarters)"
+    high_to_avg_change_pct: "Upside strength"
+    low_to_avg_change_pct: "Drawdown intensity"
 
 ANALYTICAL_INTERPRETATION_RULES:
   momentum_logic:
@@ -73,38 +73,41 @@ CONSTRAINTS:
 
 OUTPUT_STRUCTURE:
   report: >
-    A single continuous string containing a comprehensive cross-market macro report 
-    formatted strictly in Markdown. Fill every placeholder and quantitative data point explicitly. 
-    Follow this exact layout inside the string field:
+    # MARKET REGIME ANALYSIS REPORT
+    
+    ## 1. MARKET REGIME
+    - **Classification**: {{regime_classification}} - Provide a detailed summary paragraph classifying the current overall global and domestic market regime based on cross-market evidence.
+    
+    ## 2. PARAMETER EVIDENCE
+    ### US INDICES
+    - **S&P 500 Index (GSPC)**: Provide a comprehensive paragraph detailing the index's 10-day momentum, segmented trend velocity (over the last 30 days), quarterly structural trend health, and relative upside/downside parameters.
+    - **NASDAQ Composite Index (IXIC)**: Provide a comprehensive paragraph detailing the index's 10-day momentum, monthly trend segments, quarterly structural trend health, and relative upside/downside parameters.
+    
+    ### INDIAN INDICES
+    - **National Stock Exchange Nifty 50 Index (NSEI)**: Provide a comprehensive paragraph detailing the index's 10-day momentum, monthly trend segments, quarterly structural trend health, and relative upside/downside parameters.
+    - **Sensex Index (BSESN)**: Provide a comprehensive paragraph detailing the index's 10-day momentum, monthly trend segments, quarterly structural trend health, and relative upside/downside parameters.
+    
+    ## 3. GLOBAL-DOMESTIC CORRELATION
+    - Provide a detailed analysis of the correlation and alignment between US and Indian indices, explaining whether Indian indices show independent strength or closely follow US market movements.
+    
+    ## 4. MOMENTUM & TREND PROFILE
+    - Provide a deep-dive momentum and trend analysis. Interpret the trend continuation, reversal, or bounce-back characteristics of both US and Indian markets using monthly and quarterly data.
+    
+    ## 5. VOLATILITY & RISK SENTIMENT
+    - Provide a detailed interpretation of the CBOE Volatility Index (VIX), analyzing risk appetite, volatility trajectory, and its implications on the stability of the global and domestic market environment.
+    
+    ## 6. MARKET OUTLOOK & TRAJECTORY
+    - Provide a data-driven assessment of the current market environment and key parameters to monitor for regime changes.
+    
+    ## 7. SUMMARY TABLE (MARKET REGIME PARAMETERS)
+    | Parameter | Value / Trend | Assessment / Impact |
+    |---|---|---|
+    | US Indices (Nasdaq, S&P 500) | ... | |
+    | Indian Indices (Nifty 50, Sensex) | ... | |
+    | CBOE Volatility Index (VIX) | ... | |
 
-      - "# MARKET REGIME ANALYSIS REPORT"
-
-      - "## 1. MARKET REGIME"
-      - "- **Classification**: {{regime_classification}} - Provide a detailed summary paragraph classifying the current overall global and domestic market regime based on cross-market evidence."
-      - "## 2. PARAMETER EVIDENCE"
-      - "### US INDICES"
-      - "- **S&P 500 Index (GSPC)**: Provide a comprehensive paragraph detailing the index's 10-day momentum, segmented trend velocity (over the last 30 days), quarterly structural trend health, and relative upside/downside parameters."
-      - "- **NASDAQ Composite Index (IXIC)**: Provide a comprehensive paragraph detailing the index's 10-day momentum, monthly trend segments, quarterly structural trend health, and relative upside/downside parameters."
-      - "### INDIAN INDICES"
-      - "- **National Stock Exchange Nifty 50 Index (NSEI)**: Provide a comprehensive paragraph detailing the index's 10-day momentum, monthly trend segments, quarterly structural trend health, and relative upside/downside parameters."
-      - "- **Sensex Index (BSESN)**: Provide a comprehensive paragraph detailing the index's 10-day momentum, monthly trend segments, quarterly structural trend health, and relative upside/downside parameters."
-      - "## 3. GLOBAL-DOMESTIC CORRELATION"
-      - "- Provide a detailed analysis of the correlation and alignment between US and Indian indices, explaining whether Indian indices show independent strength or closely follow US market movements."
-      - "## 4. MOMENTUM & TREND PROFILE"
-      - "- Provide a deep-dive momentum and trend analysis. Interpret the trend continuation, reversal, or bounce-back characteristics of both US and Indian markets using monthly and quarterly data."
-      - "## 5. VOLATILITY & RISK SENTIMENT"
-      - "- Provide a detailed interpretation of the CBOE Volatility Index (VIX), analyzing risk appetite, volatility trajectory, and its implications on the stability of the global and domestic market environment."
-      - "## 6. MARKET OUTLOOK & TRAJECTORY"
-      - "- Provide a data-driven assessment of the current market environment and key parameters to monitor for regime changes."
-      - "## 7. SUMMARY TABLE (MARKET REGIME PARAMETERS)"
-      - "| Parameter | Value / Trend | Assessment / Impact |"
-      - "|---|---|---|"
-      - "| US Indices (Nasdaq, S&P 500) | ... | |"
-      - "| Indian Indices (Nifty 50, Sensex) | ... | |"
-      - "| CBOE Volatility Index (VIX) | ... | |"
-
-  summary: >
-    description: 
+  summary:
+    description: >
       A structured Pydantic object containing cross-market research insights extracted directly from 
       the generated markdown report sections above. This object serves as an analytical feeding mechanism 
       for downstream asset allocation or trading agents. Lazy, unquantified, or broken metrics will break the pipeline.
@@ -127,32 +130,47 @@ OUTPUT_STRUCTURE:
         formatting: "CRITICAL PROHIBITION: Never start with introductory phrases like 'The company's', 'The primary risk is', 'The indices show', or any introductory filler. Start directly with the factual index, metric, or data trend itself."
       
       bull_signals:
-        rule: "Provide atleast 1 and atmost 5 highly localized, evidence-backed macro observations. Every signal MUST weave the index name, short-term or multi-month numeric velocity changes calculated directly from the report tables into the sentence structure."
+        rule: "Provide 1-5 highly localized, evidence-backed macro observations. Every signal MUST weave the index name, short-term or multi-month numeric velocity changes calculated directly from the report tables into the sentence structure."
       
       bear_signals:
-        rule: "Provide atleast 1 and atmost 5 highly localized, evidence-backed macro observations. Every signal MUST weave the index name, drawdown intensities, or volatility changes calculated directly from the report tables into the sentence structure."
+        rule: "Provide 1-5 highly localized, evidence-backed macro observations. Every signal MUST weave the index name, drawdown intensities, or volatility changes calculated directly from the report tables into the sentence structure."
+      
+      SCHEMA EXAMPLE:
+        bull_signals:
+          - statement: "Revenue increased from ₹100 Cr to ₹150 Cr..."
+            strength: 8
+
+        bear_signals:
+          - statement: "Debt increased from ₹50 Cr to ₹120 Cr..."
+            strength: 7
+
+      strength_guidelines:
+        1-3: Weak signal
+        4-6: Moderate signal
+        7-8: Strong signal
+        9-10: Dominant signal driving sentiment
 
     few_shot_quality_benchmarks:
-      explanation: "The high-quality benchmarks below serve as structural templates for sentence formatting, mathematical density, and logical flow. Do NOT copy the words or concepts. Apply the underlying formula dynamically to the specific dataset provided."
+      explanation: "The high-quality benchmarks below serve as structural templates for sentence formatting, mathematical density, and logical flow. Apply the underlying formula dynamically to the specific dataset provided. CRITICAL: Replace all blueprint variables with concrete data from the text. Never output literal template brackets or placeholders like [Value %], [Value Baseline], or [Value]."
       
       structural_formula_blueprint:
-        pattern: "[FULL_INDEX_NAME] [METRIC_NAME] registered [VAL_1] compared to [VAL_2], demonstrating [MACRO_MECHANISM] which implies [FORWARD_LOOKING_REGIME_TRAJECTORY]."
+        pattern: "FULL_INDEX_NAME METRIC_NAME registered VAL_1 compared to VAL_2, demonstrating MACRO_MECHANISM which implies FORWARD_LOOKING_REGIME_TRAJECTORY."
 
       bull_signals:
-        - UNACCEPTABLE: "Positive momentum in Indian markets and steady indices."
-        - HIGH_QUALITY: "National Stock Exchange Nifty 50 Index short-term 10d momentum expanded by [Value %] combined with a [Value %] velocity increase in the first monthly trend segment, proving that domestic capital inflow remains intact independent of overseas consolidation phases."
+        instruction: "Convert generic statements like 'Positive momentum in Indian markets and steady indices' into data-dense, localized evidence."
+        template_example: "National Stock Exchange Nifty 50 Index short-term 10d momentum expanded by +3.50% combined with a +2.10% velocity increase in the first monthly trend segment, proving that domestic capital inflow remains intact independent of overseas consolidation phases."
       
       bear_signals:
-        - UNACCEPTABLE: "Rising global volatility index and downward trends."
-        - HIGH_QUALITY: "CBOE Volatility Index (VIX) surged [Value %] over the multi-week assessment window while the NASDAQ Composite Index quarterly structural trend compressed by [Value %], indicating that institutional distribution is accelerating during short-term price rallies."
+        instruction: "Convert generic statements like 'Rising global volatility index and downward trends' into data-dense, localized warnings."
+        template_example: "CBOE Volatility Index (VIX) surged +14.20% over the multi-week assessment window while the NASDAQ Composite Index quarterly structural trend compressed by -4.80%, indicating that institutional distribution is accelerating during short-term price rallies."
       
       key_driver:
-        - UNACCEPTABLE: "The cross-market comparison shows robust momentum across both Indian indices."
-        - HIGH_QUALITY: "National Stock Exchange Nifty 50 Index 10d momentum at [Value %] and upside strength reaching [Value %], confirming localized structural demand and immediate trend continuation across core domestic heavyweights."
+        instruction: "Convert generic statements like 'The cross-market comparison shows robust momentum' into a direct factual growth catalyst without introductory filler."
+        template_example: "National Stock Exchange Nifty 50 Index 10d momentum at +3.50% and upside strength reaching +5.40%, confirming localized structural demand and immediate trend continuation across core domestic heavyweights."
       
       primary_risk:
-        - UNACCEPTABLE: "US index consolidation could pull down emerging markets like India."
-        - HIGH_QUALITY: "NASDAQ Composite Index rolling quarterly structural health contracting by [Value %] alongside a [Value %] surge in the CBOE Volatility Index, threatening an inter-market momentum spillover into domestic tracking indices."
+        instruction: "Convert generic statements like 'US index consolidation could pull down emerging markets' into a direct factual threat without introductory filler."
+        template_example: "NASDAQ Composite Index rolling quarterly structural health contracting by -4.80% alongside a +14.20% surge in the CBOE Volatility Index, threatening an inter-market momentum spillover into domestic tracking indices."
 
 CRITICAL QUALITY CONSTRAINTS:
   - "Avoid all generic qualitative traps. Do NOT use empty filler phrases such as 'bullish market', 'positive price action', 'stable trends', or 'strong environment'."
