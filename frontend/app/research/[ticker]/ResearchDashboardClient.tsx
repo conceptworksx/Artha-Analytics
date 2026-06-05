@@ -35,8 +35,13 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
   const [error, setError] = useState<ErrorInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
+  const [mounted, setMounted] = useState(false);
 
   const mainRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (mainRef.current) {
@@ -117,6 +122,10 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
       controller.abort();
     };
   }, [ticker, retryCount, router]);
+
+  if (!mounted) {
+    return null;
+  }
 
   if (isRedirecting) {
     return null;

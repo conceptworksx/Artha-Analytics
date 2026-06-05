@@ -148,7 +148,7 @@ export function TechnicalChart({ data }: { data?: TechDataPoint[] }) {
         {/* RSI Sub-chart */}
         <div className="h-[120px] w-full border-t border-[var(--border)] pt-4">
           <div className="mb-2 font-mono text-[10px] font-bold text-[var(--muted-foreground)] tracking-wide px-2">
-            MOMENTUM (RSI 14)
+            MOMENTUM (RSI)
           </div>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data} syncId="techChart" margin={{ top: 5, right: 25, left: -20, bottom: 5 }}>
