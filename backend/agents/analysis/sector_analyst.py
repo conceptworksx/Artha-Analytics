@@ -37,24 +37,6 @@ Supported Sector Catalog
     return {"resolver_input": content}
 
 
-def _build_sector_report_message(data: dict) -> dict:
-    """
-    Format the final input for the Sector Analysis report.
-    Combines the resolved sector identification with the fetched PDF/API data.
-    """
-    content = f"""
-Analysis Request
-Analyze the sector report data for ticker: {data.get("ticker", "N/A")}.
-
-Resolved Catalog Sector
-{json.dumps(data.get("resolved_sector", {}), indent=2)}
-
-Sector API Data (PDF Content)
-{json.dumps(data.get("sector_data", {}), indent=2)}
-"""
-
-    return {"messages": [HumanMessage(content=content)]}
-
 
 class SectorAnalyst(BaseAgent):
     """
@@ -62,20 +44,17 @@ class SectorAnalyst(BaseAgent):
     the corresponding industry report.
     """
 
-    prompt_path = "prompts/sector_analyst_prompt.yaml"
+    prompt_path = "prompts/sector_resolver_prompt.yaml"
 
     def __init__(self, groq_api_key: str):
 
+
         super().__init__(groq_api_key)
 
-        # Load the specialized prompt for sector resolution
-        sector_resolver_prompt_yaml = load_structured_prompt(
-            "prompts/sector_resolver_prompt.yaml"
-        )
-
-        self.prompt_sector_resolver = ChatPromptTemplate.from_messages(
+        resolver_yaml = load_structured_prompt("prompts/sector_resolver_prompt.yaml")
+        self.prompt = ChatPromptTemplate.from_messages(
             [
-                ("system", sector_resolver_prompt_yaml),
+                ("system", resolver_yaml),
                 ("user", "{resolver_input}"),
             ]
         )
@@ -83,13 +62,13 @@ class SectorAnalyst(BaseAgent):
         # Step 1: Define the LLM-based sector resolver chain
         self.sector_resolver_llm_chain = (
             RunnableLambda(lambda x: _build_sector_resolver_message(x))
-            | self.prompt_sector_resolver
+            | self.prompt
             | self.llm
             | StrOutputParser()
             | RunnableLambda(parse_sector_resolver_output)
         )
 
-        # Step 2: Define the Parallel Resolver stage
+
         # This keeps the original data (ticker, sector) while adding the 'resolved_sector' result
         sector_resolver = RunnableParallel(
             {
@@ -99,7 +78,6 @@ class SectorAnalyst(BaseAgent):
             }
         )
 
-        # Step 3: Define the Data Fetching stage
         # Loads rough sector info from yfinance and the supported catalog constants
         sector_fetcher = RunnableParallel(
             {
@@ -109,7 +87,6 @@ class SectorAnalyst(BaseAgent):
             }
         )
 
-        # Step 4: Define the Final Report Generation stage
         # Fetches the actual PDF payload and runs the final sector analysis prompt
         report_generator = RunnableLambda(fetch_sector_payload) | RunnableBranch(
             (
@@ -118,12 +95,9 @@ class SectorAnalyst(BaseAgent):
                     lambda x: f"Sector analysis aborted: {x['sector_data'].get('error', 'Sector PDF fetch failed')}"
                 ),
             ),
-            RunnableLambda(_build_sector_report_message)
-            | self.prompt
-            | self.llm
-            | StrOutputParser(),
+            RunnableLambda(lambda x: x["sector_data"]["data"]),
         )
-
+        
         # Main Pipeline: Fetch -> Resolve -> Analyze
         # If yfinance metadata fetch fails, we short-circuit the chain and return an error.
 
@@ -136,7 +110,6 @@ class SectorAnalyst(BaseAgent):
             ),
             sector_resolver | report_generator,
         )
-
     @handle_llm_errors()
     def run(self, state) -> str:
         """Execute the full sector analysis pipeline for a given ticker."""

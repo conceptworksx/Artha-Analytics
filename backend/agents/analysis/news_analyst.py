@@ -1,8 +1,8 @@
 import json
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableParallel, RunnableLambda
-from langchain_core.output_parsers import StrOutputParser
-
+from langchain_core.output_parsers import JsonOutputParser
+from schemas.base_model import AgentOutput
 from agents.base_agent import BaseAgent
 from tools.news_tools import (
     get_indian_market_news,
@@ -52,14 +52,15 @@ class NewsAnalyst(BaseAgent):
         )
 
         # Define the chain to process the news data and generate the report
+        structured_llm = self.llm.bind(response_format={"type": "json_object"})
         self.chain = (
             news_fetcher
             | RunnableLambda(_build_messages)
             | self.prompt
-            | self.llm
-            | StrOutputParser()
+            | structured_llm
+            | JsonOutputParser(output_cls=AgentOutput)
         )
-
+        
     @handle_llm_errors()
     def run(self, state) -> str:
         """Invoke the News Analyst chain with the relevant portion of the state."""
