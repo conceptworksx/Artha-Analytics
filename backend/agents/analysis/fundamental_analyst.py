@@ -4,7 +4,8 @@ from langchain_core.runnables import (
     RunnableLambda,
     RunnableBranch,
 )
-from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.output_parsers import StrOutputParser
+from schemas.base_model import AgentOutput
 from agents.base_agent import BaseAgent
 from core.error import handle_llm_errors
 from core.logging import get_logger
@@ -14,9 +15,7 @@ logger = get_logger(__name__)
 
 def _build_messages(data: dict) -> dict:
     """
-    Format the input for the Fundamental Analyst stage.
-    Combines all relevant financial data into a single message and
-    explicitly requests JSON output.
+    Format the input for the Fundamental Analyst stage. Combines all relevant financial data into a single message.
     """
 
     fund = data.get("fundamental_data", {})
@@ -30,12 +29,7 @@ def _build_messages(data: dict) -> dict:
     growth = fund.get("growth", {}).get("growth", {})
 
     content = f"""
-IMPORTANT:
-Return ONLY a valid JSON object.
-Do not return markdown code fences.
-Do not return explanatory text before or after the JSON.
-
-Analyze the financial fundamentals of the company: {data.get("ticker")}
+Analyze the financial fundamentals of the company {data.get('ticker')}:
 
 INCOME STATEMENT:
 {json.dumps(income, indent=2)}
@@ -59,7 +53,7 @@ GROWTH:
 {json.dumps(growth, indent=2)}
 """
 
-    return {"messages": [HumanMessage(content=content.strip())]}
+    return {"messages": [HumanMessage(content=content)]}
 
 
 class FundamentalAnalyst(BaseAgent):
@@ -71,13 +65,14 @@ class FundamentalAnalyst(BaseAgent):
         super().__init__(groq_api_key)
 
         # Define the success and error chains for the Fundamental Analyst
-        self.llm = self.llm.bind(response_format={"type": "json_object"})
+        structured_llm = self.llm.with_structured_output(
+            AgentOutput
+        )
 
         success_chain = (
             RunnableLambda(_build_messages)
             | self.prompt
-            | self.llm
-            | JsonOutputParser()
+            | structured_llm
         )
 
         error_chain = RunnableLambda(

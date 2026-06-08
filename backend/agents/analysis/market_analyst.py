@@ -1,12 +1,12 @@
 import json
 
 from langchain_core.messages import HumanMessage
-from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.runnables import (
     RunnableLambda,
     RunnableBranch,
 )
-from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.output_parsers import StrOutputParser
+from schemas.base_model import AgentOutput
 from agents.base_agent import BaseAgent
 from core.error import handle_llm_errors
 from core.logging import get_logger
@@ -29,16 +29,10 @@ def _extract_market_section(data: dict, key: str):
 
 def _build_messages(data: dict) -> dict:
     """
-    Format the input for the Market Analyst stage.
-    Combines all relevant market data into a single message.
+    Format the input for the Market Analyst stage. Combines all relevant market data into a single message.
     """
 
     content = f"""
-IMPORTANT:
-Return ONLY a valid JSON object.
-Do not include markdown, explanations, or extra text.
-The response must be strict JSON.
-
 Analyze the Indian and Global market metrics:
 
 S&P 500 Index:
@@ -69,13 +63,11 @@ class MarketAnalyst(BaseAgent):
         super().__init__(groq_api_key)
 
         # Define the success and error chains for the Market Analyst
-        self.llm = self.llm.bind(response_format={"type": "json_object"})
-
+        structured_llm = self.llm.with_structured_output(
+            AgentOutput
+        )
         success_chain = (
-            RunnableLambda(_build_messages)
-            | self.prompt
-            | self.llm
-            | JsonOutputParser()
+            RunnableLambda(_build_messages) | self.prompt | structured_llm
         )
 
         error_chain = RunnableLambda(

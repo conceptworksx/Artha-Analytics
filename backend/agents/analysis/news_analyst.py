@@ -1,8 +1,8 @@
 import json
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableParallel, RunnableLambda
-from langchain_core.output_parsers import JsonOutputParser
-from schemas.base_models import AgentOutput
+from langchain_core.output_parsers import StrOutputParser
+from schemas.base_model import AgentOutput
 from agents.base_agent import BaseAgent
 from tools.news_tools import (
     get_indian_market_news,
@@ -16,29 +16,21 @@ logger = get_logger(__name__)
 
 def _build_messages(data: dict) -> dict:
     """
-    Format the input for the News Analyst stage.
-    Combines all relevant news data into a single message.
+    Format the input for the News Analyst stage. Combines all relevant news data into a single message.
     """
-
     content = f"""
-IMPORTANT:
-Return ONLY a valid JSON object.
-Do not include markdown, explanations, or any extra text.
-The output must strictly follow JSON format.
-
 Analyze the news sentiment for {data['ticker']}.
 
 COMPANY NEWS:
-{json.dumps(data.get('company_news', {}), indent=2)}
+{json.dumps(data['company_news'], indent=2)}
 
 INDIAN MARKET NEWS:
-{json.dumps(data.get('indian_news', {}), indent=2)}
+{json.dumps(data['indian_news'], indent=2)}
 
 GLOBAL MARKET NEWS:
-{json.dumps(data.get('global_news', {}), indent=2)}
+{json.dumps(data['global_news'], indent=2)}
 """
-
-    return {"messages": [HumanMessage(content=content.strip())]}
+    return {"messages": [HumanMessage(content=content)]}
 
 
 class NewsAnalyst(BaseAgent):
@@ -60,13 +52,14 @@ class NewsAnalyst(BaseAgent):
         )
 
         # Define the chain to process the news data and generate the report
-        structured_llm = self.llm.bind(response_format={"type": "json_object"})
+        structured_llm = self.llm.with_structured_output(
+            AgentOutput
+        )
         self.chain = (
             news_fetcher
             | RunnableLambda(_build_messages)
             | self.prompt
             | structured_llm
-            | JsonOutputParser()
         )
 
     @handle_llm_errors()

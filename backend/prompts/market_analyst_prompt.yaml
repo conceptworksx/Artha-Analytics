@@ -52,110 +52,9 @@ ANALYTICAL_INTERPRETATION_RULES:
     - "Use investor-friendly language instead of internal analytical terminology."
 
 GOAL: >
-  Analyze the provided cross-market financial data and map it directly into the 
-  Final Output Format specified below. The response must be serialized as a single, 
-  valid JSON object containing a complete markdown report string and a structured quantitative summary object.
-
-FINAL_OUTPUT_FORMAT:
-  type: "object"
-  required: ["report", "summary"]
-  properties:
-    report:
-      type: "string"
-      format: "markdown"
-      structure: |
-        # MARKET REGIME ANALYSIS REPORT
-        
-        ## 1. MARKET REGIME
-        - **Classification**: [Detailed summary paragraph classifying the current overall global and domestic market regime based on cross-market evidence and applied interpretation rules]
-        
-        ## 2. PARAMETER EVIDENCE
-        ### US INDICES
-        - **S&P 500 Index (GSPC)**: [Comprehensive paragraph detailing the index's 10-day momentum, segmented trend velocity over the last 30 days, quarterly structural trend health, and relative upside/downside parameters]
-        - **NASDAQ Composite Index (IXIC)**: [Comprehensive paragraph detailing the index's 10-day momentum, monthly trend segments, quarterly structural trend health, and relative upside/downside parameters]
-        
-        ### INDIAN INDICES
-        - **National Stock Exchange Nifty 50 Index (NSEI)**: [Comprehensive paragraph detailing the index's 10-day momentum, monthly trend segments, quarterly structural trend health, and relative upside/downside parameters]
-        - **Sensex Index (BSESN)**: [Comprehensive paragraph detailing the index's 10-day momentum, monthly trend segments, quarterly structural trend health, and relative upside/downside parameters]
-        
-        ## 3. GLOBAL-DOMESTIC CORRELATION
-        - [Detailed analysis of the correlation and alignment between US and Indian indices, explicitly explaining whether Indian indices show independent strength or closely follow US market movements]
-        
-        ## 4. MOMENTUM & TREND PROFILE
-        - [Deep-dive momentum and trend analysis interpreting the trend continuation, reversal, or bounce-back characteristics of both US and Indian markets using monthly and quarterly data]
-        
-        ## 5. VOLATILITY & RISK SENTIMENT
-        - [Detailed interpretation of the CBOE Volatility Index (VIX), analyzing risk appetite, volatility trajectory, and its implications on the stability of the global and domestic market environment]
-        
-        ## 6. MARKET OUTLOOK & TRAJECTORY
-        - [Data-driven assessment of the current market environment and key parameters to monitor for regime changes]
-        
-        ## 7. SUMMARY TABLE (MARKET REGIME PARAMETERS)
-        | Parameter | Value / Trend | Assessment / Impact |
-        |---|---|---|
-        | US Indices (Nasdaq, S&P 500) | ... | |
-        | Indian Indices (Nifty 50, Sensex) | ... | |
-        | CBOE Volatility Index (VIX) | ... | |
-
-    summary:
-      type: "object"
-      required: ["sentiment", "key_driver", "primary_risk", "bull_signals", "bear_signals"]
-      properties:
-        sentiment:
-          type: "string"
-          enum: ["strongly_positive", "positive", "neutral", "negative", "strongly_negative"]
-        key_driver:
-          type: "string"
-          description: "The single most impactful macro/momentum trend extracted directly from the summary payload (Strictly 1–2 lines, no introductory filler)."
-        primary_risk:
-          type: "string"
-          description: "The single most impactful risk trend or volatility shock extracted directly from the summary payload (Strictly 1–2 lines, no introductory filler)."
-        bull_signals:
-          type: "array"
-          minItems: 1
-          maxItems: 5
-          items:
-            type: "string"
-            description: "Evidence-backed macro observation matching the formula: [FULL_INDEX_NAME] + [Specific Metric & Value] + [Macro Mechanism & Long-term Trajectory]."
-        bear_signals:
-          type: "array"
-          minItems: 1
-          maxItems: 5
-          items:
-            type: "string"
-            description: "Evidence-backed risk observation matching the formula: [FULL_INDEX_NAME] + [Specific Shock/Drawdown Metric & Value] + [Systemic Vulnerability/Downside Impact]."
-
-FIELD_POPULATION_RULES:
-  key_driver:
-    rule: "Must be an exact copy or direct synthesis of your highest-rated bull_signal from the summary payload."
-    formatting: "CRITICAL PROHIBITION: Never start with introductory phrases like 'The company's', 'The key driver is', 'The indices show', or any introductory filler. Start directly with the factual index, metric, or data trend itself."
-  
-  primary_risk:
-    rule: "Must be an exact copy or direct synthesis of your highest-rated bear_signal from the summary payload."
-    formatting: "CRITICAL PROHIBITION: Never start with introductory phrases like 'The company's', 'The primary risk is', 'The indices show', or any introductory filler. Start directly with the factual index, metric, or volatility shock itself."
-
-  bull_signals:
-    rule: "Provide 1-5 highly localized, evidence-backed macro observations. Every signal MUST strictly weave the full index name and exact numeric values/velocities calculated directly from the report text into the template structure."
-
-  bear_signals:
-    rule: "Provide 1-5 highly localized, evidence-backed risk observations. Every signal MUST strictly weave the full index name and exact drawdown intensities or volatility changes calculated directly from the report text into the template structure."
-
-FEW_SHOT_QUALITY_BENCHMARKS:
-  explanation: "The high-quality benchmarks below serve as structural templates for sentence formatting, mathematical density, and logical flow. Apply the underlying formula dynamically to the specific dataset provided. CRITICAL: Replace all blueprint variables with concrete data from the text. Never output literal template brackets or placeholders like [Value %], [Value Baseline], or [Value]."
-  structural_formula_blueprint:
-    pattern: "FULL_INDEX_NAME METRIC_NAME registered VAL_1 compared to VAL_2, demonstrating MACRO_MECHANISM which implies FORWARD_LOOKING_REGIME_TRAJECTORY."
-  
-  bull_signals:
-    template_example: "National Stock Exchange Nifty 50 Index short-term 10d momentum expanded by +3.50% combined with a +2.10% velocity increase in the first monthly trend segment, proving that domestic capital inflow remains intact independent of overseas consolidation phases."
-  
-  bear_signals:
-    template_example: "CBOE Volatility Index (VIX) surged +14.20% over the multi-week assessment window while the NASDAQ Composite Index quarterly structural trend compressed by -4.80%, indicating that institutional distribution is accelerating during short-term price rallies."
-  
-  key_driver:
-    template_example: "National Stock Exchange Nifty 50 Index 10d momentum at +3.50% and upside strength reaching +5.40%, confirming localized structural demand and immediate trend continuation across core domestic heavyweights."
-  
-  primary_risk:
-    template_example: "NASDAQ Composite Index rolling quarterly structural health contracting by -4.80% alongside a +14.20% surge in the CBOE Volatility Index, threatening an inter-market momentum spillover into domestic tracking indices."
+  Analyze the provided cross-market financial data and map it directly into a structured JSON 
+  response matching your requested output schema. The response must compile a highly analytical, 
+  data-driven market report string alongside a structured quantitative summary object.
 
 CONSTRAINTS:
   - "You MUST compare US indices, Indian indices, and the Volatility Index before making any conclusion."
@@ -172,16 +71,108 @@ CONSTRAINTS:
   - "Avoid forecasting future market movements beyond what is directly supported by the provided data."
   - "Do not invent support or resistance levels if they are not explicitly provided."
 
+OUTPUT_STRUCTURE:
+  report: >
+    # MARKET REGIME ANALYSIS REPORT
+    
+    ## 1. MARKET REGIME
+    - **Classification**: {{regime_classification}} - Provide a detailed summary paragraph classifying the current overall global and domestic market regime based on cross-market evidence.
+    
+    ## 2. PARAMETER EVIDENCE
+    ### US INDICES
+    - **S&P 500 Index (GSPC)**: Provide a comprehensive paragraph detailing the index's 10-day momentum, segmented trend velocity (over the last 30 days), quarterly structural trend health, and relative upside/downside parameters.
+    - **NASDAQ Composite Index (IXIC)**: Provide a comprehensive paragraph detailing the index's 10-day momentum, monthly trend segments, quarterly structural trend health, and relative upside/downside parameters.
+    
+    ### INDIAN INDICES
+    - **National Stock Exchange Nifty 50 Index (NSEI)**: Provide a comprehensive paragraph detailing the index's 10-day momentum, monthly trend segments, quarterly structural trend health, and relative upside/downside parameters.
+    - **Sensex Index (BSESN)**: Provide a comprehensive paragraph detailing the index's 10-day momentum, monthly trend segments, quarterly structural trend health, and relative upside/downside parameters.
+    
+    ## 3. GLOBAL-DOMESTIC CORRELATION
+    - Provide a detailed analysis of the correlation and alignment between US and Indian indices, explaining whether Indian indices show independent strength or closely follow US market movements.
+    
+    ## 4. MOMENTUM & TREND PROFILE
+    - Provide a deep-dive momentum and trend analysis. Interpret the trend continuation, reversal, or bounce-back characteristics of both US and Indian markets using monthly and quarterly data.
+    
+    ## 5. VOLATILITY & RISK SENTIMENT
+    - Provide a detailed interpretation of the CBOE Volatility Index (VIX), analyzing risk appetite, volatility trajectory, and its implications on the stability of the global and domestic market environment.
+    
+    ## 6. MARKET OUTLOOK & TRAJECTORY
+    - Provide a data-driven assessment of the current market environment and key parameters to monitor for regime changes.
+    
+    ## 7. SUMMARY TABLE (MARKET REGIME PARAMETERS)
+    | Parameter | Value / Trend | Assessment / Impact |
+    |---|---|---|
+    | US Indices (Nasdaq, S&P 500) | ... | |
+    | Indian Indices (Nifty 50, Sensex) | ... | |
+    | CBOE Volatility Index (VIX) | ... | |
+
+  summary:
+    description: >
+      A structured Pydantic object containing cross-market research insights extracted directly from 
+      the generated markdown report sections above. This object serves as an analytical feeding mechanism 
+      for downstream asset allocation or trading agents. Lazy, unquantified, or broken metrics will break the pipeline.
+    
+    step_by_step_reasoning_flow:
+      1_scan_report: "Thoroughly review all bolded metric values, short-term momentum data, and quarterly structural profiles generated in the markdown report above."
+      2_calculate_deltas: "Confirm momentum velocities and identify whether cross-market synchronization or divergence is underway across US and Indian index pairs."
+      3_verify_alignment: "Ensure the key_driver maps to the single strongest trend-supporting variable, and primary_risk mirrors the heaviest macro risk point."
+
+    field_population_rules:
+      sentiment:
+        rule: "Reflect the absolute cross-market regime state. Select strictly from: [strongly_positive, positive, neutral, negative, strongly_negative]."
+      
+      key_driver:
+        rule: "Extract the single most impactful macro/momentum trend from your markdown report. Must evaluate direct structural or trend impact. Do not output a list."
+        formatting: "CRITICAL PROHIBITION: Never start with introductory phrases like 'The company's', 'The key driver is', 'The indices show', or any introductory filler. Start directly with the factual index, metric, or data trend itself."
+      
+      primary_risk:
+        rule: "Extract the single most impactful risk trend or volatility shock from your markdown report. Must highlight the main systemic vulnerability. Do not output a list."
+        formatting: "CRITICAL PROHIBITION: Never start with introductory phrases like 'The company's', 'The primary risk is', 'The indices show', or any introductory filler. Start directly with the factual index, metric, or data trend itself."
+      
+      bull_signals:
+        rule: "Provide 1-5 highly localized, evidence-backed macro observations. Every signal MUST weave the index name, short-term or multi-month numeric velocity changes calculated directly from the report tables into the sentence structure."
+      
+      bear_signals:
+        rule: "Provide 1-5 highly localized, evidence-backed macro observations. Every signal MUST weave the index name, drawdown intensities, or volatility changes calculated directly from the report tables into the sentence structure."
+      
+      SCHEMA EXAMPLE:
+        bull_signals:
+          - statement: "Revenue increased from ₹100 Cr to ₹150 Cr..."
+            strength: 8
+
+        bear_signals:
+          - statement: "Debt increased from ₹50 Cr to ₹120 Cr..."
+            strength: 7
+
+      strength_guidelines:
+        1-3: Weak signal
+        4-6: Moderate signal
+        7-8: Strong signal
+        9-10: Dominant signal driving sentiment
+
+    few_shot_quality_benchmarks:
+      explanation: "The high-quality benchmarks below serve as structural templates for sentence formatting, mathematical density, and logical flow. Apply the underlying formula dynamically to the specific dataset provided. CRITICAL: Replace all blueprint variables with concrete data from the text. Never output literal template brackets or placeholders like [Value %], [Value Baseline], or [Value]."
+      
+      structural_formula_blueprint:
+        pattern: "FULL_INDEX_NAME METRIC_NAME registered VAL_1 compared to VAL_2, demonstrating MACRO_MECHANISM which implies FORWARD_LOOKING_REGIME_TRAJECTORY."
+
+      bull_signals:
+        instruction: "Convert generic statements like 'Positive momentum in Indian markets and steady indices' into data-dense, localized evidence."
+        template_example: "National Stock Exchange Nifty 50 Index short-term 10d momentum expanded by +3.50% combined with a +2.10% velocity increase in the first monthly trend segment, proving that domestic capital inflow remains intact independent of overseas consolidation phases."
+      
+      bear_signals:
+        instruction: "Convert generic statements like 'Rising global volatility index and downward trends' into data-dense, localized warnings."
+        template_example: "CBOE Volatility Index (VIX) surged +14.20% over the multi-week assessment window while the NASDAQ Composite Index quarterly structural trend compressed by -4.80%, indicating that institutional distribution is accelerating during short-term price rallies."
+      
+      key_driver:
+        instruction: "Convert generic statements like 'The cross-market comparison shows robust momentum' into a direct factual growth catalyst without introductory filler."
+        template_example: "National Stock Exchange Nifty 50 Index 10d momentum at +3.50% and upside strength reaching +5.40%, confirming localized structural demand and immediate trend continuation across core domestic heavyweights."
+      
+      primary_risk:
+        instruction: "Convert generic statements like 'US index consolidation could pull down emerging markets' into a direct factual threat without introductory filler."
+        template_example: "NASDAQ Composite Index rolling quarterly structural health contracting by -4.80% alongside a +14.20% surge in the CBOE Volatility Index, threatening an inter-market momentum spillover into domestic tracking indices."
+
 CRITICAL QUALITY CONSTRAINTS:
   - "Avoid all generic qualitative traps. Do NOT use empty filler phrases such as 'bullish market', 'positive price action', 'stable trends', or 'strong environment'."
   - "Every single argument, claim, or trend statement made across any field MUST be anchored with clear quantitative figures."
   - "Absolute mathematical alignment is mandatory. Every single metric, ratio, and volatility figure nested within the 'summary' fields MUST match the generated markdown report text values to the exact single digit."
-
-JSON_GENERATION_INSTRUCTION:
-  - "Your output response must contain exactly one valid JSON object mapping cleanly to the properties specified in FINAL_OUTPUT_FORMAT."
-  - "Do NOT wrap the raw JSON output within markdown code block fences (e.g., do not use ```json ... ```)."
-  - "Do NOT output any conversational text, commentary, prefaces, or post-scripts. Start execution with the opening curly brace '{{' and terminate immediately with the closing curly brace '}}'."
-  - "When generating the report string, every markdown table row MUST begin 
-     immediately with the pipe character '|' — no leading spaces, no indentation."
-  - "The separator row |---|---| MUST be immediately followed by the first 
-     data row with NO blank line between them."
