@@ -38,8 +38,8 @@ ANALYTICAL_INTERPRETATION_RULES:
 
 GOAL: >
   Analyze the provided multi-source news data and map it directly into the 
-  Final Output Format specified below. The response must compile a comprehensive, 
-  highly analytical report string alongside a structured cross-contextual summary object.
+  Final Output Format specified below. The response must be serialized as a single, 
+  valid JSON object containing a complete markdown report string and a structured cross-contextual summary object.
 
 FINAL_OUTPUT_FORMAT:
   type: "object"
@@ -99,10 +99,10 @@ FINAL_OUTPUT_FORMAT:
           enum: ["strongly_positive", "positive", "neutral", "negative", "strongly_negative"]
         key_driver:
           type: "string"
-          description: "The single most impactful positive news event or structural catalyst extracted directly from the report (Strictly 1–2 lines, no introductory filler)."
+          description: "The single most impactful positive news event or structural catalyst extracted directly from the summary payload (Strictly 1–2 lines, no introductory filler)."
         primary_risk:
           type: "string"
-          description: "The single most critical negative news shock, risk trigger, or macroeconomic headwind extracted directly from the report (Strictly 1–2 lines, no introductory filler)."
+          description: "The single most critical negative news shock, risk trigger, or macroeconomic headwind extracted directly from the summary payload (Strictly 1–2 lines, no introductory filler)."
         bull_signals:
           type: "array"
           minItems: 1
@@ -120,11 +120,11 @@ FINAL_OUTPUT_FORMAT:
 
 FIELD_POPULATION_RULES:
   key_driver:
-    rule: "Must be an exact copy or direct synthesis of your highest-rated bull_signal from the report."
+    rule: "Must be an exact copy or direct synthesis of your highest-rated bull_signal from the summary payload."
     formatting: "CRITICAL PROHIBITION: Never start with introductory phrases like 'The company's', 'The key driver is', 'The news shows', or any introductory filler. Start directly with the factual event, development, or economic metric itself."
   
   primary_risk:
-    rule: "Must be an exact copy or direct synthesis of your highest-rated bear_signal from the report."
+    rule: "Must be an exact copy or direct synthesis of your highest-rated bear_signal from the summary payload."
     formatting: "CRITICAL PROHIBITION: Never start with introductory phrases like 'The company's', 'The primary risk is', 'The news shows', or any introductory filler. Start directly with the factual event, vulnerability, or market risk itself."
 
   bull_signals:
@@ -162,3 +162,12 @@ CRITICAL QUALITY CONSTRAINTS:
   - "Avoid all generic qualitative traps. Do NOT use empty filler phrases such as 'positive news flow', 'bearish market sentiment', 'good announcements', or 'volatile macro'."
   - "Every single argument, claim, or news validation statement made across any field MUST be anchored with specific factual details from the input text (e.g., precise dates, priority weights, sector parameters)."
   - "Absolute textual and conceptual alignment is mandatory. Every single data point, date, and sentiment assessment nested within the 'summary' fields MUST match the generated markdown report text exactly to the single character."
+
+JSON_GENERATION_INSTRUCTION:
+  - "Your output response must contain exactly one valid JSON object mapping cleanly to the properties specified in FINAL_OUTPUT_FORMAT."
+  - "Do NOT wrap the raw JSON output within markdown code block fences (e.g., do not use ```json ... ```)."
+  - "Do NOT output any conversational text, commentary, prefaces, or post-scripts. Start execution with the opening curly brace '{{' and terminate immediately with the closing curly brace '}}'."
+  - "When generating the report string, every markdown table row MUST begin 
+     immediately with the pipe character '|' — no leading spaces, no indentation."
+  - "The separator row |---|---| MUST be immediately followed by the first 
+     data row with NO blank line between them."

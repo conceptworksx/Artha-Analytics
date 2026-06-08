@@ -64,8 +64,8 @@ ANALYTICAL_INTERPRETATION_RULES:
 
 GOAL: >
   Analyze the provided multi-year financial data and map it directly into the 
-  Final Output Format specified below. The response must contain a complete, data-dense
-  markdown report string alongside a structured quantitative summary object.
+  Final Output Format specified below. The response must be serialized as a single, 
+  valid JSON object containing a complete markdown report string and a structured quantitative summary object.
 
 FINAL_OUTPUT_FORMAT:
   type: "object"
@@ -75,23 +75,23 @@ FINAL_OUTPUT_FORMAT:
       type: "string"
       format: "markdown"
       structure: |
-        # GENERAL FUNDAMENTAL ANALYSIS REPORT 
-         
+        # GENERAL FUNDAMENTAL ANALYSIS REPORT
+
         ## 1. REVENUE & GROWTH
         | Metric | FY23 | FY24 | FY25 | FY26 | CAGR / Trend |
         |---|---|---|---|---|---|
-        | Revenue | ... | ... | ... | ... |  |
-        | Net Income | ... | ... | ... | ... |  |
+        | Revenue | ... | ... | ... | ... | ... |
+        | Net Income | ... | ... | ... | ... | ... |
         - Analysis: [Detailed paragraph explaining revenue trends, demand strength, and operational leverage indicators]
-         
+
         ## 2. PROFITABILITY
         | Metric | FY23 | FY24 | FY25 | FY26 | CAGR / Trend |
         |---|---|---|---|---|---|
         | EBITDA | ... | ... | ... | ... | - |
         | Net Margin | ... | ... | ... | ... | - |
-        | Diluted EPS | ... | ... | ... | ... |  |
+        | Diluted EPS | ... | ... | ... | ... | - |
         - Analysis: [Detailed paragraph breaking down operating margins, cost vectors, and per-share earnings quality]
-         
+
         ## 3. CAPITAL STRUCTURE & SOLVENCY
         | Metric | FY23 | FY24 | FY25 | FY26 | Trend |
         |---|---|---|---|---|---|
@@ -127,13 +127,13 @@ FINAL_OUTPUT_FORMAT:
         - Analysis: [Detailed paragraph mapping current market multiples against underlying growth realities and governance safety]
          
         ## 7. SUMMARY TABLE (FINANCIAL SCORECARD)
-        | Parameter | Value | Assessment / Impact |
-        |---|---|---|
-        | Revenue Growth | |  |
-        | Net Margin |  |  |
-        | ROE | |  |
-        | Debt-to-Equity |  | |
-        | Free Cash Flow | |  |
+        | Parameter | Value | Assessment | Impact |
+        |---|---|---|---|
+        | Revenue Growth | |  |  |
+        | Net Margin |  |  |  |
+        | ROE | |  |  |
+        | Debt-to-Equity |  | |  |
+        | Free Cash Flow | |  |  |
 
     summary:
       type: "object"
@@ -165,11 +165,11 @@ FINAL_OUTPUT_FORMAT:
 
 FIELD_POPULATION_RULES:
   key_driver:
-    rule: "Must be an exact copy or direct synthesis of your highest-rated bull_signal."
+    rule: "Must be an exact copy or direct synthesis of your highest-rated bull_signal from the summary payload."
     formatting: "CRITICAL PROHIBITION: Never start with introductory phrases like 'The company's', 'The key driver is', 'This indicates', or any introductory filler. Start directly with the metric or data trend itself."
   
   primary_risk:
-    rule: "Must be an exact copy or direct synthesis of your highest-rated bear_signal."
+    rule: "Must be an exact copy or direct synthesis of your highest-rated bear_signal from the summary payload."
     formatting: "CRITICAL PROHIBITION: Never start with introductory phrases like 'The company's', 'The primary risk is', 'This indicates', or any introductory filler. Start directly with the risk trigger or downside metric itself."
 
   bull_signals:
@@ -200,3 +200,15 @@ CRITICAL QUALITY CONSTRAINTS:
   - "Every single argument, claim, or trend statement made across any field MUST be anchored with clear quantitative figures."
   - "Absolute textual and mathematical alignment is mandatory. Every single metric, ratio, and CAGR value nested within the 'summary' object fields MUST match the generated markdown report text values exactly down to the single digit."
   - "Do not perform arithmetic calculations unless the required value is explicitly provided in the input dataset."
+  - "All monetary values in the report MUST be formatted exactly as provided 
+     in the input dataset, preserving the ₹ symbol and Cr suffix. 
+     Example: ₹ 237,150.82 Cr — never strip currency symbols or units."
+     
+JSON_GENERATION_INSTRUCTION:
+  - "Your output response must contain exactly one valid JSON object mapping cleanly to the properties specified in FINAL_OUTPUT_FORMAT."
+  - "Do NOT wrap the raw JSON output within markdown code block fences (e.g., do not use ```json ... ```)."
+  - "Do NOT output any conversational text, commentary, prefaces, or post-scripts. Start execution with the opening curly brace '{{' and terminate immediately with the closing curly brace '}}'."
+  - "When generating the report string, every markdown table row MUST begin 
+     immediately with the pipe character '|' — no leading spaces, no indentation."
+  - "The separator row |---|---| MUST be immediately followed by the first 
+     data row with NO blank line between them."
