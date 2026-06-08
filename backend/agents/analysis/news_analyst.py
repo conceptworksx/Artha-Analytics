@@ -2,7 +2,7 @@ import json
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableParallel, RunnableLambda
 from langchain_core.output_parsers import JsonOutputParser
-from schemas.base_model import AgentOutput
+from schemas.base_models import AgentOutput
 from agents.base_agent import BaseAgent
 from tools.news_tools import (
     get_indian_market_news,
@@ -16,21 +16,29 @@ logger = get_logger(__name__)
 
 def _build_messages(data: dict) -> dict:
     """
-    Format the input for the News Analyst stage. Combines all relevant news data into a single message.
+    Format the input for the News Analyst stage.
+    Combines all relevant news data into a single message.
     """
+
     content = f"""
+IMPORTANT:
+Return ONLY a valid JSON object.
+Do not include markdown, explanations, or any extra text.
+The output must strictly follow JSON format.
+
 Analyze the news sentiment for {data['ticker']}.
 
 COMPANY NEWS:
-{json.dumps(data['company_news'], indent=2)}
+{json.dumps(data.get('company_news', {}), indent=2)}
 
 INDIAN MARKET NEWS:
-{json.dumps(data['indian_news'], indent=2)}
+{json.dumps(data.get('indian_news', {}), indent=2)}
 
 GLOBAL MARKET NEWS:
-{json.dumps(data['global_news'], indent=2)}
+{json.dumps(data.get('global_news', {}), indent=2)}
 """
-    return {"messages": [HumanMessage(content=content)]}
+
+    return {"messages": [HumanMessage(content=content.strip())]}
 
 
 class NewsAnalyst(BaseAgent):
@@ -58,9 +66,9 @@ class NewsAnalyst(BaseAgent):
             | RunnableLambda(_build_messages)
             | self.prompt
             | structured_llm
-            | JsonOutputParser(output_cls=AgentOutput)
+            | JsonOutputParser()
         )
-        
+
     @handle_llm_errors()
     def run(self, state) -> str:
         """Invoke the News Analyst chain with the relevant portion of the state."""
