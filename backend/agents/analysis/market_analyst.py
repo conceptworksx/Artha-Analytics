@@ -64,17 +64,10 @@ class MarketAnalyst(BaseAgent):
         super().__init__(groq_api_key)
 
         # Define the success and error chains for the Market Analyst
-<<<<<<< HEAD
-        success_chain = (
-            RunnableLambda(_build_messages) | self.prompt | self.llm | StrOutputParser()
-=======
-        # structured_llm = self.llm.with_structured_output(
-        #     AgentOutput
-        # )
         structured_llm = self.llm.bind(response_format={"type": "json_object"})
+        
         success_chain = (
             RunnableLambda(_build_messages) | self.prompt | structured_llm | JsonOutputParser(output_cls=AgentOutput)
->>>>>>> 2dac09c (refactoring the agents to work with pydantic structure)
         )
 
         error_chain = RunnableLambda(
