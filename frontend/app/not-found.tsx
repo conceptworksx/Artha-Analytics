@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { Search } from "lucide-react";
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-between bg-[var(--background)] px-6 py-12">
+    <div className="flex min-h-screen flex-col items-center justify-between bg-[var(--background)] px-4 sm:px-6 py-8 sm:py-12">
       {/* Spacer to push content down slightly, keeping it centered */}
       <div />
 
@@ -12,11 +13,9 @@ export default function NotFound() {
         {/* Animated Stock Chart SVG */}
         <div className="mx-auto mb-8 flex justify-center">
           <svg
-            width="280"
-            height="140"
             viewBox="0 0 280 140"
             fill="none"
-            className="overflow-visible"
+            className="w-full max-w-[280px] overflow-visible"
           >
             {/* Background Grid */}
             <g opacity="0.15" stroke="currentColor" strokeWidth="1">
@@ -75,7 +74,7 @@ export default function NotFound() {
           404 — PAGE NOT FOUND
         </p>
         
-        <h1 className="mt-3 font-mono text-[24px] font-semibold tracking-tight text-[var(--foreground)]">
+        <h1 className="mt-3 font-mono text-[20px] sm:text-[24px] font-semibold tracking-tight text-[var(--foreground)]">
           Lost in the Data
         </h1>
         
@@ -83,18 +82,19 @@ export default function NotFound() {
           The research path you requested does not exist or has been moved. Use the options below to return to safety.
         </p>
 
-        <div className="mt-8 flex items-center justify-center gap-3">
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link
             href="/"
-            className="inline-flex h-10 items-center justify-center border border-[var(--foreground)] bg-[var(--foreground)] px-5 font-mono text-[12px] text-white rounded-lg shadow-sm transition-all hover:bg-[#333330]"
+            className="inline-flex h-10 w-full sm:w-auto items-center justify-center border border-[var(--foreground)] bg-[var(--foreground)] px-5 font-mono text-[12px] text-white rounded-lg shadow-sm transition-all hover:bg-[#333330]"
           >
             ← Back to Home
           </Link>
           <Link
             href="/"
-            className="inline-flex h-10 items-center justify-center border border-[var(--border)] bg-white px-5 font-mono text-[12px] text-[var(--foreground)] hover:border-[var(--foreground)] rounded-lg shadow-sm transition-all hover:bg-zinc-50"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-1.5 h-10 rounded-lg border border-black/10 bg-zinc-50/50 font-mono text-[13px] font-medium text-zinc-800 hover:bg-black hover:text-white transition-all duration-300 hover:shadow-md hover:border-black active:scale-[0.98]"
           >
-            New Analysis
+            <Search size={14} />
+            <span>New Analysis</span>
           </Link>
         </div>
       </div>

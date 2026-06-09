@@ -7,19 +7,18 @@ from pymongo.errors import PyMongoError
 
 from core.logging import get_logger
 from core.constants import SectorName
-from core.logging import get_logger
 from core.yf_context import YFinance401Error
 from dotenv import load_dotenv
 
 logger = get_logger(__name__)
 load_dotenv()
 
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+MONGODB_URI = os.getenv("MONGODB_URI")
 DB_NAME = "artha_analytics"
 COLLECTION_NAME = "sector_data"
 
 # Module-level singleton — created once, reused across calls
-_client = MongoClient(MONGO_URI)
+_client = MongoClient(MONGODB_URI)
 
 
 def get_company_sector(

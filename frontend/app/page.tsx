@@ -1,5 +1,5 @@
-import { TickerSearch } from "@/components/TickerSearch";
+import { HomePage } from "@/components/home/HomePage";
 
 export default function Home() {
-  return <TickerSearch />;
+  return <HomePage />;
 }
