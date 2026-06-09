@@ -340,7 +340,7 @@ export function SearchView({
                 { symbol: "TCS", name: "Tata Consultancy Services Limited" },
                 { symbol: "WIPRO", name: "Wipro Limited" },
                 { symbol: "HDFCBANK", name: "HDFC Bank Limited" },
-                { symbol: "TATAMOTORS", name: "Tata Motors Limited" },
+                { symbol: "ADANIENT", name: "Adani Enterprises Limited" },
               ].map((t) => (
                 <button
                   key={t.symbol}

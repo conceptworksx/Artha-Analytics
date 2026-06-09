@@ -64,7 +64,7 @@ export function AppSidebar({
 
   const sidebarContent = (
     <>
-      <div className="flex-1 py-4">
+      <div className="flex-1 py-4 px-2">
         <Row
           item={{ key: "overview", label: "Equity Overview", icon: Activity }}
           active={active === "overview"}
@@ -143,7 +143,7 @@ export function AppSidebar({
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="px-4 pb-2 pt-6 font-mono text-[11px] font-bold tracking-widest text-zinc-500">
+    <div className="px-3 pb-2 pt-6 font-mono text-[11px] font-bold tracking-widest text-zinc-500">
       {children}
     </div>
   );
@@ -162,7 +162,7 @@ function Row({
   return (
     <button
       onClick={() => onSelect(item.key)}
-      className={`flex h-10 w-full items-center gap-3 px-3 mx-2 text-left text-[14px] font-medium transition-all rounded-lg ${active
+      className={`flex h-10 w-full items-center gap-3 px-3 text-left text-[14px] font-medium transition-all rounded-lg ${active
           ? "bg-[var(--foreground)] text-white"
           : "text-[var(--muted-foreground)] hover:bg-zinc-50 hover:text-[var(--foreground)]"
         }`}
