@@ -211,7 +211,7 @@ export async function analyseTicker({
     throw new AnalysisError({
       title: "CONNECTION FAILED",
       message:
-        "Unable to reach the analysis server. The backend may not be running, or your network connection may be interrupted.",
+        "Unable to reach the authentication server.",
     });
   }
 

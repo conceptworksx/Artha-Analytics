@@ -26,27 +26,11 @@ load_dotenv()
 
 # ── MongoDB Client Setup ──────────────────────────────────────────────────────
 
-def _escape_mongodb_uri(uri: str) -> str:
-    match = re.match(r"^(mongodb(?:\+srv)?://)([^/]+)@([^/]+)(/.*)?$", uri)
-    if not match:
-        return uri
-    scheme, credentials, host, path = match.groups()
-    if ":" in credentials:
-        username, password = credentials.split(":", 1)
-        escaped_username = urllib.parse.quote_plus(username)
-        escaped_password = urllib.parse.quote_plus(password)
-        return f"{scheme}{escaped_username}:{escaped_password}@{host}{path or ''}"
-    else:
-        escaped_username = urllib.parse.quote_plus(credentials)
-        return f"{scheme}{escaped_username}@{host}{path or ''}"
-
-
 MONGODB_URI = os.getenv("MONGODB_URI")
 if not MONGODB_URI:
     MONGODB_URI = "mongodb://localhost:27017/"
 
-escaped_uri = _escape_mongodb_uri(MONGODB_URI)
-client = MongoClient(escaped_uri)
+client = MongoClient(MONGODB_URI)
 
 try:
     db = client.get_default_database()
