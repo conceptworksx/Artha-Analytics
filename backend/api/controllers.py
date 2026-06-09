@@ -27,8 +27,6 @@ load_dotenv()
 # ── MongoDB Client Setup ──────────────────────────────────────────────────────
 
 MONGODB_URI = os.getenv("MONGODB_URI")
-if not MONGODB_URI:
-    MONGODB_URI = "mongodb://localhost:27017/"
 
 client = MongoClient(MONGODB_URI)
 
@@ -54,11 +52,13 @@ def init_auth_store() -> None:
         logger.error(f"Failed to initialize MongoDB connection: {e}")
 
 
+AUTH_SECRET_KEY = os.getenv("AUTH_SECRET_KEY")
+if not AUTH_SECRET_KEY:
+    raise RuntimeError("AUTH_SECRET_KEY environment variable is not set")
+
+
 def _secret_key() -> bytes:
-    secret = os.getenv("AUTH_SECRET_KEY")
-    if not secret:
-        secret = "$ECR@T"
-    return secret.encode("utf-8")
+    return AUTH_SECRET_KEY.encode("utf-8")
 
 
 def _hash_password(password: str) -> str:
