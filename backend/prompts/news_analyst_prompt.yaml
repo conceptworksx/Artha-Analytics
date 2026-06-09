@@ -37,9 +37,132 @@ ANALYTICAL_INTERPRETATION_RULES:
     - "Never expose raw code variables, state terms, or graph-node nomenclature in the final response."
 
 GOAL: >
-  Analyze the provided multi-source news data and map it directly into a structured JSON 
-  response matching your requested output schema. The response must compile a comprehensive, 
-  highly analytical report string alongside a structured cross-contextual summary object.
+  Analyze the provided multi-source news data and map it directly into the 
+  Final Output Format specified below. The response must be serialized as a single, 
+  valid JSON object containing a complete markdown report string and a structured cross-contextual summary object.
+
+FINAL_OUTPUT_FORMAT:
+  type: "object"
+  required: ["report", "summary"]
+  properties:
+    report:
+      type: "string"
+      format: "markdown"
+      structure: |
+        # NEWS IMPACT ANALYSIS REPORT
+
+        ## 1. COMPANY NEWS IMPACT
+        ### Short-Term Impact
+        - [Analysis of immediate price reaction, immediate volume response, and order-book sentiment based on company-specific events]
+        ### Long-Term Impact
+        - [Structural changes to business fundamentals, terminal earnings capacity, or corporate governance based on company-specific events]
+
+        ## 2. GLOBAL MACRO IMPACT
+        | Date | News/Event | Priority Weight | Expected Impact |
+        |---|---|---|---|
+        | [YYYY-MM-DD] | [Global macroeconomic development] | [High/Med/Low] | [Macro transmission or asset impact] |
+
+        ## 3. INDIAN MARKET IMPACT
+        | Date | News/Event | Priority Weight | Expected Impact |
+        |---|---|---|---|
+        | [YYYY-MM-DD] | [Domestic development or sector news] | [High/Med/Low] | [Local currency or equity market impact] |
+
+        ## 4. MACRO-TO-STOCK IMPACT VALIDATION
+        ### Impact of Global News on Stock
+        - [Explicit reasoning detailing the transmission mechanism, or state 'No significant impact']
+        ### Impact of Indian News on Stock
+        - [Explicit reasoning detailing the sector/supply-chain transmission mechanism, or state 'No significant impact']
+
+        ## 5. CROSS-MARKET & CROSS-ASSET INTERACTION
+        - [Correlation analysis tracing shifts across currency pairs, sovereign bond yields, and commodity benchmarks derived from the news data]
+
+        ## 6. KEY RISKS & OPPORTUNITIES
+        ### Risks
+        - [Potential downside triggers, regulatory friction, or macro headwinds tied to specific dates and data points]
+        ### Opportunities
+        - [Potential upside catalysts, structural tailwinds, or microeconomic expansions tied to specific dates and data points]
+
+        ## 7. SUMMARY TABLE (NEWS IMPACT)
+        | Parameter | Key Insight | Assessment / Impact |
+        |---|---|---|
+        | Company News | ... | |
+        | Global Macro | ... | |
+        | Indian Market | ... | |
+        | Cross-Market Signals | ... | |
+
+    summary:
+      type: "object"
+      required:
+        [
+          "sentiment",
+          "key_driver",
+          "primary_risk",
+          "bull_signals",
+          "bear_signals",
+        ]
+      properties:
+        sentiment:
+          type: "string"
+          enum:
+            [
+              "strongly_positive",
+              "positive",
+              "neutral",
+              "negative",
+              "strongly_negative",
+            ]
+        key_driver:
+          type: "string"
+          description: "The single most impactful positive news event or structural catalyst extracted directly from the summary payload (Strictly 1–2 lines, no introductory filler)."
+        primary_risk:
+          type: "string"
+          description: "The single most critical negative news shock, risk trigger, or macroeconomic headwind extracted directly from the summary payload (Strictly 1–2 lines, no introductory filler)."
+        bull_signals:
+          type: "array"
+          minItems: 1
+          maxItems: 5
+          items:
+            type: "string"
+            description: "Evidence-backed news observation matching the formula: [Event Name] + [Priority/Date Context] + [Operational/Business Upside Transmission Path]."
+        bear_signals:
+          type: "array"
+          minItems: 1
+          maxItems: 5
+          items:
+            type: "string"
+            description: "Evidence-backed risk observation matching the formula: [Event Name] + [Priority/Date Context] + [Operational/Financial Downside Impact Floor]."
+
+FIELD_POPULATION_RULES:
+  key_driver:
+    rule: "Must be an exact copy or direct synthesis of your highest-rated bull_signal from the summary payload."
+    formatting: "CRITICAL PROHIBITION: Never start with introductory phrases like 'The company's', 'The key driver is', 'The news shows', or any introductory filler. Start directly with the factual event, development, or economic metric itself."
+
+  primary_risk:
+    rule: "Must be an exact copy or direct synthesis of your highest-rated bear_signal from the summary payload."
+    formatting: "CRITICAL PROHIBITION: Never start with introductory phrases like 'The company's', 'The primary risk is', 'The news shows', or any introductory filler. Start directly with the factual event, vulnerability, or market risk itself."
+
+  bull_signals:
+    rule: "Provide 1-5 highly localized, evidence-backed observations. Every signal MUST strictly weave the explicit event name, priority weighting, and exact operational transmission path calculated from your report text into the template structure."
+
+  bear_signals:
+    rule: "Provide 1-5 highly localized, evidence-backed observations. Every signal MUST strictly weave the explicit risk event, priority weighting, and exact downside financial threat or structural friction calculated from your report text into the template structure."
+
+FEW_SHOT_QUALITY_BENCHMARKS:
+  explanation: "The high-quality benchmarks below serve as structural templates for sentence formatting, asset correlation density, and logical flow. Apply the underlying formula dynamically to the specific JSON input provided. CRITICAL: Replace all blueprint variables with concrete data from the text. Never output literal template brackets or placeholders like [Value %], [Value Baseline], or [Value]."
+  structural_formula_blueprint:
+    pattern: "NEWS_EVENT_OR_MACRO_INDICATOR categorized as PRIORITY priority published on DATE creates a structural BENEFIT_OR_HEADWIND because it TRANSMISSION_MECHANISM, which likely impacts the stock by PROBABILISTIC_FINANCIAL_OUTCOME."
+
+  bull_signals:
+    template_example: "Corporate announcement of a multi-year solar panel supply agreement published on June 2 with critical priority establishes a long-term revenue visibility tailwind because it locks in pricing floors for 65% of plant capacity, which supports multi-year margin expansions across the domestic segment."
+
+  bear_signals:
+    template_example: "Global macro news regarding a 15% import tariff hike implemented on June 1 introduces immediate operating cost friction, as it disrupts core component availability from overseas logistics lanes, creating clear structural margins headwinds for international product distribution."
+
+  key_driver:
+    template_example: "Production capacity expansion of 450,000 metric tons per annum announced on May 29 points to accelerated market share capture, as immediate customer onboarding unlocks unutilized operating leverage to drive near-term cash-flow velocities."
+
+  primary_risk:
+    template_example: "Sovereign bond yield expansion of 35 basis points on June 1 following central bank monetary tightening accelerates cross-border capital reallocation, creating systemic valuation compression across high-beta equity wrappers."
 
 CONSTRAINTS:
   - "You MUST analyze both short-term and long-term impact for each major news category."
@@ -49,117 +172,16 @@ CONSTRAINTS:
   - "Avoid implying direct stock impact unless a clear operational or revenue linkage exists."
   - "To ensure readability, render global and domestic news profiles strictly as markdown tables containing date, event, priority, and expected impact metrics."
 
-OUTPUT_STRUCTURE:
-  report: >
-    # NEWS IMPACT ANALYSIS REPORT
-    
-    ## 1. COMPANY NEWS IMPACT
-    ### Short-Term Impact
-    - Analysis of immediate price reaction, immediate volume response, and order-book sentiment.
-    ### Long-Term Impact
-    - Structural changes to business fundamentals, terminal earnings capacity, or corporate governance.
-    
-    ## 2. GLOBAL MACRO IMPACT
-    | Date | News/Event | Priority Weight | Expected Impact |
-    |---|---|---|---|
-    | | | | |
-    
-    ## 3. INDIAN MARKET IMPACT
-    | Date | News/Event | Priority Weight | Expected Impact |
-    |---|---|---|---|
-    | | | | |
-    
-    ## 4. MACRO-TO-STOCK IMPACT VALIDATION
-    ### Impact of Global News on Stock
-    - Explicit reasoning detailing the transmission mechanism, or state 'No significant impact'.
-    ### Impact of Indian News on Stock
-    - Explicit reasoning detailing the sector/supply-chain transmission mechanism, or state 'No significant impact'.
-    
-    ## 5. CROSS-MARKET & CROSS-ASSET INTERACTION
-    - Correlation analysis tracing shifts across currency pairs, sovereign bond yields, and commodity benchmarks.
-    
-    ## 6. KEY RISKS & OPPORTUNITIES
-    ### Risks
-    - Potential downside triggers, regulatory friction, or macro headwinds.
-    ### Opportunities
-    - Potential upside catalysts, structural tailwinds, or microeconomic expansions.
-    
-    ## 7. SUMMARY TABLE (NEWS IMPACT)
-    | Parameter | Key Insight | Assessment / Impact |
-    |---|---|---|
-    | Company News | ... |  |
-    | Global Macro | ... |  |
-    | Indian Market | ... |  |
-    | Cross-Market Signals | ... |  |
-
-  summary:
-    description: >
-      A structured Pydantic object containing macro and headline insights extracted directly from 
-      the generated markdown report sections above. This object serves as an analytical feeding mechanism 
-      for downstream thematic trading or hedging agents. Lazy, unquantified, or unlinked text will break the system.
-    
-    step_by_step_reasoning_flow:
-      1_scan_report: "Thoroughly review all generated timeline tables, validation sections, and asset correlations from the markdown report above."
-      2_isolate_shocks: "Identify the absolute newest and highest priority macro/corporate shocks and isolate their directional trajectory."
-      3_verify_alignment: "Ensure the key_driver maps to the single strongest upside news catalyst, and primary_risk mirrors the most severe corporate or macro headwind."
-
-    field_population_rules:
-      sentiment:
-        rule: "Reflect the absolute consensus of the news flow environment. Select strictly from: [strongly_positive, positive, neutral, negative, strongly_negative]."
-      
-      key_driver:
-        rule: "Extract the single most impactful positive news event or structural catalyst from your markdown report. Must define its precise business or sector transmission angle. Do not output a list."
-        formatting: "CRITICAL PROHIBITION: Never start with introductory phrases like 'The company's', 'The key driver is', 'The news shows', or any introductory filler. Start directly with the factual event, development, or economic metric itself."
-      
-      primary_risk:
-        rule: "Extract the single most critical negative news shock, risk trigger, or macroeconomic headwind from your markdown report. Must define its precise operational downside threat. Do not output a list."
-        formatting: "CRITICAL PROHIBITION: Never start with introductory phrases like 'The company's', 'The primary risk is', 'The news shows', or any introductory filler. Start directly with the factual event, development, or economic metric itself."
-      
-      bull_signals:
-        rule: "Provide 1-5 highly localized, evidence-backed news observations. Every signal MUST weave the explicit event name, priority weighting, and exact operational upside transmission path from your report text into the sentence structure."
-      
-      bear_signals:
-        rule: "Provide 1-5 highly localized, evidence-backed news observations. Every signal MUST weave the explicit risk event, priority weighting, and exact downside financial threat or structural friction from your report text into the sentence structure."
-      
-      SCHEMA EXAMPLE:
-        bull_signals:
-          - statement: "Global macro news regarding a 10-year Treasury yield nearing 4.5% again after strong jobs data, rise in oil, published on June 3 with medium priority, introduces immediate operating cost friction"
-            strength: 6
-
-        bear_signals:
-          - statement: "The company's fair value target is set at ₹1,696.63, published on May 20 with medium priority, supporting long-term growth"
-            strength: 7
-      
-      strength_guidelines:
-        1-3: Weak signal
-        4-6: Moderate signal
-        7-8: Strong signal
-        9-10: Dominant signal driving sentiment
-
-
-    few_shot_quality_benchmarks:
-      explanation: "The high-quality benchmarks below serve as structural templates for sentence formatting, asset correlation density, and logical flow. Apply the underlying formula dynamically to the specific JSON input provided. CRITICAL: Replace all blueprint variables with concrete data from the text. Never output literal template brackets or placeholders like [NEWS_EVENT_OR_MACRO_INDICATOR], [DATE], or [X basis points]."
-      
-      structural_formula_blueprint:
-        pattern: "NEWS_EVENT_OR_MACRO_INDICATOR categorized as PRIORITY priority published on DATE creates a structural BENEFIT_OR_HEADWIND because it TRANSMISSION_MECHANISM, which likely impacts the stock by PROBABILISTIC_FINANCIAL_OUTCOME."
-
-      bull_signals:
-        instruction: "Convert generic statements like 'Positive corporate earnings announcement and macro tailwinds' into data-dense, localized evidence."
-        template_example: "Corporate announcement of a multi-year solar panel supply agreement published on June 2 with critical priority establishes a long-term revenue visibility tailwind because it locks in pricing floors for 65% of plant capacity, which supports multi-year margin expansions across the domestic segment."
-      
-      bear_signals:
-        instruction: "Convert generic statements like 'Global tariff news and higher bond yields creating stress' into data-dense, localized warnings."
-        template_example: "Global macro news regarding a 15% import tariff hike implemented on June 1 introduces immediate operating cost friction, as it disrupts core component availability from overseas logistics lanes, creating clear structural margins headwinds for international product distribution."
-      
-      key_driver:
-        instruction: "Convert generic statements like 'The company's latest production facility expansion is driving a very positive sentiment' into a direct factual growth catalyst without introductory filler."
-        template_example: "Production capacity expansion of 450,000 metric tons per annum announced on May 29 points to accelerated market share capture, as immediate customer onboarding unlocks unutilized operating leverage to drive near-term cash-flow velocities."
-      
-      primary_risk:
-        instruction: "Convert generic statements like 'The biggest risk is rising sovereign bond yields' into a direct factual threat without introductory filler."
-        template_example: "Sovereign bond yield expansion of 35 basis points on June 1 following central bank monetary tightening accelerates cross-border capital reallocation, creating systemic valuation compression across high-beta equity wrappers."
-
 CRITICAL QUALITY CONSTRAINTS:
   - "Avoid all generic qualitative traps. Do NOT use empty filler phrases such as 'positive news flow', 'bearish market sentiment', 'good announcements', or 'volatile macro'."
   - "Every single argument, claim, or news validation statement made across any field MUST be anchored with specific factual details from the input text (e.g., precise dates, priority weights, sector parameters)."
   - "Absolute textual and conceptual alignment is mandatory. Every single data point, date, and sentiment assessment nested within the 'summary' fields MUST match the generated markdown report text exactly to the single character."
+
+JSON_GENERATION_INSTRUCTION:
+  - "Your output response must contain exactly one valid JSON object mapping cleanly to the properties specified in FINAL_OUTPUT_FORMAT."
+  - "Do NOT wrap the raw JSON output within markdown code block fences (e.g., do not use ```json ... ```)."
+  - "Do NOT output any conversational text, commentary, prefaces, or post-scripts. Start execution with the opening curly brace '{{' and terminate immediately with the closing curly brace '}}'."
+  - "When generating the report string, every markdown table row MUST begin
+    immediately with the pipe character '|' — no leading spaces, no indentation."
+  - "The separator row |---|---| MUST be immediately followed by the first
+    data row with NO blank line between them."

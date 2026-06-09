@@ -1,12 +1,25 @@
+import re
+import os
+import json
 from typing import Any
-import yfinance as yf
+from pymongo import MongoClient
+from pymongo.errors import PyMongoError
+
+from core.logging import get_logger
 from core.constants import SectorName
 from core.logging import get_logger
-from core.yf_context import YFinance401Error, yf_call
-from tools.utils.retry_utils import with_retry
-from tools.utils.sector_tool_helper import _fetch_sector_data, _parse_json_object
+from core.yf_context import YFinance401Error
+from dotenv import load_dotenv
 
 logger = get_logger(__name__)
+load_dotenv()
+
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+DB_NAME = "artha_analytics"
+COLLECTION_NAME = "sector_data"
+
+# Module-level singleton — created once, reused across calls
+_client = MongoClient(MONGO_URI)
 
 
 def get_company_sector(
@@ -67,72 +80,69 @@ def get_company_sector(
     return result
 
 
-def fetch_sector_payload(data: dict) -> dict:
+def get_sector_content(sector_name: str) -> dict:
     """
-    Adapter function for the LangChain pipeline to inject sector_data.
+    Fetch sector report + summary from MongoDB.
 
-    If prior sector resolution failed, it skips the API call to maintain
-    efficiency and structured error reporting.
-    """
-    result = {**data}
-    resolved_sector = result.get("resolved_sector", {})
-    sector_name = resolved_sector.get("sector_name")
-
-    if resolved_sector.get("status") != "success" or not sector_name:
-        logger.warning(f"Skipping sector fetch | reason=resolution_failed")
-        result["sector_data"] = {
-            "status": "skipped",
-            "sector": sector_name,
-            "api_url": None,
-            "data": None,
-            "error": resolved_sector.get("error") or "Sector resolution failed",
-        }
-        return result
-
-    result["sector_data"] = _fetch_sector_data(sector_name)
-    return result
-
-
-def parse_sector_resolver_output(text: str) -> dict[str, Any]:
-    """
-    Parse and validate the output of the Sector Resolver LLM.
-    Ensures the identified sector is within the official SectorName catalog.
-    """
-    result = {
-        "status": "failed",
-        "sector_name": None,
-        "confidence": 0.0,
-        "reason": None,
-        "raw_output": text,
-        "error": None,
-    }
-
-    parsed_result = _parse_json_object(text)
-    if parsed_result["status"] != "success":
-        result["error"] = parsed_result["error"]
-        return result
-
-    parsed = parsed_result["data"]
-    sector_name = str(parsed.get("sector_name", "")).strip()
-    valid_sector_names = {sector.value for sector in SectorName}
-
-    if sector_name not in valid_sector_names:
-        result["error"] = (
-            f"Identified sector {sector_name!r} is not in the supported catalog"
-        )
-        return result
-
-    try:
-        confidence = float(parsed.get("confidence", 0))
-    except (TypeError, ValueError):
-        confidence = 0.0
-
-    result.update(
+    Returns on success:
         {
             "status": "success",
-            "sector_name": sector_name,
-            "confidence": round(max(0.0, min(1.0, confidence)), 4),
-            "reason": str(parsed.get("reason", "")).strip(),
+            "sector_name": str,
+            "report": str,
+            "summary": dict,
+            "created_at": datetime
         }
-    )
-    return result
+
+    Returns on failure:
+        {
+            "status": "failed",
+            "error": str
+        }
+    """
+    try:
+        collection = _client[DB_NAME][COLLECTION_NAME]
+
+        document = collection.find_one({"sector_name": sector_name}, {"_id": 0})
+
+        if not document:
+            return {
+                "status": "failed",
+                "error": f"Sector '{sector_name}' not found in DB",
+            }
+
+        report = document.get("report", "")
+        summary = document.get("summary", {})
+
+        if not report:
+            logger.warning(f"Missing 'report' field | sector={sector_name}")
+        if not summary:
+            logger.warning(f"Missing 'summary' field | sector={sector_name}")
+
+        return {
+            "status": "success",
+            "sector_name": document["sector_name"],
+            "report": report,
+            "summary": summary,
+            "created_at": document.get("created_at"),
+        }
+
+    except PyMongoError as e:
+        # Catch DB-specific errors separately for cleaner logging
+        logger.error(f"MongoDB error | sector={sector_name} | error={e}")
+        return {"status": "failed", "error": str(e)}
+
+    except Exception as e:
+        logger.error(f"Unexpected error | sector={sector_name} | error={e}")
+        return {"status": "failed", "error": str(e)}
+
+
+def validate_sector(sector_name: str) -> dict[str, Any]:
+    """Validate sector_name against the official SectorName catalog."""
+    valid_sector_names = {sector.value for sector in SectorName}
+    if sector_name not in valid_sector_names:
+        return {
+            "status": "failed",
+            "sector_name": None,
+            "error": f"Sector {sector_name!r} is not in the supported catalog",
+        }
+    return {"status": "success", "sector_name": sector_name, "error": None}
