@@ -303,24 +303,29 @@ body {
 }
 
 /* Premium Elegant Tables */
-.prose table {
-  min-width: 100%;
-  width: max-content;
-  border-collapse: separate;
-  border-spacing: 0;
-  margin-top: 1.75rem;
-  margin-bottom: 1.75rem;
-  font-size: 0.925rem;
-  border: 1px solid var(--border);
-  border-radius: 8px; /* Rounded corners for tables */
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
-}
-
-/* Scrollable table wrapper — applied to the prose container */
-.prose :where(table) {
-  display: block;
+.prose .table-wrapper {
+  width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border);
+  border-radius: 8px; /* Rounded corners for table wrapper */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+  margin-top: 1.75rem;
+  margin-bottom: 1.75rem;
+  background-color: #ffffff;
+}
+
+.prose table {
+  min-width: 100%;
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  font-size: 0.925rem;
+}
+
+.prose :where(table) {
+  display: table;
 }
 
 .prose th {
