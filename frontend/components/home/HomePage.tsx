@@ -120,14 +120,14 @@ export function HomePage() {
         ))}
 
       {/* ─── Navbar ─── */}
-      <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-black/5 bg-white/70 px-6 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 flex h-14 sm:h-16 items-center justify-between border-b border-black/5 bg-white/70 px-3 sm:px-6 backdrop-blur-xl">
         <div className="flex items-center gap-2">
           <Link href="/">
-            <img src="/navbar.png" alt="Artha Analytics" className="h-14 object-contain cursor-pointer" />
+            <img src="/navbar.png" alt="Artha Analytics" className="h-10 sm:h-14 object-contain cursor-pointer" />
           </Link>
         </div>
         {user ? (
-          <div className="flex items-center gap-4 font-mono text-[12px] text-neutral-500">
+          <div className="flex items-center gap-2 sm:gap-4 font-mono text-[12px] text-neutral-500">
             <button
               type="button"
               onClick={() => setShowProfile(true)}
@@ -142,14 +142,14 @@ export function HomePage() {
               ) : (
                 <MdErrorOutline size={14} className="text-red-500 animate-pulse shrink-0" />
               )}
-              <span className="truncate max-w-[150px]">{user.name || user.email.split("@")[0]}</span>
+              <span className="truncate max-w-[80px] sm:max-w-[150px]">{user.name || user.email.split("@")[0]}</span>
               {!hasApiKey && <span className="text-[11px] font-bold text-red-500">!</span>}
             </button>
             <span className="h-4 w-px bg-black/10 hidden sm:block" />
             <button
               type="button"
               onClick={handleLogout}
-              className="text-black hover:text-[#d4a84c] transition-colors font-semibold tracking-wider cursor-pointer"
+              className="hidden sm:block text-black hover:text-[#d4a84c] transition-colors font-semibold tracking-wider cursor-pointer"
             >
               LOGOUT
             </button>
@@ -166,7 +166,7 @@ export function HomePage() {
       </header>
 
       {/* ─── Hero Section ─── */}
-      <section className="relative flex min-h-[85vh] flex-col items-center justify-center px-6 py-20 text-center">
+      <section className="relative flex min-h-[70vh] sm:min-h-[85vh] flex-col items-center justify-center px-4 sm:px-6 py-12 sm:py-20 text-center">
         {/* Candlestick decoration */}
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
@@ -188,7 +188,7 @@ export function HomePage() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3 }}
-          className="text-5xl font-bold tracking-tight text-black sm:text-6xl md:text-7xl"
+          className="text-3xl font-bold tracking-tight text-black sm:text-5xl md:text-6xl lg:text-7xl"
         >
           Artha{" "}
           <span className="bg-gradient-to-r from-[#d4a84c] via-[#f0c97a] to-[#d4a84c] bg-clip-text text-transparent">
@@ -200,7 +200,7 @@ export function HomePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.5 }}
-          className="mt-4 max-w-xl font-mono text-[13px] leading-relaxed tracking-wider text-neutral-500"
+          className="mt-4 max-w-xl font-mono text-[11px] sm:text-[13px] leading-relaxed tracking-wider text-neutral-500 px-2 sm:px-0"
         >
           AI-POWERED MULTI-AGENT EQUITY RESEARCH FOR INDIAN MARKETS.
           <br />
@@ -218,7 +218,7 @@ export function HomePage() {
             <button
               id="hero-go-search-btn"
               onClick={() => router.push("/search")}
-              className="group relative overflow-hidden rounded-full bg-black px-8 py-3.5 font-mono text-[12px] font-semibold tracking-[0.25em] text-white shadow-xl transition-all hover:shadow-2xl hover:scale-[1.02] cursor-pointer"
+              className="group relative overflow-hidden rounded-full bg-black px-5 sm:px-8 py-3 sm:py-3.5 font-mono text-[11px] sm:text-[12px] font-semibold tracking-[0.15em] sm:tracking-[0.25em] text-white shadow-xl transition-all hover:shadow-2xl hover:scale-[1.02] cursor-pointer"
             >
               <span className="relative z-10 flex items-center gap-2">
                 <Search size={15} />
@@ -237,7 +237,7 @@ export function HomePage() {
               <button
                 id="hero-try-search-btn"
                 onClick={handleTrySearch}
-                className="group relative overflow-hidden rounded-full bg-black px-8 py-3.5 font-mono text-[12px] font-semibold tracking-[0.25em] text-white shadow-xl transition-all hover:shadow-2xl hover:scale-[1.02] cursor-pointer"
+                className="group relative overflow-hidden rounded-full bg-black px-5 sm:px-8 py-3 sm:py-3.5 font-mono text-[11px] sm:text-[12px] font-semibold tracking-[0.15em] sm:tracking-[0.25em] text-white shadow-xl transition-all hover:shadow-2xl hover:scale-[1.02] cursor-pointer"
               >
                 <span className="relative z-10 flex items-center gap-2">
                   <Search size={15} />
@@ -255,7 +255,7 @@ export function HomePage() {
               <button
                 id="hero-auth-btn"
                 onClick={handleAuth}
-                className="rounded-full border border-black/20 bg-white text-black px-8 py-3.5 font-mono text-[12px] font-semibold tracking-[0.25em] transition-all hover:border-black hover:bg-neutral-50 cursor-pointer"
+                className="rounded-full border border-black/20 bg-white text-black px-5 sm:px-8 py-3 sm:py-3.5 font-mono text-[11px] sm:text-[12px] font-semibold tracking-[0.15em] sm:tracking-[0.25em] transition-all hover:border-black hover:bg-neutral-50 cursor-pointer"
               >
                 <span className="flex items-center gap-2">
                   LOGIN / SIGN UP
@@ -268,7 +268,7 @@ export function HomePage() {
 
         {/* Scroll indicator */}
         <motion.div
-          className="absolute bottom-8"
+          className="absolute bottom-8 hidden sm:block"
           animate={{ y: [0, 8, 0] }}
           transition={{ duration: 2, repeat: Infinity }}
         >
@@ -280,7 +280,7 @@ export function HomePage() {
       </section>
 
       {/* ─── Features Section ─── */}
-      <section ref={featuresRef} className="relative px-6 py-24">
+      <section ref={featuresRef} className="relative px-4 sm:px-6 py-12 sm:py-24">
         <div className="mx-auto max-w-5xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -317,7 +317,7 @@ export function HomePage() {
                 initial={{ opacity: 0, y: 40 }}
                 animate={featuresInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.6, delay: 0.15 * i }}
-                className="group relative overflow-hidden rounded-2xl border border-black/5 bg-white/60 p-8 backdrop-blur-md transition-all hover:border-[#d4a84c]/30 hover:shadow-xl"
+                className="group relative overflow-hidden rounded-2xl border border-black/5 bg-white/60 p-5 sm:p-8 backdrop-blur-md transition-all hover:border-[#d4a84c]/30 hover:shadow-xl"
               >
                 <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-[#d4a84c]/5 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
                 <div className="relative">
@@ -334,7 +334,7 @@ export function HomePage() {
       </section>
 
       {/* ─── How It Works ─── */}
-      <section ref={howItWorksRef} className="relative border-t border-black/5 bg-neutral-50/50 px-6 py-24">
+      <section ref={howItWorksRef} className="relative border-t border-black/5 bg-neutral-50/50 px-4 sm:px-6 py-12 sm:py-24">
         <div className="mx-auto max-w-4xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}

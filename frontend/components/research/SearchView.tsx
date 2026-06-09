@@ -199,19 +199,19 @@ export function SearchView({
       </div>
 
       {/* Navbar matching report page style */}
-      <header className="flex h-16 shrink-0 items-center justify-between border-b border-black/10 bg-white/70 backdrop-blur-md px-5 w-full z-10">
+      <header className="flex h-14 sm:h-16 shrink-0 items-center justify-between border-b border-black/10 bg-white/70 backdrop-blur-md px-3 sm:px-5 w-full z-10">
         <div className="flex items-center">
           <Link href="/">
             <img
               src="/navbar.png"
               alt="Artha Analytics"
-              className="h-14 object-contain cursor-pointer"
+              className="h-10 sm:h-14 object-contain cursor-pointer"
             />
           </Link>
         </div>
 
         {user && onLogout ? (
-          <div className="flex items-center gap-4 font-mono text-[12px] text-[var(--muted-foreground)]">
+          <div className="flex items-center gap-2 sm:gap-4 font-mono text-[12px] text-[var(--muted-foreground)]">
             <button
               type="button"
               onClick={() => setShowProfile(true)}
@@ -229,7 +229,7 @@ export function SearchView({
                   className="text-red-500 animate-pulse shrink-0"
                 />
               )}
-              <span className="truncate max-w-[150px]">
+              <span className="truncate max-w-[80px] sm:max-w-[150px]">
                 {user.name || user.email.split("@")[0]}
               </span>
               {!hasApiKey && (
@@ -240,7 +240,7 @@ export function SearchView({
             <button
               type="button"
               onClick={onLogout}
-              className="text-[var(--foreground)] hover:text-[#d4a84c] transition-colors font-semibold tracking-wider cursor-pointer"
+              className="hidden sm:block text-[var(--foreground)] hover:text-[#d4a84c] transition-colors font-semibold tracking-wider cursor-pointer"
             >
               LOGOUT
             </button>
@@ -259,7 +259,7 @@ export function SearchView({
       </header>
 
       {/* Main search panel container */}
-      <main className="flex flex-1 flex-col items-center justify-center px-6 py-12 relative z-10 w-full max-w-4xl mx-auto">
+      <main className="flex flex-1 flex-col items-center justify-center px-4 sm:px-6 py-8 sm:py-12 relative z-10 w-full max-w-4xl mx-auto">
         <div className="w-full max-w-[400px]">
           <label className="mb-2 ml-3 block font-mono text-[13px] tracking-wider text-[var(--label)]">
             SEARCH NSE TICKER

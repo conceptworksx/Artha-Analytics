@@ -111,7 +111,7 @@ export function ProfileDialog({ user, isOpen, onClose }: ProfileDialogProps) {
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="relative w-full max-w-[440px] overflow-hidden rounded-2xl border border-black/10 bg-white p-6 shadow-2xl z-10 flex flex-col gap-6"
+            className="relative w-full max-w-[440px] overflow-hidden rounded-2xl border border-black/10 bg-white p-4 sm:p-6 shadow-2xl z-10 flex flex-col gap-5 sm:gap-6 max-h-[90vh] overflow-y-auto"
           >
             {/* Header */}
             <div className="flex items-center justify-between border-b border-black/5 pb-3">

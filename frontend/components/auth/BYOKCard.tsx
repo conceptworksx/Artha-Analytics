@@ -76,7 +76,7 @@ export function BYOKCard({
       }}
       className={`w-full max-w-[420px] mx-auto ${isModal ? "relative z-10" : ""}`}
     >
-      <div className={`relative overflow-hidden rounded-2xl border border-black/10 pt-12 pb-8 px-6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.2)] flex flex-col w-full space-y-6 ${
+      <div className={`relative overflow-hidden rounded-2xl border border-black/10 pt-10 sm:pt-12 pb-6 sm:pb-8 px-4 sm:px-6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.2)] flex flex-col w-full space-y-5 sm:space-y-6 ${
         isModal ? "bg-white" : "bg-white/70 backdrop-blur-xl min-h-[400px]"
       }`}>
         {/* Gold border glow */}
@@ -103,7 +103,7 @@ export function BYOKCard({
         </div>
 
         {/* Explanation lines */}
-        <div className="space-y-4 text-center px-2">
+        <div className="space-y-3 sm:space-y-4 text-center px-1 sm:px-2">
           <p className="text-xs text-neutral-600 leading-relaxed font-sans">
             Artha Analytics runs on a Bring Your Own Key (BYOK) architecture. This allows you to power our multi-agent reasoning system using your own custom model access.
           </p>

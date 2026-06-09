@@ -190,7 +190,7 @@ export function StockMetricsPanel({ data }: StockMetricsPanelProps) {
   const timeString = `Historical prices up to ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`;
 
   return (
-    <div className="mx-auto max-w-[920px] rounded-2xl border border-[var(--border)] bg-white p-6 shadow-sm">
+    <div className="mx-auto max-w-[920px] rounded-2xl border border-[var(--border)] bg-white p-4 md:p-6 shadow-sm">
       
       {/* Ticker & Price Header */}
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-zinc-100 pb-5">
@@ -201,7 +201,7 @@ export function StockMetricsPanel({ data }: StockMetricsPanelProps) {
             </span>
             <span className="text-sm font-medium text-zinc-400">· {currency}</span>
           </div>
-          <h2 className="mt-1.5 font-sans text-3xl font-extrabold tracking-tight text-zinc-900 leading-none">
+          <h2 className="mt-1.5 font-sans text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-zinc-900 leading-none">
             {companyName}
           </h2>
           <p className="mt-2 font-mono text-[12px] text-zinc-400 uppercase tracking-wide">
@@ -211,7 +211,7 @@ export function StockMetricsPanel({ data }: StockMetricsPanelProps) {
 
         <div className="flex flex-col items-start md:items-end">
           <div className="flex items-baseline gap-1.5">
-            <span className="font-sans text-4xl font-black tracking-tight text-zinc-950">
+            <span className="font-sans text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-zinc-950">
               {formatValue(currentPrice)}
             </span>
             <span className="font-mono text-sm font-bold text-zinc-500 uppercase">{currency}</span>
@@ -237,12 +237,12 @@ export function StockMetricsPanel({ data }: StockMetricsPanelProps) {
       </div>
 
       {/* Timeframe Selector Tabs */}
-      <div className="mt-6 flex flex-wrap gap-2">
+      <div className="mt-4 sm:mt-6 flex flex-wrap gap-1.5 sm:gap-2">
         {(["1M", "3M", "6M", "1Y"] as const).map((tf) => (
           <button
             key={tf}
             onClick={() => setTimeframe(tf)}
-            className={`rounded-lg px-3.5 py-1.5 font-sans text-[12px] font-bold tracking-wider transition-all cursor-pointer ${
+            className={`rounded-lg px-2.5 sm:px-3.5 py-1 sm:py-1.5 font-sans text-[11px] sm:text-[12px] font-bold tracking-wider transition-all cursor-pointer ${
               timeframe === tf
                 ? "bg-zinc-900 text-white shadow-sm"
                 : "border border-zinc-200 bg-white text-zinc-500 hover:bg-zinc-50 hover:text-zinc-950"
@@ -254,7 +254,7 @@ export function StockMetricsPanel({ data }: StockMetricsPanelProps) {
       </div>
 
       {/* Chart Canvas */}
-      <div className="mt-6 h-[260px] w-full">
+      <div className="mt-4 sm:mt-6 h-[200px] sm:h-[260px] w-full">
         {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 10, right: 25, left: -20, bottom: 0 }}>
@@ -338,7 +338,7 @@ export function StockMetricsPanel({ data }: StockMetricsPanelProps) {
           Key Statistics
         </h3>
         <div className="mt-4 rounded-xl bg-zinc-50 p-4 border border-zinc-100">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 font-mono text-[14px]">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-4 lg:gap-x-6 gap-y-4 font-mono text-[13px] sm:text-[14px]">
             {[
               [
                 { label: "Open", val: formatValue(openPrice) },
@@ -358,9 +358,9 @@ export function StockMetricsPanel({ data }: StockMetricsPanelProps) {
             ].map((col, cIdx) => (
               <div key={cIdx} className="flex flex-col gap-3">
                 {col.map(({ label, val }) => (
-                  <div key={label} className="flex border-b border-zinc-200/50 pb-1.5 last:border-b-0 md:last:border-b">
-                    <span className="w-24 shrink-0 text-zinc-400">{label}</span>
-                    <span className="font-semibold text-zinc-900">{val}</span>
+                  <div key={label} className="flex border-b border-zinc-200/50 pb-1.5 last:border-b-0 lg:last:border-b">
+                    <span className="w-20 lg:w-22 shrink-0 text-zinc-400">{label}</span>
+                    <span className="font-semibold text-zinc-900 truncate">{val}</span>
                   </div>
                 ))}
               </div>

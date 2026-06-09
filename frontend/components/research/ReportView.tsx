@@ -29,7 +29,7 @@ export function ReportView({
 
   return (
     <div ref={containerRef} className="mx-auto max-w-[920px]">
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <h2 className="flex items-center gap-3 text-[18px] font-medium text-[var(--foreground)]">
           {accent && (
             <span
@@ -53,7 +53,7 @@ export function ReportView({
         {ticker.split(".")[0]} · Report generated · {status}
       </p>
 
-      <div className="mt-6 border border-[var(--border)] bg-white p-8 rounded-xl shadow-sm mb-6">
+      <div className="mt-6 border border-[var(--border)] bg-white p-4 sm:p-6 md:p-8 rounded-xl shadow-sm mb-6">
         {content.trim() ? <Markdown content={content} /> : <ReportSkeleton />}
       </div>
 

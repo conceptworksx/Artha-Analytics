@@ -304,7 +304,8 @@ body {
 
 /* Premium Elegant Tables */
 .prose table {
-  width: 100%;
+  min-width: 100%;
+  width: max-content;
   border-collapse: separate;
   border-spacing: 0;
   margin-top: 1.75rem;
@@ -312,8 +313,14 @@ body {
   font-size: 0.925rem;
   border: 1px solid var(--border);
   border-radius: 8px; /* Rounded corners for tables */
-  overflow: hidden;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+}
+
+/* Scrollable table wrapper — applied to the prose container */
+.prose :where(table) {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .prose th {
@@ -597,3 +604,56 @@ body {
   }
 }
 
+/* ─── Mobile Responsive Overrides ─── */
+@media (max-width: 640px) {
+  .prose table {
+    font-size: 0.8rem;
+  }
+
+  .prose th {
+    padding: 8px 10px !important;
+    font-size: 0.7rem !important;
+  }
+
+  .prose td {
+    padding: 8px 10px !important;
+    font-size: 0.8rem;
+  }
+
+  .prose h1 {
+    font-size: 1.35rem;
+  }
+
+  .prose h2 {
+    font-size: 1.15rem;
+  }
+
+  .prose h3 {
+    font-size: 1.05rem;
+  }
+
+  .prose p,
+  .prose li {
+    font-size: 0.9rem;
+  }
+
+  /* Prevent code blocks from overflowing */
+  .prose pre {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .prose code {
+    word-break: break-word;
+  }
+}
+
+/* ─── Mobile Sidebar Slide-in ─── */
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}

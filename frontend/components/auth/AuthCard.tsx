@@ -142,7 +142,7 @@ export function AuthCard({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
-        className="relative w-full max-w-[380px] rounded-2xl border border-black/10 bg-white/95 pt-12 pb-6 px-6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] backdrop-blur-xl h-[570px] flex flex-col justify-between"
+        className="relative w-full max-w-[380px] rounded-2xl border border-black/10 bg-white/95 pt-10 sm:pt-12 pb-6 px-4 sm:px-6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] backdrop-blur-xl max-h-[90vh] overflow-y-auto flex flex-col justify-between"
       >
         {/* Gold border glow */}
         <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-[#d4a84c]/20 via-transparent to-black/10 opacity-50 [mask:linear-gradient(#000,#000)_content-box,linear-gradient(#000,#000)] [mask-composite:exclude] p-px" />

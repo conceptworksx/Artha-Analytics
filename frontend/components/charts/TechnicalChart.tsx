@@ -56,7 +56,7 @@ export function TechnicalChart({ data }: { data?: TechDataPoint[] }) {
       </CardHeader>
       <CardContent className="flex flex-col gap-6 p-0">
         {/* Price Sub-chart */}
-        <div className="h-[280px] w-full">
+        <div className="h-[220px] sm:h-[280px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data} syncId="techChart" margin={{ top: 10, right: 25, left: -20, bottom: 0 }}>
               <defs>
@@ -146,7 +146,7 @@ export function TechnicalChart({ data }: { data?: TechDataPoint[] }) {
         </div>
 
         {/* RSI Sub-chart */}
-        <div className="h-[120px] w-full border-t border-[var(--border)] pt-4">
+        <div className="h-[100px] sm:h-[120px] w-full border-t border-[var(--border)] pt-4">
           <div className="mb-2 font-mono text-[10px] font-bold text-[var(--muted-foreground)] tracking-wide px-2">
             MOMENTUM (RSI)
           </div>

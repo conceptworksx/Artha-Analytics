@@ -63,19 +63,19 @@ export function LoadingView({
       ))}
 
       {/* Navbar matching report page style */}
-      <header className="flex h-16 shrink-0 items-center justify-between border-b border-black/10 bg-white/70 backdrop-blur-md px-5 w-full z-10">
+      <header className="flex h-14 sm:h-16 shrink-0 items-center justify-between border-b border-black/10 bg-white/70 backdrop-blur-md px-3 sm:px-5 w-full z-10">
         <div className="flex items-center">
           <Link href="/">
             <img
               src="/navbar.png"
               alt="Artha Analytics"
-              className="h-14 object-contain cursor-pointer"
+              className="h-10 sm:h-14 object-contain cursor-pointer"
             />
           </Link>
         </div>
 
         {user && onLogout ? (
-          <div className="flex items-center gap-4 font-mono text-[12px] text-[var(--muted-foreground)]">
+          <div className="flex items-center gap-2 sm:gap-4 font-mono text-[12px] text-[var(--muted-foreground)]">
             <span className="hidden sm:inline truncate max-w-[240px]">
               {user.name || user.email.split("@")[0]}
             </span>
@@ -90,16 +90,16 @@ export function LoadingView({
           </div>
         ) : (
           <>
-            <div className="font-mono text-[13px] text-[var(--muted-foreground)]">
+            <div className="hidden sm:block font-mono text-[13px] text-[var(--muted-foreground)]">
               {ticker.split(".")[0].toUpperCase()}.NS · NSE
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <Link
                 href="/"
-                className="flex items-center gap-2 px-4 py-1.5 rounded-lg border border-black/10 bg-zinc-50/50 font-mono text-[13px] font-medium text-zinc-800 hover:bg-black hover:text-white transition-all duration-300 hover:shadow-md hover:border-black active:scale-[0.98]"
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 rounded-lg border border-black/10 bg-zinc-50/50 font-mono text-[11px] sm:text-[13px] font-medium text-zinc-800 hover:bg-black hover:text-white transition-all duration-300 hover:shadow-md hover:border-black active:scale-[0.98]"
               >
                 <Search size={14} />
-                <span>New Analysis</span>
+                <span className="hidden sm:inline">New Analysis</span>
               </Link>
             </div>
           </>
@@ -107,7 +107,7 @@ export function LoadingView({
       </header>
 
       {/* Main loading content container */}
-      <div className="flex flex-1 items-center justify-center px-6 z-10">
+      <div className="flex flex-1 items-center justify-center px-4 sm:px-6 z-10">
         <div className="w-full max-w-[420px] text-center flex flex-col items-center">
           <h1 className="font-mono text-[14px] tracking-[0.2em] font-semibold text-black">
             ARTHA ANALYTICS
