@@ -265,7 +265,7 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
           />
         )}
 
-        <main ref={mainRef} className="flex-1 overflow-y-auto bg-[var(--background)] p-4 sm:p-6 md:p-8">
+        <main ref={mainRef} className="flex-1 min-w-0 overflow-y-auto bg-[var(--background)] p-4 sm:p-6 md:p-8">
           <ViewSwitch view={view} data={data} />
         </main>
       </div>

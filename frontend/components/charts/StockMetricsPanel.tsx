@@ -338,7 +338,7 @@ export function StockMetricsPanel({ data }: StockMetricsPanelProps) {
           Key Statistics
         </h3>
         <div className="mt-4 rounded-xl bg-zinc-50 p-4 border border-zinc-100">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-4 lg:gap-x-6 gap-y-4 font-mono text-[13px] sm:text-[14px]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 md:gap-x-6 gap-y-4 font-mono text-[13px] sm:text-[14px]">
             {[
               [
                 { label: "Open", val: formatValue(openPrice) },
@@ -358,7 +358,7 @@ export function StockMetricsPanel({ data }: StockMetricsPanelProps) {
             ].map((col, cIdx) => (
               <div key={cIdx} className="flex flex-col gap-3">
                 {col.map(({ label, val }) => (
-                  <div key={label} className="flex border-b border-zinc-200/50 pb-1.5 last:border-b-0 lg:last:border-b">
+                  <div key={label} className="flex border-b border-zinc-200/50 pb-1.5 last:border-b-0">
                     <span className="w-20 lg:w-22 shrink-0 text-zinc-400">{label}</span>
                     <span className="font-semibold text-zinc-900 truncate">{val}</span>
                   </div>
