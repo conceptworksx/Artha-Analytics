@@ -212,7 +212,7 @@ export function AuthCard({
                 icon={<Mail size={14} />}
                 label="EMAIL"
                 type="email"
-                placeholder="you@artha.ai"
+                placeholder="user@gmail.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
