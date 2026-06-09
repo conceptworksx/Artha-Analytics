@@ -1,21 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import { Search, Menu } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   analyseTicker,
   AnalysisError,
   cacheResponse,
+  clearAuthSession,
   readCached,
   clearCached,
+  getAuthToken,
+  getSavedGroqApiKey,
+  saveGroqApiKey,
   type AnalyseResponse,
 } from "@/lib/api";
-import { LoadingScreen } from "@/components/LoadingScreen";
-import { Sidebar, type ViewKey } from "@/components/Sidebar";
-import { ReportView } from "@/components/ReportView";
-import { TechnicalChart } from "@/components/TechnicalChart";
-import { FundamentalChart } from "@/components/FundamentalChart";
+import { LoadingView } from "@/components/research/LoadingView";
+import { AppSidebar, type ViewKey } from "@/components/layout/AppSidebar";
+import { ReportView } from "@/components/research/ReportView";
+import { StockMetricsPanel } from "@/components/charts/StockMetricsPanel";
+import { TechnicalChart } from "@/components/charts/TechnicalChart";
+import { FundamentalChart } from "@/components/charts/FundamentalChart";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ErrorInfo {
   title: string;
@@ -24,14 +31,34 @@ interface ErrorInfo {
 
 export default function ResearchDashboardClient({ ticker }: { ticker: string }) {
   const router = useRouter();
+  const isMobile = useIsMobile();
   const [data, setData] = useState<AnalyseResponse | null>(null);
+  const [view, setView] = useState<ViewKey>("overview");
   const [error, setError] = useState<ErrorInfo | null>(null);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<ViewKey>("technical");
   const [retryCount, setRetryCount] = useState(0);
+  const [mounted, setMounted] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const mainRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0;
+    }
+  }, [view]);
+
+  const authToken = getAuthToken();
+  const groqApiKey = getSavedGroqApiKey();
+  const isRedirecting = !groqApiKey || !groqApiKey.trim();
 
   useEffect(() => {
     const controller = new AbortController();
+    const authToken = getAuthToken();
 
     // Clear cache if this is a manual retry
     if (retryCount > 0) {
@@ -49,11 +76,16 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
     setError(null);
     setData(null);
 
-    const groqApiKey = localStorage.getItem("groq_api_key") || "";
+    const groqApiKey = getSavedGroqApiKey();
+    if (!groqApiKey || !groqApiKey.trim()) {
+      router.replace("/search");
+      return;
+    }
 
     analyseTicker({
       ticker,
       groqApiKey,
+      authToken: authToken || undefined,
       signal: controller.signal,
     })
       .then((d) => {
@@ -64,6 +96,21 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
       .catch((e) => {
         if (controller.signal.aborted) return;
         if (e instanceof AnalysisError) {
+          if (e.title === "SIGN IN REQUIRED") {
+            clearAuthSession();
+            router.replace("/search");
+            return;
+          }
+          if (e.title === "INVALID API KEY") {
+            saveGroqApiKey("");
+            router.replace("/search");
+            return;
+          }
+          if (e.title === "GUEST LIMIT REACHED") {
+            clearCached(ticker);
+            router.replace("/search?limit_reached=true");
+            return;
+          }
           setError({ title: e.title, message: e.message });
         } else {
           setError({
@@ -77,7 +124,15 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
     return () => {
       controller.abort();
     };
-  }, [ticker, retryCount]);
+  }, [ticker, retryCount, router]);
+
+  if (!mounted) {
+    return null;
+  }
+
+  if (isRedirecting) {
+    return null;
+  }
 
   // ── Error page ─────────────────────────────────────────────────────────
   if (error) {
@@ -110,7 +165,7 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
     );
 
     return (
-      <div className="flex min-h-screen items-center justify-center px-6">
+      <div className="flex min-h-screen items-center justify-center px-4 sm:px-6">
         <div className="max-w-lg text-center">
           {/* Icon */}
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--background)] border border-[var(--border)]">
@@ -128,22 +183,23 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
           </p>
 
           {/* Buttons */}
-          <div className="mt-8 flex items-center justify-center gap-3">
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
               onClick={() => {
                 setError(null);
                 setData(null);
                 setRetryCount((prev) => prev + 1);
               }}
-              className="h-10 border border-[var(--foreground)] bg-[var(--foreground)] px-5 font-mono text-[12px] text-white rounded-lg shadow-sm transition-all hover:bg-[#333330]"
+              className="h-10 w-full sm:w-auto border border-[var(--foreground)] bg-[var(--foreground)] px-5 font-mono text-[12px] text-white rounded-lg shadow-sm transition-all hover:bg-[#333330]"
             >
               ↻ Retry
             </button>
             <button
-              onClick={() => router.push("/")}
-              className="h-10 border border-[var(--border)] bg-white px-5 font-mono text-[12px] hover:border-[var(--foreground)] rounded-lg shadow-sm transition-all hover:bg-zinc-50"
+              onClick={() => router.push("/search")}
+              className="flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-1.5 h-10 rounded-lg border border-black/10 bg-zinc-50/50 font-mono text-[13px] font-medium text-zinc-800 hover:bg-black hover:text-white transition-all duration-300 hover:shadow-md hover:border-black active:scale-[0.98]"
             >
-              ← New Analysis
+              <Search size={14} />
+              <span>New Analysis</span>
             </button>
           </div>
         </div>
@@ -152,37 +208,64 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
   }
 
   // ── Loading screen ─────────────────────────────────────────────────────
-  if (loading || !data) return <LoadingScreen ticker={ticker} />;
+  if (loading || !data) return <LoadingView ticker={ticker} />;
 
   // ── Dashboard ──────────────────────────────────────────────────────────
   return (
     <div className="flex h-screen flex-col">
       {/* Navbar */}
-      <header className="flex h-16 shrink-0 items-center justify-between border-b border-[var(--border)] bg-white px-5">
-        <div className="flex items-center">
-          <img
-            src="/navbar.png"
-            alt="Artha Analytics"
-            className="h-14 object-contain"
-          />
+      <header className="flex h-14 sm:h-16 shrink-0 items-center justify-between border-b border-[var(--border)] bg-white px-3 sm:px-5">
+        <div className="flex items-center gap-2">
+          {/* Hamburger menu — mobile only */}
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="md:hidden flex items-center justify-center h-9 w-9 rounded-lg text-zinc-600 hover:bg-zinc-100 transition-colors cursor-pointer"
+            aria-label="Open navigation"
+          >
+            <Menu size={20} />
+          </button>
+          <Link href="/">
+            <img
+              src="/navbar.png"
+              alt="Artha Analytics"
+              className="h-10 sm:h-14 object-contain cursor-pointer"
+            />
+          </Link>
         </div>
-        <div className="font-mono text-[13px] text-[var(--muted-foreground)]">
+        <div className="hidden sm:block font-mono text-[13px] text-[var(--muted-foreground)]">
           {data.ticker.split(".")[0].toUpperCase()}.NS · NSE
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <Link
-            href="/"
-            className="font-mono text-[12px] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+            href="/search"
+            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 rounded-lg border border-black/10 bg-zinc-50/50 font-mono text-[11px] sm:text-[13px] font-medium text-zinc-800 hover:bg-black hover:text-white transition-all duration-300 hover:shadow-md hover:border-black active:scale-[0.98]"
           >
-            ← New Analysis
+            <Search size={14} />
+            <span className="hidden sm:inline">New Analysis</span>
           </Link>
         </div>
       </header>
 
       <div className="flex min-h-0 flex-1">
-        <Sidebar active={view} onSelect={setView} />
+        {/* Desktop sidebar */}
+        <AppSidebar
+          active={view}
+          onSelect={setView}
+          isMobile={false}
+        />
 
-        <main className="flex-1 overflow-y-auto bg-[var(--background)] p-8">
+        {/* Mobile sidebar overlay */}
+        {isMobile && (
+          <AppSidebar
+            active={view}
+            onSelect={setView}
+            isMobile={true}
+            isOpen={sidebarOpen}
+            onClose={() => setSidebarOpen(false)}
+          />
+        )}
+
+        <main ref={mainRef} className="flex-1 overflow-y-auto bg-[var(--background)] p-4 sm:p-6 md:p-8">
           <ViewSwitch view={view} data={data} />
         </main>
       </div>
@@ -200,6 +283,8 @@ function ViewSwitch({
   const t = data.ticker;
 
   switch (view) {
+    case "overview":
+      return <StockMetricsPanel data={data} />;
     case "news":
       return (
         <ReportView

@@ -1,13 +1,17 @@
+import { useEffect } from "react";
 import {
   Newspaper,
   LineChart,
   BarChart2,
   Globe,
   Layers,
+  Activity,
+  X,
   type LucideIcon,
 } from "lucide-react";
 
 export type ViewKey =
+  | "overview"
   | "news"
   | "technical"
   | "fundamental"
@@ -28,19 +32,48 @@ const ANALYSTS: Item[] = [
   { key: "news", label: "News Analyst", icon: Newspaper },
 ];
 
-export function Sidebar({
+export function AppSidebar({
   active,
   onSelect,
+  isMobile = false,
+  isOpen = true,
+  onClose,
 }: {
   active: ViewKey;
   onSelect: (k: ViewKey) => void;
+  isMobile?: boolean;
+  isOpen?: boolean;
+  onClose?: () => void;
 }) {
-  return (
-    <aside className="flex w-60 shrink-0 flex-col overflow-y-auto border-r border-[var(--border)] bg-white">
-      <div className="flex-1">
+  // Lock body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (isMobile && isOpen) {
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = "";
+      };
+    }
+  }, [isMobile, isOpen]);
+
+  const handleSelect = (k: ViewKey) => {
+    onSelect(k);
+    if (isMobile && onClose) {
+      onClose();
+    }
+  };
+
+  const sidebarContent = (
+    <>
+      <div className="flex-1 py-4">
+        <Row
+          item={{ key: "overview", label: "Equity Overview", icon: Activity }}
+          active={active === "overview"}
+          onSelect={handleSelect}
+        />
+        
         <SectionLabel>ANALYSTS</SectionLabel>
         {ANALYSTS.map((it) => (
-          <Row key={it.key} item={it} active={active === it.key} onSelect={onSelect} />
+          <Row key={it.key} item={it} active={active === it.key} onSelect={handleSelect} />
         ))}
       </div>
 
@@ -61,6 +94,49 @@ export function Sidebar({
           <span>Contribute</span>
         </a>
       </div>
+    </>
+  );
+
+  // ── Mobile: slide-in overlay ──
+  if (isMobile) {
+    if (!isOpen) return null;
+
+    return (
+      <div className="fixed inset-0 z-40 flex">
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+
+        {/* Sidebar panel */}
+        <aside
+          role="dialog"
+          aria-label="Navigation"
+          className="relative z-10 flex w-64 max-w-[80vw] shrink-0 flex-col overflow-y-auto border-r border-[var(--border)] bg-white shadow-xl animate-[slideInLeft_0.2s_ease-out]"
+        >
+          {/* Close button */}
+          <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
+            <span className="font-mono text-[11px] font-bold tracking-widest text-zinc-500">NAVIGATION</span>
+            <button
+              onClick={onClose}
+              className="rounded-full p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-black transition-colors cursor-pointer"
+              aria-label="Close navigation"
+            >
+              <X size={16} />
+            </button>
+          </div>
+          {sidebarContent}
+        </aside>
+      </div>
+    );
+  }
+
+  // ── Desktop: standard aside ──
+  return (
+    <aside className="hidden md:flex w-60 shrink-0 flex-col overflow-y-auto border-r border-[var(--border)] bg-white">
+      {sidebarContent}
     </aside>
   );
 }
@@ -86,7 +162,7 @@ function Row({
   return (
     <button
       onClick={() => onSelect(item.key)}
-      className={`flex h-10 items-center gap-3 px-3 mx-2 text-left text-[14px] font-medium transition-all rounded-lg ${active
+      className={`flex h-10 w-full items-center gap-3 px-3 mx-2 text-left text-[14px] font-medium transition-all rounded-lg ${active
           ? "bg-[var(--foreground)] text-white"
           : "text-[var(--muted-foreground)] hover:bg-zinc-50 hover:text-[var(--foreground)]"
         }`}

@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { downloadMarkdown, downloadPdf } from "@/lib/download";
@@ -20,10 +21,15 @@ export function ReportView({
   children?: React.ReactNode;
 }) {
   const canDownload = Boolean(content.trim());
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleDownloadPdf = async () => {
+    downloadPdf(filenameBase, content);
+  };
 
   return (
-    <div className="mx-auto max-w-[920px]">
-      <div className="mb-2 flex items-center justify-between">
+    <div ref={containerRef} className="mx-auto max-w-[920px]">
+      <div className="mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <h2 className="flex items-center gap-3 text-[18px] font-medium text-[var(--foreground)]">
           {accent && (
             <span
@@ -36,15 +42,9 @@ export function ReportView({
         <div className="flex items-center gap-4">
           <DownloadBtn
             disabled={!canDownload}
-            onClick={() => downloadPdf(`${filenameBase}`, content)}
+            onClick={handleDownloadPdf}
           >
-            ↓ PDF
-          </DownloadBtn>
-          <DownloadBtn
-            disabled={!canDownload}
-            onClick={() => downloadMarkdown(filenameBase, content)}
-          >
-            ↓ MD
+            PDF
           </DownloadBtn>
         </div>
       </div>
@@ -53,7 +53,7 @@ export function ReportView({
         {ticker.split(".")[0]} · Report generated · {status}
       </p>
 
-      <div className="mt-6 border border-[var(--border)] bg-white p-8 rounded-xl shadow-sm mb-6">
+      <div className="mt-6 border border-[var(--border)] bg-white p-4 sm:p-6 md:p-8 rounded-xl shadow-sm mb-6">
         {content.trim() ? <Markdown content={content} /> : <ReportSkeleton />}
       </div>
 
@@ -83,8 +83,13 @@ function DownloadBtn({
     <button
       disabled={disabled}
       onClick={onClick}
-      className="flex items-center gap-1.5 rounded-md border border-[var(--border)] bg-zinc-50/50 px-2.5 py-1 font-mono text-[11px] font-semibold text-[var(--muted-foreground)] transition-all hover:bg-zinc-100 hover:text-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-40 shadow-xs"
+      className="flex items-center gap-1 rounded-md border border-zinc-900 bg-zinc-950 px-2.5 py-1 font-sans text-[11px] font-medium text-zinc-50 transition-all hover:bg-zinc-800 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 shadow-xs cursor-pointer"
     >
+      <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mr-0.5 opacity-90">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="7 10 12 15 17 10" />
+        <line x1="12" y1="15" x2="12" y2="3" />
+      </svg>
       {children}
     </button>
   );
@@ -106,3 +111,4 @@ function ReportSkeleton() {
     </div>
   );
 }
+

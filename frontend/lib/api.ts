@@ -6,6 +6,9 @@ export interface AnalyseResponse {
   market_report: string;
   sector_report: string;
   status: string;
+  company_info?: any;
+  historical_prices?: any[];
+
   charts_data?: {
     technical_history: Array<{
       date: string;
@@ -47,6 +50,19 @@ export interface AnalyseResponse {
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const AUTH_TOKEN_KEY = "artha_auth_token";
+const AUTH_USER_KEY = "artha_auth_user";
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  name?: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: AuthUser;
+}
 
 export function normalizeTicker(ticker: string) {
   let cleanTicker = ticker.trim().toUpperCase();
@@ -90,6 +106,14 @@ function buildErrorMessage(
   const serverMsg = detail?.message ?? "";
 
   // 401 — Invalid API key
+  if (status === 401 && errorCode !== "invalid_api_key") {
+    return {
+      title: "SIGN IN REQUIRED",
+      message: "Your session has expired. Please sign in again.",
+    };
+  }
+
+  // 401 — Invalid API key
   if (status === 401 || errorCode === "invalid_api_key") {
     return {
       title: "INVALID API KEY",
@@ -121,6 +145,14 @@ function buildErrorMessage(
     };
   }
 
+  // 403 — Guest limit reached
+  if (status === 403 || errorCode === "limit_reached") {
+    return {
+      title: "GUEST LIMIT REACHED",
+      message: "You have reached the limit of 3 free guest searches. Please sign up or log in to search more.",
+    };
+  }
+
   // 404 — Ticker not found
   if (status === 404) {
     return {
@@ -134,7 +166,6 @@ function buildErrorMessage(
   return {
     title: "SOMETHING WENT WRONG",
     message:
-      serverMsg ||
       "The analysis server encountered an unexpected error while processing your request. This is usually a temporary issue on our end.",
   };
 }
@@ -144,10 +175,12 @@ function buildErrorMessage(
 export async function analyseTicker({
   ticker,
   groqApiKey,
+  authToken,
   signal,
 }: {
   ticker: string;
   groqApiKey: string;
+  authToken?: string;
   signal?: AbortSignal;
 }): Promise<AnalyseResponse> {
   const cleanTicker = normalizeTicker(ticker);
@@ -159,6 +192,10 @@ export async function analyseTicker({
 
   if (groqApiKey) {
     headers["Groq-API-Key"] = groqApiKey.trim();
+  }
+
+  if (authToken) {
+    headers.Authorization = `Bearer ${authToken}`;
   }
 
   let res: Response;
@@ -174,7 +211,131 @@ export async function analyseTicker({
     throw new AnalysisError({
       title: "CONNECTION FAILED",
       message:
-        "Unable to reach the analysis server. The backend may not be running, or your network connection may be interrupted.",
+        "Unable to reach the authentication server.",
+    });
+  }
+
+  const rawData = await res.json();
+
+  if (!res.ok) {
+    const detail = rawData?.detail ?? rawData ?? {};
+    throw new AnalysisError(buildErrorMessage(res.status, detail));
+  }
+
+  // Inject fallback dummy values if they are missing from the backend response
+  const data: AnalyseResponse = {
+    ticker: rawData.ticker ?? cleanTicker,
+    news_report: rawData.news_report || "No news report available.",
+    technical_report: rawData.technical_report || "No technical report available.",
+    fundamental_report: rawData.fundamental_report || "No fundamental report available.",
+    market_report: rawData.market_report || "No market report available.",
+    sector_report: rawData.sector_report || "No sector report available.",
+    status: rawData.status || "success",
+    company_info: rawData.company_info || null,
+    historical_prices: rawData.historical_prices || [],
+    charts_data: rawData.charts_data,
+  };
+
+  return data;
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+
+export function saveAuthSession(session: AuthResponse) {
+  const expires = new Date();
+  expires.setTime(expires.getTime() + 7 * 24 * 60 * 60 * 1000);
+  document.cookie = `${AUTH_TOKEN_KEY}=${session.token}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
+  localStorage.setItem(AUTH_USER_KEY, JSON.stringify(session.user));
+}
+
+export function clearAuthSession() {
+  document.cookie = `${AUTH_TOKEN_KEY}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`;
+  localStorage.removeItem(AUTH_USER_KEY);
+}
+
+export function getAuthToken() {
+  if (typeof document === "undefined") return "";
+  const nameEQ = `${AUTH_TOKEN_KEY}=`;
+  const ca = document.cookie.split(";");
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === " ") c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+  }
+  return "";
+}
+
+export function getAuthUser(): AuthUser | null {
+  try {
+    const raw = localStorage.getItem(AUTH_USER_KEY);
+    return raw ? (JSON.parse(raw) as AuthUser) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function getSavedGroqApiKey(): string {
+  if (typeof window === "undefined") return "";
+  const user = getAuthUser();
+  if (!user) {
+    try {
+      return localStorage.getItem("groq_api_key_guest") || "";
+    } catch {
+      return "";
+    }
+  }
+  try {
+    return localStorage.getItem(`groq_api_key_${user.email}`) || "";
+  } catch {
+    return "";
+  }
+}
+
+export function saveGroqApiKey(key: string) {
+  if (typeof window === "undefined") return;
+  const user = getAuthUser();
+  const trimmed = key.trim();
+  if (!user) {
+    try {
+      if (!trimmed) {
+        localStorage.removeItem("groq_api_key_guest");
+      } else {
+        localStorage.setItem("groq_api_key_guest", trimmed);
+      }
+    } catch {}
+    return;
+  }
+  try {
+    if (!trimmed) {
+      localStorage.removeItem(`groq_api_key_${user.email}`);
+    } else {
+      localStorage.setItem(`groq_api_key_${user.email}`, trimmed);
+    }
+  } catch {}
+}
+
+export async function authRequest({
+  mode,
+  email,
+  password,
+  name,
+}: {
+  mode: "login" | "signup";
+  email: string;
+  password: string;
+  name?: string;
+}): Promise<AuthResponse> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE_URL}/auth/${mode}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, name }),
+    });
+  } catch {
+    throw new AnalysisError({
+      title: "CONNECTION FAILED",
+      message: "Unable to reach the authentication server.",
     });
   }
 
@@ -182,16 +343,133 @@ export async function analyseTicker({
     let detail: BackendErrorDetail = {};
     try {
       const errorBody = await res.json();
-      // Backend sends { detail: { error, message } }
       detail = errorBody?.detail ?? errorBody ?? {};
-    } catch {
-      // JSON parse failed — use empty detail
-    }
-    throw new AnalysisError(buildErrorMessage(res.status, detail));
+    } catch {}
+    throw new AnalysisError({
+      title: res.status === 409 ? "ACCOUNT EXISTS" : "AUTHENTICATION FAILED",
+      message:
+        detail.message ||
+        "Please check your email and password, then try again.",
+    });
   }
 
-  const data: AnalyseResponse = await res.json();
-  return data;
+  return res.json();
+}
+
+export async function authenticateWithGoogle(credentialToken: string): Promise<AuthResponse> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE_URL}/auth/google`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ credential_token: credentialToken }),
+    });
+  } catch {
+    throw new AnalysisError({
+      title: "CONNECTION FAILED",
+      message: "Unable to reach the authentication server.",
+    });
+  }
+
+  const rawData = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    const detail = rawData?.detail ?? rawData ?? {};
+    throw new AnalysisError({
+      title: "AUTHENTICATION FAILED",
+      message: detail.message || "Google authentication failed.",
+    });
+  }
+
+  return rawData as AuthResponse;
+}
+
+export async function changePassword({
+  currentPassword,
+  newPassword,
+  authToken,
+}: {
+  currentPassword: string;
+  newPassword: string;
+  authToken: string;
+}): Promise<{ status: string; message: string }> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE_URL}/auth/change-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({
+        current_password: currentPassword,
+        new_password: newPassword,
+      }),
+    });
+  } catch {
+    throw new AnalysisError({
+      title: "CONNECTION FAILED",
+      message: "Unable to reach the authentication server.",
+    });
+  }
+
+  if (!res.ok) {
+    let detail: BackendErrorDetail = {};
+    try {
+      const errorBody = await res.json();
+      detail = errorBody?.detail ?? errorBody ?? {};
+    } catch {}
+    throw new AnalysisError({
+      title: "PASSWORD CHANGE FAILED",
+      message: detail.message || "Failed to change password. Please check your credentials.",
+    });
+  }
+
+  return res.json();
+}
+
+export async function verifyGroqApiKey({
+  groqApiKey,
+  authToken,
+}: {
+  groqApiKey: string;
+  authToken?: string;
+}): Promise<{ valid: boolean }> {
+  let res: Response;
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (authToken) {
+    headers.Authorization = `Bearer ${authToken}`;
+  }
+  try {
+    res = await fetch(`${API_BASE_URL}/auth/verify-groq-key`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        groq_api_key: groqApiKey,
+      }),
+    });
+  } catch {
+    throw new AnalysisError({
+      title: "CONNECTION FAILED",
+      message: "Unable to reach the authentication server.",
+    });
+  }
+
+  if (!res.ok) {
+    let detail: BackendErrorDetail = {};
+    try {
+      const errorBody = await res.json();
+      detail = errorBody?.detail ?? errorBody ?? {};
+    } catch {}
+    throw new AnalysisError({
+      title: "KEY VALIDATION FAILED",
+      message: detail.message || "Failed to verify the Groq API key.",
+    });
+  }
+
+  return res.json();
 }
 
 // ── Session cache ──────────────────────────────────────────────────────────────
@@ -215,7 +493,13 @@ export function readCached(ticker: string): AnalyseResponse | null {
   try {
     const clean = normalizeTicker(ticker);
     const raw = sessionStorage.getItem(KEY(clean));
-    return raw ? (JSON.parse(raw) as AnalyseResponse) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as AnalyseResponse;
+    if (!parsed.charts_data) {
+      sessionStorage.removeItem(KEY(clean));
+      return null;
+    }
+    return parsed;
   } catch {
     return null;
   }

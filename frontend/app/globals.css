@@ -304,7 +304,8 @@ body {
 
 /* Premium Elegant Tables */
 .prose table {
-  width: 100%;
+  min-width: 100%;
+  width: max-content;
   border-collapse: separate;
   border-spacing: 0;
   margin-top: 1.75rem;
@@ -312,8 +313,14 @@ body {
   font-size: 0.925rem;
   border: 1px solid var(--border);
   border-radius: 8px; /* Rounded corners for tables */
-  overflow: hidden;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+}
+
+/* Scrollable table wrapper — applied to the prose container */
+.prose :where(table) {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .prose th {
@@ -398,90 +405,255 @@ body {
 .robot {
   color: var(--muted-foreground);
   font-size: 36px;
-  opacity: 0.5;
-  animation: talk 2s infinite;
+  opacity: 0.4;
+  transition: all 0.3s ease;
 }
 
-.right {
-  animation-delay: 1s;
+.robot.left {
+  animation: leftRobotActive 6s infinite;
 }
 
-@keyframes talk {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.4;
-  }
-  30% {
+.robot.right {
+  animation: rightRobotActive 6s infinite;
+}
+
+@keyframes leftRobotActive {
+  0%, 45% {
     transform: scale(1.12);
     opacity: 0.8;
-    filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.05));
+    color: var(--foreground);
+    filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.08));
+  }
+  50%, 95% {
+    transform: scale(1);
+    opacity: 0.4;
+    color: var(--muted-foreground);
+    filter: none;
+  }
+  100% {
+    transform: scale(1.12);
+    opacity: 0.8;
+    color: var(--foreground);
+  }
+}
+
+@keyframes rightRobotActive {
+  0%, 45% {
+    transform: scale(1);
+    opacity: 0.4;
+    color: var(--muted-foreground);
+    filter: none;
+  }
+  50%, 95% {
+    transform: scale(1.12);
+    opacity: 0.8;
+    color: var(--foreground);
+    filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.08));
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.4;
+    color: var(--muted-foreground);
+  }
+}
+
+/* thinking bubbles */
+.thinking-bubble {
+  position: absolute;
+  top: 38px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  opacity: 0;
+}
+
+.left-thinking {
+  left: 65px;
+  animation: showLeftThinking 6s infinite;
+}
+
+.right-thinking {
+  right: 65px;
+  animation: showRightThinking 6s infinite;
+}
+
+.thinking-bubble .dot {
+  width: 4px;
+  height: 4px;
+  background-color: #71717a;
+  border-radius: 50%;
+  animation: bounce 0.8s infinite alternate;
+}
+
+.thinking-bubble .dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.thinking-bubble .dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+  to {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes showLeftThinking {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  3%, 20% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  25%, 100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+@keyframes showRightThinking {
+  0%, 50% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  53%, 70% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  75%, 100% {
+    opacity: 0;
+    transform: scale(0.8);
   }
 }
 
 /* messages */
 .message {
   position: absolute;
-  left: 60px;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 30px;
   color: var(--muted-foreground);
-  font-size: 18px;
+  font-size: 20px;
   opacity: 0;
 }
 
-/* message animations */
-.m1 {
-  animation: sendRight 2.4s infinite;
+.send-right {
+  left: 60px;
+  animation: sendRightMsg 6s infinite;
 }
 
-.m2 {
-  animation: sendLeft 2.4s infinite 0.6s;
+.send-left {
+  right: 60px;
+  animation: sendLeftMsg 6s infinite;
 }
 
-.m3 {
-  animation: sendRight 2.4s infinite 1.2s;
-}
-
-.m4 {
-  animation: sendLeft 2.4s infinite 1.8s;
-}
-
-@keyframes sendRight {
-  0% {
+@keyframes sendRightMsg {
+  0%, 25% {
     left: 60px;
     opacity: 0;
-    transform: translateY(-50%) scale(0.6);
+    transform: scale(0.7);
   }
-  15% {
+  30% {
     opacity: 1;
   }
-  80% {
-    left: 160px;
+  45% {
+    left: 170px;
     opacity: 1;
+    transform: scale(1);
   }
-  100% {
+  50%, 100% {
     left: 180px;
     opacity: 0;
-    transform: translateY(-50%) scale(0.2);
+    transform: scale(0.5);
   }
 }
 
-@keyframes sendLeft {
-  0% {
-    left: 160px;
+@keyframes sendLeftMsg {
+  0%, 75% {
+    right: 60px;
     opacity: 0;
-    transform: translateY(-50%) scale(0.6);
-  }
-  15% {
-    opacity: 1;
+    transform: scale(0.7) scaleX(-1);
   }
   80% {
-    left: 60px;
     opacity: 1;
   }
+  95% {
+    right: 170px;
+    opacity: 1;
+    transform: scale(1) scaleX(-1);
+  }
   100% {
-    left: 40px;
+    right: 180px;
     opacity: 0;
-    transform: translateY(-50%) scale(0.2);
+    transform: scale(0.5) scaleX(-1);
+  }
+}
+
+/* ─── Ticker Tape ─── */
+.ticker-tape-track {
+  animation: ticker-scroll 30s linear infinite;
+}
+
+@keyframes ticker-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* ─── Mobile Responsive Overrides ─── */
+@media (max-width: 640px) {
+  .prose table {
+    font-size: 0.8rem;
+  }
+
+  .prose th {
+    padding: 8px 10px !important;
+    font-size: 0.7rem !important;
+  }
+
+  .prose td {
+    padding: 8px 10px !important;
+    font-size: 0.8rem;
+  }
+
+  .prose h1 {
+    font-size: 1.35rem;
+  }
+
+  .prose h2 {
+    font-size: 1.15rem;
+  }
+
+  .prose h3 {
+    font-size: 1.05rem;
+  }
+
+  .prose p,
+  .prose li {
+    font-size: 0.9rem;
+  }
+
+  /* Prevent code blocks from overflowing */
+  .prose pre {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .prose code {
+    word-break: break-word;
+  }
+}
+
+/* ─── Mobile Sidebar Slide-in ─── */
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
   }
 }

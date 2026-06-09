@@ -1,7 +1,6 @@
 import json
 
-from langchain_core.messages import HumanMessage
-from langchain_core.output_parsers import StrOutputParser
+from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableLambda, RunnableParallel, RunnableBranch
 
@@ -9,88 +8,61 @@ from agents.base_agent import BaseAgent, load_structured_prompt
 from core.constants import get_sector_catalog
 from core.error import handle_llm_errors
 from core.logging import get_logger
-from tools.sector_tools import (
-    fetch_sector_payload,
-    parse_sector_resolver_output,
-)
+from tools.sector_tools import validate_sector, get_sector_content
 
 logger = get_logger(__name__)
 
 
 def _build_sector_resolver_message(data: dict) -> dict:
-    """
-    Format the input for the Sector Resolver stage.
-    Uses Markdown headers to help the LLM distinguish between raw ticker data,
-    yfinance metadata, and the target sector catalog.
-    """
     content = f"""
 Ticker
 {data.get("ticker")}
 
 Company Sector Data (Source: yfinance)
-{json.dumps(data.get("company_sector", ""), indent=2)}
+{json.dumps(data.get("company_sector", {}), indent=2)}
 
 Supported Sector Catalog
-{json.dumps(data.get("sector_catalog", ""), indent=2)}
+{json.dumps(data.get("sector_catalog", {}), indent=2)}
 """
-
-    return {"resolver_input": content}
-
-
-def _build_sector_report_message(data: dict) -> dict:
-    """
-    Format the final input for the Sector Analysis report.
-    Combines the resolved sector identification with the fetched PDF/API data.
-    """
-    content = f"""
-Analysis Request
-Analyze the sector report data for ticker: {data.get("ticker", "N/A")}.
-
-Resolved Catalog Sector
-{json.dumps(data.get("resolved_sector", {}), indent=2)}
-
-Sector API Data (PDF Content)
-{json.dumps(data.get("sector_data", {}), indent=2)}
-"""
-
-    return {"messages": [HumanMessage(content=content)]}
+    return {"resolver_input": content.strip()}
 
 
 class SectorAnalyst(BaseAgent):
-    """
-    Agent responsible for identifying a company's sector and analyzing
-    the corresponding industry report.
-    """
-
-    prompt_path = "prompts/sector_analyst_prompt.yaml"
+    prompt_path = "prompts/sector_resolver_prompt.yaml"
 
     def __init__(self, groq_api_key: str):
-
         super().__init__(groq_api_key)
 
-        # Load the specialized prompt for sector resolution
-        sector_resolver_prompt_yaml = load_structured_prompt(
-            "prompts/sector_resolver_prompt.yaml"
-        )
-
-        self.prompt_sector_resolver = ChatPromptTemplate.from_messages(
+        resolver_yaml = load_structured_prompt("prompts/sector_resolver_prompt.yaml")
+        self.prompt = ChatPromptTemplate.from_messages(
             [
-                ("system", sector_resolver_prompt_yaml),
+                ("system", resolver_yaml),
                 ("user", "{resolver_input}"),
             ]
         )
 
-        # Step 1: Define the LLM-based sector resolver chain
+        # LLM resolver → JSON parse → validate
         self.sector_resolver_llm_chain = (
-            RunnableLambda(lambda x: _build_sector_resolver_message(x))
-            | self.prompt_sector_resolver
+            RunnableLambda(_build_sector_resolver_message)
+            | self.prompt
             | self.llm
-            | StrOutputParser()
-            | RunnableLambda(parse_sector_resolver_output)
+            | JsonOutputParser()
+            | RunnableBranch(
+                (
+                    lambda x: not x.get("sector_name"),
+                    RunnableLambda(
+                        lambda x: {
+                            "status": "failed",
+                            "sector_name": None,
+                            "error": "LLM returned JSON but sector_name is missing",
+                        }
+                    ),
+                ),
+                RunnableLambda(lambda x: validate_sector(x["sector_name"])),
+            )
         )
 
-        # Step 2: Define the Parallel Resolver stage
-        # This keeps the original data (ticker, sector) while adding the 'resolved_sector' result
+        # Parallel passthrough
         sector_resolver = RunnableParallel(
             {
                 "ticker": RunnableLambda(lambda x: x["ticker"]),
@@ -99,8 +71,7 @@ class SectorAnalyst(BaseAgent):
             }
         )
 
-        # Step 3: Define the Data Fetching stage
-        # Loads rough sector info from yfinance and the supported catalog constants
+        # yfinance metadata + catalog
         sector_fetcher = RunnableParallel(
             {
                 "ticker": RunnableLambda(lambda x: x.get("ticker")),
@@ -109,37 +80,66 @@ class SectorAnalyst(BaseAgent):
             }
         )
 
-        # Step 4: Define the Final Report Generation stage
-        # Fetches the actual PDF payload and runs the final sector analysis prompt
-        report_generator = RunnableLambda(fetch_sector_payload) | RunnableBranch(
-            (
-                lambda x: x["sector_data"]["status"] == "failed",
-                RunnableLambda(
-                    lambda x: f"Sector analysis aborted: {x['sector_data'].get('error', 'Sector PDF fetch failed')}"
-                ),
-            ),
-            RunnableLambda(_build_sector_report_message)
-            | self.prompt
-            | self.llm
-            | StrOutputParser(),
-        )
-
-        # Main Pipeline: Fetch -> Resolve -> Analyze
-        # If yfinance metadata fetch fails, we short-circuit the chain and return an error.
-
+        # Main Pipeline
         self.chain = sector_fetcher | RunnableBranch(
             (
-                lambda x: x["company_sector"]["status"] == "failed",
+                # Branch 1: yfinance fetch failed
+                lambda x: isinstance(x.get("company_sector"), dict)
+                and x["company_sector"].get("status") == "failed",
                 RunnableLambda(
-                    lambda x: f"Sector analysis aborted: Ticker '{x['ticker']}' not found or metadata unavailable. Error: {x['company_sector'].get('error', 'Unknown error')}"
+                    lambda x: {
+                        "report": None,
+                        "summary": None,
+                        "error": f"Ticker '{x['ticker']}' not found. "
+                        f"Error: {x['company_sector'].get('error', 'Unknown error')}",
+                    }
                 ),
             ),
-            sector_resolver | report_generator,
+            sector_resolver
+            | RunnableBranch(
+                (
+                    # Branch 2: resolution or validation failed
+                    lambda x: x["resolved_sector"]["status"] == "failed",
+                    RunnableLambda(
+                        lambda x: {
+                            "report": None,
+                            "summary": None,
+                            "error": x["resolved_sector"].get(
+                                "error", "Sector resolution failed"
+                            ),
+                        }
+                    ),
+                ),
+                # Default: get_sector_content directly
+                RunnableLambda(
+                    lambda x: get_sector_content(x["resolved_sector"]["sector_name"])
+                )
+                | RunnableBranch(
+                    (
+                        # Branch 3: MongoDB fetch failed
+                        lambda x: x["status"] == "failed",
+                        RunnableLambda(
+                            lambda x: {
+                                "report": None,
+                                "summary": None,
+                                "error": x.get("error", "Sector data unavailable"),
+                            }
+                        ),
+                    ),
+                    # Default: success
+                    RunnableLambda(
+                        lambda x: {
+                            "report": x["report"],
+                            "summary": x["summary"],
+                            "error": None,
+                        }
+                    ),
+                ),
+            ),
         )
 
     @handle_llm_errors()
-    def run(self, state) -> str:
-        """Execute the full sector analysis pipeline for a given ticker."""
+    def run(self, state) -> dict:
         logger.info(
             f"Running sector analyst pipeline | ticker={state['ticker_of_company']}"
         )
