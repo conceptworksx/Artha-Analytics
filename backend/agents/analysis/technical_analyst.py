@@ -5,8 +5,7 @@ from langchain_core.runnables import (
     RunnableLambda,
     RunnableBranch,
 )
-from langchain_core.output_parsers import StrOutputParser
-
+from langchain_core.output_parsers import JsonOutputParser
 from agents.base_agent import BaseAgent
 from core.error import handle_llm_errors
 from core.logging import get_logger
@@ -16,12 +15,18 @@ logger = get_logger(__name__)
 
 def _build_messages(data: dict) -> dict:
     """
-    Format the input for the Technical Analyst stage. Combines all relevant technical data into a single message.
+    Format the input for the Technical Analyst stage.
+    Combines all relevant technical data into a single message.
     """
 
     tech = data.get("technical_data", {})
 
     content = f"""
+IMPORTANT:
+Return ONLY a valid JSON object.
+Do not include markdown, explanations, or any extra text.
+The output must strictly follow JSON format.
+
 Analyze the technical data for the company {data.get('ticker')}:
 
 Relative Strength Index:
@@ -52,7 +57,7 @@ Support and Resistance Levels:
 {json.dumps(tech.get('price_levels', {}), indent=2)}
 """
 
-    return {"messages": [HumanMessage(content=content)]}
+    return {"messages": [HumanMessage(content=content.strip())]}
 
 
 class TechnicalAnalyst(BaseAgent):
@@ -64,8 +69,12 @@ class TechnicalAnalyst(BaseAgent):
         super().__init__(groq_api_key)
 
         # Define the success and error chains for the Technical Analyst
+        structured_llm = self.llm.bind(response_format={"type": "json_object"})
         success_chain = (
-            RunnableLambda(_build_messages) | self.prompt | self.llm | StrOutputParser()
+            RunnableLambda(_build_messages)
+            | self.prompt
+            | structured_llm
+            | JsonOutputParser()
         )
         error_chain = RunnableLambda(
             lambda x: f"Failed to fetch fundamental data for "

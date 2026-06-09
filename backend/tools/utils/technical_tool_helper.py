@@ -4,13 +4,13 @@ import pandas as pd
 def _compute_trend_alignment(above_count: int) -> str:
 
     if above_count == 4:
-        result = "STRONG_BULL"
+        result = "STRONG BULL"
     elif above_count == 3:
         result = "BULL"
     elif above_count == 1:
         result = "BEAR"
     elif above_count == 0:
-        result = "STRONG_BEAR"
+        result = "STRONG BEAR"
     else:
         result = "MIXED"
 
@@ -22,11 +22,11 @@ def _compute_rsi_condition(cur: int) -> str:
     if cur > 70:
         condition = "OVERBOUGHT"
     elif cur >= 60:
-        condition = "BULLISH_ZONE"
+        condition = "BULLISH ZONE"
     elif cur <= 30:
         condition = "OVERSOLD"
     elif cur <= 40:
-        condition = "BEARISH_ZONE"
+        condition = "BEARISH ZONE"
     else:
         condition = "NEUTRAL"
 
