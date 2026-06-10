@@ -1,5 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel, Field, field_validator
+from datetime import datetime
+
 
 class AuthRequest(BaseModel):
     email: str = Field(min_length=3, max_length=254)
@@ -54,3 +56,19 @@ class AnalyzeResponse(BaseModel):
     company_info: dict | None = None
     historical_prices: list | None = None
     charts_data: Optional[dict] = None
+
+
+class AnalysisSummary(BaseModel):
+
+    analysis_id: str
+    ticker: str
+    company_name: str | None = None
+    analyzed_at: datetime
+    status: str
+
+
+class AnalysisDetail(AnalyzeResponse):
+
+    analysis_id: str
+    user_id: str
+    analyzed_at: datetime
