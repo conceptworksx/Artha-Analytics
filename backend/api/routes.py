@@ -2,7 +2,7 @@ import asyncio
 import os
 import jwt
 from typing import Annotated, Optional
-from fastapi import APIRouter, Depends, HTTPException, Request, Header
+from fastapi import APIRouter, Depends, HTTPException, Request, Header, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -134,7 +134,20 @@ def get_client_ip(request: Request) -> str:
 
 @router.get("/health")
 def health_check():
-    return {"status": "ok"}
+    try:
+        db.command("ping")
+
+        return {"status": "healthy", "database": "connected"}
+
+    except Exception:
+        raise HTTPException(
+            status_code=503, detail={"status": "unhealthy", "database": "disconnected"}
+        )
+
+
+@router.head("/health")
+def health_check_head():
+    return Response(status_code=200)
 
 
 @router.post("/auth/signup", response_model=AuthResponse)
