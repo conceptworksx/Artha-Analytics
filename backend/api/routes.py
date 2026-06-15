@@ -2,7 +2,7 @@ import asyncio
 import os
 import jwt
 from typing import Annotated, Optional
-from fastapi import APIRouter, Depends, HTTPException, Request, Header
+from fastapi import APIRouter, Depends, HTTPException, Request, Header, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -16,8 +16,10 @@ from api.models import (
     VerifyGroqKeyRequest,
     AnalyzeRequest,
     AnalyzeResponse,
+    AnalysisSummary,
 )
 from api.controllers import (
+    save_analysis,
     signup_user,
     login_user,
     change_password_user,
@@ -40,6 +42,7 @@ from core.error import (
     DataFetchError,
     ToolCallError,
 )
+from api.controllers import save_analysis, get_user_analyses, get_analysis_by_id
 from core.logging import get_logger
 from graph.builder import build_graph
 
@@ -131,7 +134,20 @@ def get_client_ip(request: Request) -> str:
 
 @router.get("/health")
 def health_check():
-    return {"status": "ok"}
+    try:
+        db.command("ping")
+
+        return {"status": "healthy", "database": "connected"}
+
+    except Exception:
+        raise HTTPException(
+            status_code=503, detail={"status": "unhealthy", "database": "disconnected"}
+        )
+
+
+@router.head("/health")
+def health_check_head():
+    return Response(status_code=200)
 
 
 @router.post("/auth/signup", response_model=AuthResponse)
@@ -198,13 +214,15 @@ async def analyze(
         ip_record = ip_searches_col.find_one({"ip": client_ip})
         search_count = ip_record.get("count", 0) if ip_record else 0
         if search_count >= 3:
-            logger.warning(f"Guest search limit reached | ip={client_ip} | ticker={ticker}")
+            logger.warning(
+                f"Guest search limit reached | ip={client_ip} | ticker={ticker}"
+            )
             raise HTTPException(
                 status_code=403,
                 detail={
                     "error": "limit_reached",
-                    "message": "You have reached the limit of 3 free searches. Please sign up or log in to search more."
-                }
+                    "message": "You have reached the limit of 3 free searches. Please sign up or log in to search more.",
+                },
             )
 
     # Ensure Groq API Key is provided
@@ -261,12 +279,50 @@ async def analyze(
         # Increment IP search count for guest users upon successful analysis
         if user is None:
             ip_searches_col.update_one(
-                {"ip": client_ip},
-                {"$inc": {"count": 1}},
-                upsert=True
+                {"ip": client_ip}, {"$inc": {"count": 1}}, upsert=True
             )
 
         data_bundle = final_state.get("data_bundle", {})
+
+        analysis_id = None
+        if user is not None:
+            analysis_id = save_analysis(
+                user_id=user.id,
+                ticker=ticker,
+                result={
+                    "news_analyst_report": final_state.get("news_analyst_report", ""),
+                    "news_analyst_summary": final_state.get("news_analyst_summary", ""),
+                    "technical_analyst_report": final_state.get(
+                        "technical_analyst_report", ""
+                    ),
+                    "technical_analyst_summary": final_state.get(
+                        "technical_analyst_summary", ""
+                    ),
+                    "fundamental_analyst_report": final_state.get(
+                        "fundamental_analyst_report", ""
+                    ),
+                    "fundamental_analyst_summary": final_state.get(
+                        "fundamental_analyst_summary", ""
+                    ),
+                    "market_analyst_report": final_state.get(
+                        "market_analyst_report", ""
+                    ),
+                    "market_analyst_summary": final_state.get(
+                        "market_analyst_summary", ""
+                    ),
+                    "sector_analyst_report": final_state.get(
+                        "sector_analyst_report", ""
+                    ),
+                    "sector_analyst_summary": final_state.get(
+                        "sector_analyst_summary", ""
+                    ),
+                    "company_info": data_bundle.get("company_info"),
+                    "historical_prices": data_bundle.get("historical_prices"),
+                    "charts_data": final_state.get("charts_data"),
+                },
+            )
+            logger.info(f"Analysis saved | ticker={ticker} | analysis_id={analysis_id}")
+
         return AnalyzeResponse(
             ticker=ticker,
             news_report=final_state.get("news_analyst_report", ""),
@@ -303,3 +359,38 @@ async def analyze(
             status_code=500,
             detail={"error": "unexpected_error", "message": str(e)},
         )
+
+
+@router.get("/analyses/history", response_model=list[AnalysisSummary])
+def list_analyses(user: AuthUser = Depends(get_current_user)):
+    """Return last 10 analysis summaries for the logged-in user."""
+    docs = get_user_analyses(user.id, limit=10)
+    return [
+        AnalysisSummary(
+            analysis_id=doc["analysis_id"],
+            ticker=doc["ticker"],
+            company_name=(
+                doc.get("company_info", {}).get("name")
+                if doc.get("company_info")
+                else None
+            ),
+            analyzed_at=doc["analyzed_at"],
+            status=doc.get("status", "success"),
+        )
+        for doc in docs
+    ]
+
+
+@router.get("/analyses/{analysis_id}")
+def get_analysis(
+    analysis_id: str,
+    user: AuthUser = Depends(get_current_user),
+):
+    """Fetch a full saved analysis — ownership enforced."""
+    doc = get_analysis_by_id(analysis_id, user.id)
+    if not doc:
+        raise HTTPException(
+            status_code=404,
+            detail={"error": "not_found", "message": "Analysis not found."},
+        )
+    return doc

@@ -14,12 +14,19 @@ from typing import Optional
 from langchain_groq import ChatGroq
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
+from core.logging import get_logger
+from datetime import datetime, timezone
 from pymongo import MongoClient
 from bson import ObjectId
 from dotenv import load_dotenv
 from fastapi import HTTPException
-from api.models import AuthRequest, AuthUser, AuthResponse, ChangePasswordRequest, GoogleAuthRequest
-from core.logging import get_logger
+from api.models import (
+    AuthRequest,
+    AuthUser,
+    AuthResponse,
+    ChangePasswordRequest,
+    GoogleAuthRequest,
+)
 
 logger = get_logger(__name__)
 load_dotenv()
@@ -38,7 +45,9 @@ except Exception:
     db = client["artha_analytics"]
 
 users_collection = db["users"]
+analyses_collection = db["analyses"]
 
+MAX_ANALYSES_PER_USER = 10
 TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7
 PBKDF2_ITERATIONS = 210_000
 
@@ -47,7 +56,7 @@ def init_auth_store() -> None:
     try:
         users_collection.create_index("email", unique=True)
         db["ip_searches"].create_index("ip", unique=True)
-        client.admin.command('ping')
+        client.admin.command("ping")
     except Exception as e:
         logger.error(f"Failed to initialize MongoDB connection: {e}")
 
@@ -101,6 +110,7 @@ def _create_token(user_id: str, email: str) -> str:
         "exp": int(time.time()) + TOKEN_TTL_SECONDS,
     }
     import jwt
+
     return jwt.encode(payload, _secret_key(), algorithm="HS256")
 
 
@@ -145,9 +155,13 @@ def signup_user(credentials: AuthRequest) -> AuthResponse:
 
 def login_user(credentials: AuthRequest) -> AuthResponse:
     user_row = _get_user_by_email(credentials.email.lower())
-    if not user_row or not user_row.get("password_hash") or not _verify_password(
-        credentials.password,
-        user_row["password_hash"],
+    if (
+        not user_row
+        or not user_row.get("password_hash")
+        or not _verify_password(
+            credentials.password,
+            user_row["password_hash"],
+        )
     ):
         raise HTTPException(
             status_code=401,
@@ -190,7 +204,10 @@ def change_password_user(current_user: AuthUser, data: ChangePasswordRequest) ->
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail={"error": "database_error", "message": f"Failed to update password: {e}"},
+            detail={
+                "error": "database_error",
+                "message": f"Failed to update password: {e}",
+            },
         )
 
 
@@ -199,7 +216,10 @@ def authenticate_google_user(body: GoogleAuthRequest) -> AuthResponse:
     if not google_client_id:
         raise HTTPException(
             status_code=500,
-            detail={"error": "config_error", "message": "Google Client ID is not configured on backend."},
+            detail={
+                "error": "config_error",
+                "message": "Google Client ID is not configured on backend.",
+            },
         )
 
     try:
@@ -212,7 +232,10 @@ def authenticate_google_user(body: GoogleAuthRequest) -> AuthResponse:
         if not id_info.get("email_verified"):
             raise HTTPException(
                 status_code=400,
-                detail={"error": "unverified_email", "message": "Google email is not verified."},
+                detail={
+                    "error": "unverified_email",
+                    "message": "Google email is not verified.",
+                },
             )
 
         email = id_info["email"].lower()
@@ -221,7 +244,10 @@ def authenticate_google_user(body: GoogleAuthRequest) -> AuthResponse:
     except ValueError as e:
         raise HTTPException(
             status_code=401,
-            detail={"error": "invalid_google_token", "message": f"Token verification failed: {e}"},
+            detail={
+                "error": "invalid_google_token",
+                "message": f"Token verification failed: {e}",
+            },
         )
 
     user_doc = _get_user_by_email(email)
@@ -240,7 +266,10 @@ def authenticate_google_user(body: GoogleAuthRequest) -> AuthResponse:
         except Exception as e:
             raise HTTPException(
                 status_code=500,
-                detail={"error": "database_error", "message": f"Failed to register Google user: {e}"},
+                detail={
+                    "error": "database_error",
+                    "message": f"Failed to register Google user: {e}",
+                },
             )
     else:
         user_id = str(user_doc["_id"])
@@ -259,7 +288,10 @@ def authenticate_google_user(body: GoogleAuthRequest) -> AuthResponse:
             except Exception as e:
                 raise HTTPException(
                     status_code=500,
-                    detail={"error": "database_error", "message": f"Failed to link Google account: {e}"},
+                    detail={
+                        "error": "database_error",
+                        "message": f"Failed to link Google account: {e}",
+                    },
                 )
 
     user = AuthUser(
@@ -357,3 +389,85 @@ def validate_api_keys(groq_api_key: str) -> tuple[bool, str]:
         return True, None
     except Exception:
         return False, "Invalid Groq API key"
+
+
+def init_auth_store() -> None:
+    try:
+        users_collection.create_index("email", unique=True)
+        db["ip_searches"].create_index("ip", unique=True)
+        # Index for fast per-user history queries, sorted by time
+        analyses_collection.create_index([("user_id", 1), ("analyzed_at", -1)])
+        client.admin.command("ping")
+    except Exception as e:
+        logger.error(f"Failed to initialize MongoDB connection: {e}")
+
+
+def save_analysis(user_id: str, ticker: str, result: dict) -> str:
+    """
+    Save analysis for a user. Prune oldest if over MAX_ANALYSES_PER_USER.
+    Returns the inserted analysis_id.
+    """
+    doc = {
+        "user_id": user_id,
+        "ticker": ticker,
+        "analyzed_at": datetime.now(timezone.utc),
+        "status": "success",
+        **result,  # news_report, technical_report, etc.
+    }
+    inserted = analyses_collection.insert_one(doc)
+    analysis_id = str(inserted.inserted_id)
+
+    # Prune: keep only last MAX_ANALYSES_PER_USER per user
+    all_ids = list(
+        analyses_collection.find(
+            {"user_id": user_id},
+            {"_id": 1},
+            sort=[("analyzed_at", -1)],
+        )
+    )
+    if len(all_ids) > MAX_ANALYSES_PER_USER:
+        ids_to_delete = [doc["_id"] for doc in all_ids[MAX_ANALYSES_PER_USER:]]
+        analyses_collection.delete_many({"_id": {"$in": ids_to_delete}})
+        logger.info(f"Pruned {len(ids_to_delete)} old analyses for user={user_id}")
+
+    return analysis_id
+
+
+def get_user_analyses(user_id: str, limit: int = 10) -> list[dict]:
+    """Fetch last N analysis summaries (no full report content)."""
+    cursor = analyses_collection.find(
+        {"user_id": user_id},
+        {  # Projection: exclude heavy report fields
+            "news_report": 0,
+            "technical_report": 0,
+            "fundamental_report": 0,
+            "market_report": 0,
+            "sector_report": 0,
+            "historical_prices": 0,
+            "charts_data": 0,
+        },
+        sort=[("analyzed_at", -1)],
+        limit=limit,
+    )
+    results = []
+    for doc in cursor:
+        doc["analysis_id"] = str(doc.pop("_id"))
+        results.append(doc)
+    return results
+
+
+def get_analysis_by_id(analysis_id: str, user_id: str) -> dict | None:
+    """Fetch full analysis — ownership enforced."""
+    try:
+        doc = analyses_collection.find_one(
+            {
+                "_id": ObjectId(analysis_id),
+                "user_id": user_id,  # prevents cross-user access
+            }
+        )
+    except Exception:
+        return None
+    if not doc:
+        return None
+    doc["analysis_id"] = str(doc.pop("_id"))
+    return doc
