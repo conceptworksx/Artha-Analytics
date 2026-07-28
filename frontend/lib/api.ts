@@ -1,12 +1,18 @@
 export interface AnalyseResponse {
   ticker: string;
-  news_report: string;
-  technical_report: string;
-  fundamental_report: string;
-  market_report: string;
+  news_report: any;
+  technical_report: any;
+  fundamental_report: any;
+  market_report: any;
   sector_report: string;
   status: string;
   company_info?: any;
+  fundamental_data?: any;
+  technical_data?: any;
+  market_data?: any;
+  company_news?: any;
+  indian_news?: any;
+  global_news?: any;
   historical_prices?: any[];
 
   charts_data?: {
@@ -49,7 +55,9 @@ export interface AnalyseResponse {
   };
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+// const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_BASE_URL = "http://localhost:8000";
+
 const AUTH_TOKEN_KEY = "artha_auth_token";
 const AUTH_USER_KEY = "artha_auth_user";
 
@@ -194,6 +202,13 @@ export async function analyseTicker({
     headers["Groq-API-Key"] = groqApiKey.trim();
   }
 
+  if (typeof window !== "undefined") {
+    const orKey = localStorage.getItem("openrouter_api_key");
+    if (orKey) {
+      headers["OpenRouter-API-Key"] = orKey.trim();
+    }
+  }
+
   if (authToken) {
     headers.Authorization = `Bearer ${authToken}`;
   }
@@ -232,6 +247,12 @@ export async function analyseTicker({
     sector_report: rawData.sector_report || "No sector report available.",
     status: rawData.status || "success",
     company_info: rawData.company_info || null,
+    fundamental_data: rawData.fundamental_data || null,
+    technical_data: rawData.technical_data || null,
+    market_data: rawData.market_data || null,
+    company_news: rawData.company_news || null,
+    indian_news: rawData.indian_news || null,
+    global_news: rawData.global_news || null,
     historical_prices: rawData.historical_prices || [],
     charts_data: rawData.charts_data,
   };

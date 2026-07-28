@@ -163,3 +163,5 @@ frontend/coverage/
 .cache/
 temp/
 tmp/
+
+.agent/*

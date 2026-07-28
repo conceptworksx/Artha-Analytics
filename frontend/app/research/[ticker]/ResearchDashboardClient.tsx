@@ -19,6 +19,10 @@ import {
 import { LoadingView } from "@/components/research/LoadingView";
 import { AppSidebar, type ViewKey } from "@/components/layout/AppSidebar";
 import { ReportView } from "@/components/research/ReportView";
+import { FundamentalReportView } from "@/components/research/FundamentalReportView";
+import { TechnicalReportView } from "@/components/research/TechnicalReportView";
+import { MarketReportView } from "@/components/research/MarketReportView";
+import { NewsReportView } from "@/components/research/NewsReportView";
 import { StockMetricsPanel } from "@/components/charts/StockMetricsPanel";
 import { TechnicalChart } from "@/components/charts/TechnicalChart";
 import { FundamentalChart } from "@/components/charts/FundamentalChart";
@@ -286,46 +290,100 @@ function ViewSwitch({
     case "overview":
       return <StockMetricsPanel data={data} />;
     case "news":
+      if (typeof data.news_report === "string") {
+        return (
+          <ReportView
+            title="News Analyst"
+            ticker={t}
+            status={data.status}
+            content={data.news_report}
+            filenameBase={`${t}_news_report`}
+          />
+        );
+      }
       return (
-        <ReportView
+        <NewsReportView
           title="News Analyst"
           ticker={t}
           status={data.status}
-          content={data.news_report}
+          reportData={data.news_report}
+          companyNews={data.company_news}
+          indianNews={data.indian_news}
+          globalNews={data.global_news}
           filenameBase={`${t}_news_report`}
         />
       );
     case "technical":
+      if (typeof data.technical_report === "string") {
+        return (
+          <ReportView
+            title="Technical Analyst"
+            ticker={t}
+            status={data.status}
+            content={data.technical_report}
+            filenameBase={`${t}_technical_report`}
+          >
+            <TechnicalChart data={data.charts_data?.technical_history} />
+          </ReportView>
+        );
+      }
       return (
-        <ReportView
+        <TechnicalReportView
           title="Technical Analyst"
           ticker={t}
           status={data.status}
-          content={data.technical_report}
+          reportData={data.technical_report}
+          technicalData={data.technical_data}
           filenameBase={`${t}_technical_report`}
         >
           <TechnicalChart data={data.charts_data?.technical_history} />
-        </ReportView>
+        </TechnicalReportView>
       );
     case "fundamental":
+      if (typeof data.fundamental_report === "string") {
+        return (
+          <ReportView
+            title="Fundamental Analyst"
+            ticker={t}
+            status={data.status}
+            content={data.fundamental_report}
+            filenameBase={`${t}_fundamental_report`}
+          >
+            <FundamentalChart data={data.charts_data?.financials_history} />
+          </ReportView>
+        );
+      }
       return (
-        <ReportView
+        <FundamentalReportView
           title="Fundamental Analyst"
           ticker={t}
           status={data.status}
-          content={data.fundamental_report}
+          reportData={data.fundamental_report}
+          fundamentalData={data.fundamental_data}
           filenameBase={`${t}_fundamental_report`}
         >
           <FundamentalChart data={data.charts_data?.financials_history} />
-        </ReportView>
+        </FundamentalReportView>
       );
     case "market":
+      if (typeof data.market_report === "string") {
+        return (
+          <ReportView
+            title="Market Analyst"
+            ticker={t}
+            status={data.status}
+            content={data.market_report}
+            filenameBase={`${t}_market_report`}
+          />
+        );
+      }
       return (
-        <ReportView
+        <MarketReportView
           title="Market Analyst"
           ticker={t}
           status={data.status}
-          content={data.market_report}
+          reportData={data.market_report}
+          marketData={data.market_data}
           filenameBase={`${t}_market_report`}
         />
       );

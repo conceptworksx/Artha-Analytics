@@ -22,7 +22,9 @@ export function BYOKCard({
   isModal = false,
 }: BYOKCardProps) {
   const [apiKey, setApiKey] = useState("");
+  const [openrouterApiKey, setOpenrouterApiKey] = useState("");
   const [showKey, setShowKey] = useState(false);
+  const [showOpenrouterKey, setShowOpenrouterKey] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,7 +53,12 @@ export function BYOKCard({
 
       // Save key in localStorage
       saveGroqApiKey(trimmedKey);
-      toast.success("Groq API Key verified and saved successfully!");
+      if (openrouterApiKey.trim()) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("openrouter_api_key", openrouterApiKey.trim());
+        }
+      }
+      toast.success("API Keys verified and saved successfully!");
       if (onSuccess) onSuccess();
       if (onKeySaved) onKeySaved();
     } catch (err) {
@@ -147,6 +154,32 @@ export function BYOKCard({
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer"
                 >
                   {showKey ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
+              </div>
+            </div>
+
+            <div className="group mt-4">
+              <label className="mb-1.5 block text-[9px] font-semibold tracking-[0.2em] text-neutral-500 uppercase">
+                OpenRouter API Key (Optional)
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 transition-colors group-focus-within:text-[#d4a84c]">
+                  <Key size={14} />
+                </span>
+                <input
+                  id={isModal ? "modal-openrouter-api-key" : "openrouter-api-key"}
+                  type={showOpenrouterKey ? "text" : "password"}
+                  placeholder="sk-or-v1-..."
+                  value={openrouterApiKey}
+                  onChange={(e) => setOpenrouterApiKey(e.target.value)}
+                  className="block h-10 w-full rounded-lg border border-black/10 bg-neutral-50/50 pl-9 pr-10 font-mono text-[13px] placeholder:text-neutral-400 focus:border-[#d4a84c] focus:outline-none focus:ring-0 transition-colors"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowOpenrouterKey(!showOpenrouterKey)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer"
+                >
+                  {showOpenrouterKey ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
               </div>
             </div>
