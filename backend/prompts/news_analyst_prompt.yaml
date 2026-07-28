@@ -43,52 +43,33 @@ GOAL: >
 
 FINAL_OUTPUT_FORMAT:
   type: "object"
-  required: ["report", "summary"]
+  required: ["analysis", "summary"]
   properties:
-    report:
-      type: "string"
-      format: "markdown"
-      structure: |
-        # NEWS IMPACT ANALYSIS REPORT
-
-        ## 1. COMPANY NEWS IMPACT
-        ### Short-Term Impact
-        - [Analysis of immediate price reaction, immediate volume response, and order-book sentiment based on company-specific events]
-        ### Long-Term Impact
-        - [Structural changes to business fundamentals, terminal earnings capacity, or corporate governance based on company-specific events]
-
-        ## 2. GLOBAL MACRO IMPACT
-        | Date | News/Event | Priority Weight | Expected Impact |
-        |---|---|---|---|
-        | [YYYY-MM-DD] | [Global macroeconomic development] | [High/Med/Low] | [Macro transmission or asset impact] |
-
-        ## 3. INDIAN MARKET IMPACT
-        | Date | News/Event | Priority Weight | Expected Impact |
-        |---|---|---|---|
-        | [YYYY-MM-DD] | [Domestic development or sector news] | [High/Med/Low] | [Local currency or equity market impact] |
-
-        ## 4. MACRO-TO-STOCK IMPACT VALIDATION
-        ### Impact of Global News on Stock
-        - [Explicit reasoning detailing the transmission mechanism, or state 'No significant impact']
-        ### Impact of Indian News on Stock
-        - [Explicit reasoning detailing the sector/supply-chain transmission mechanism, or state 'No significant impact']
-
-        ## 5. CROSS-MARKET & CROSS-ASSET INTERACTION
-        - [Correlation analysis tracing shifts across currency pairs, sovereign bond yields, and commodity benchmarks derived from the news data]
-
-        ## 6. KEY RISKS & OPPORTUNITIES
-        ### Risks
-        - [Potential downside triggers, regulatory friction, or macro headwinds tied to specific dates and data points]
-        ### Opportunities
-        - [Potential upside catalysts, structural tailwinds, or microeconomic expansions tied to specific dates and data points]
-
-        ## 7. SUMMARY TABLE (NEWS IMPACT)
-        | Parameter | Key Insight | Assessment / Impact |
-        |---|---|---|
-        | Company News | ... | |
-        | Global Macro | ... | |
-        | Indian Market | ... | |
-        | Cross-Market Signals | ... | |
+    analysis:
+      type: "object"
+      required: ["company_short_term", "company_long_term", "macro_impact", "indian_impact", "cross_market", "risks", "opportunities"]
+      properties:
+        company_short_term:
+          type: "string"
+          description: "Analysis of immediate price reaction, volume response, and order-book sentiment based on company-specific events."
+        company_long_term:
+          type: "string"
+          description: "Structural changes to business fundamentals, earnings capacity, or corporate governance based on company-specific events."
+        macro_impact:
+          type: "string"
+          description: "Explicit reasoning detailing the transmission mechanism of Global News on the stock, or state 'No significant impact'."
+        indian_impact:
+          type: "string"
+          description: "Explicit reasoning detailing the transmission mechanism of Indian News on the stock, or state 'No significant impact'."
+        cross_market:
+          type: "string"
+          description: "Correlation analysis tracing shifts across currency pairs, sovereign bond yields, and commodity benchmarks derived from the news data."
+        risks:
+          type: "string"
+          description: "Potential downside triggers, regulatory friction, or macro headwinds tied to specific dates and data points."
+        opportunities:
+          type: "string"
+          description: "Potential upside catalysts, structural tailwinds, or microeconomic expansions tied to specific dates and data points."
 
     summary:
       type: "object"
@@ -169,8 +150,6 @@ CONSTRAINTS:
   - "Impact assessment MUST be derived only after cross-analysis of all news sources."
   - "Use ONLY provided data; do NOT use external knowledge."
   - "Keep reasoning concise but analytically dense and structurally strong."
-  - "Avoid implying direct stock impact unless a clear operational or revenue linkage exists."
-  - "To ensure readability, render global and domestic news profiles strictly as markdown tables containing date, event, priority, and expected impact metrics."
 
 CRITICAL QUALITY CONSTRAINTS:
   - "Avoid all generic qualitative traps. Do NOT use empty filler phrases such as 'positive news flow', 'bearish market sentiment', 'good announcements', or 'volatile macro'."
@@ -181,7 +160,3 @@ JSON_GENERATION_INSTRUCTION:
   - "Your output response must contain exactly one valid JSON object mapping cleanly to the properties specified in FINAL_OUTPUT_FORMAT."
   - "Do NOT wrap the raw JSON output within markdown code block fences (e.g., do not use ```json ... ```)."
   - "Do NOT output any conversational text, commentary, prefaces, or post-scripts. Start execution with the opening curly brace '{{' and terminate immediately with the closing curly brace '}}'."
-  - "When generating the report string, every markdown table row MUST begin
-    immediately with the pipe character '|' — no leading spaces, no indentation."
-  - "The separator row |---|---| MUST be immediately followed by the first
-    data row with NO blank line between them."

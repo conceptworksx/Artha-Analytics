@@ -1,4 +1,5 @@
 from unittest import result
+import time
 
 from graph.state import AgentState
 from tools.data_preftech import prefetch_ticker_bundle
@@ -15,19 +16,19 @@ from tools.markdown_formatter import fix_markdown_tables
 logger = get_logger(__name__)
 
 
-def make_nodes(groq_api_key: str) -> dict:
+def make_nodes(groq_api_key: str, openrouter_api_key: str = None) -> dict:
     """
-    Instantiates all agents with the user's Groq key.
+    Instantiates all agents with the user's Groq key and OpenRouter key.
     Returns dict of node functions with agents baked in via closures.
     Key never touches AgentState.
     """
 
     # Agents instantiated here with key — not at module level
-    market_agent = MarketAnalyst(groq_api_key=groq_api_key)
-    fundamental_agent = FundamentalAnalyst(groq_api_key=groq_api_key)
-    technical_agent = TechnicalAnalyst(groq_api_key=groq_api_key)
-    news_agent = NewsAnalyst(groq_api_key=groq_api_key)
-    sector_agent = SectorAnalyst(groq_api_key=groq_api_key)
+    market_agent = MarketAnalyst(groq_api_key=groq_api_key, openrouter_api_key=openrouter_api_key)
+    fundamental_agent = FundamentalAnalyst(groq_api_key=groq_api_key, openrouter_api_key=openrouter_api_key)
+    technical_agent = TechnicalAnalyst(groq_api_key=groq_api_key, openrouter_api_key=openrouter_api_key)
+    news_agent = NewsAnalyst(groq_api_key=groq_api_key, openrouter_api_key=openrouter_api_key)
+    sector_agent = SectorAnalyst(groq_api_key=groq_api_key, openrouter_api_key=openrouter_api_key)
 
     # ── Node functions ────────────────────────────────────────────────────
 
@@ -43,8 +44,8 @@ def make_nodes(groq_api_key: str) -> dict:
         result = market_agent.run(state)
 
         return {
-            "market_analyst_report": fix_markdown_tables(result["report"]),
-            "market_analyst_summary": result["summary"],
+            "market_analyst_report": result,
+            "market_analyst_summary": result.get("summary", {}),
         }
 
     @handle_node_errors("fundamental_analyst")
@@ -52,18 +53,17 @@ def make_nodes(groq_api_key: str) -> dict:
         result = fundamental_agent.run(state)
 
         return {
-            "fundamental_analyst_report": fix_markdown_tables(result["report"]),
-            "fundamental_analyst_summary": result["summary"],
+            "fundamental_analyst_report": result,
+            "fundamental_analyst_summary": result.get("summary", {}),
         }
 
     @handle_node_errors("technical_analyst")
     def run_technical_analyst(state: AgentState) -> dict:
-
         result = technical_agent.run(state)
 
         return {
-            "technical_analyst_report": fix_markdown_tables(result["report"]),
-            "technical_analyst_summary": result["summary"],
+            "technical_analyst_report": result,
+            "technical_analyst_summary": result.get("summary", {}),
         }
 
     @handle_node_errors("news_analyst")
@@ -71,8 +71,8 @@ def make_nodes(groq_api_key: str) -> dict:
         result = news_agent.run(state)
 
         return {
-            "news_analyst_report": fix_markdown_tables(result["report"]),
-            "news_analyst_summary": result["summary"],
+            "news_analyst_report": result,
+            "news_analyst_summary": result.get("summary", {}),
         }
 
     @handle_node_errors("sector_analyst")

@@ -44,9 +44,8 @@ class NewsAnalyst(BaseAgent):
 
     prompt_path = "prompts/news_analyst_prompt.yaml"
 
-    def __init__(self, groq_api_key: str):
-
-        super().__init__(groq_api_key)
+    def __init__(self, groq_api_key: str, openrouter_api_key: str = None):
+        super().__init__(groq_api_key=groq_api_key, openrouter_api_key=openrouter_api_key)
 
         # Define a parallel runnable to fetch all relevant news data simultaneously
         news_fetcher = RunnableParallel(
@@ -59,7 +58,7 @@ class NewsAnalyst(BaseAgent):
         )
 
         # Define the chain to process the news data and generate the report
-        structured_llm = self.llm.bind(response_format={"type": "json_object"})
+        structured_llm = self.llm
         self.chain = (
             news_fetcher
             | RunnableLambda(_build_messages)

@@ -201,6 +201,7 @@ async def analyze(
     request: Request,
     body: AnalyzeRequest,
     groq_api_key: Optional[str] = Header(None, alias="Groq-API-Key"),
+    openrouter_api_key: Optional[str] = Header(None, alias="OpenRouter-API-Key"),
     user: Optional[AuthUser] = Depends(get_current_user_optional),
 ):
     ticker = body.ticker.strip().upper()
@@ -246,6 +247,17 @@ async def analyze(
             detail={"error": "invalid_api_key", "message": key_error},
         )
 
+    if (
+        not openrouter_api_key
+        or openrouter_api_key == "undefined"
+        or openrouter_api_key == "null"
+        or not openrouter_api_key.strip()
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail={"error": "invalid_api_key", "message": "OpenRouter API Key is required."},
+        )
+
     # Validate ticker format
     is_valid_format, format_error = validate_ticker_format(ticker)
     if not is_valid_format:
@@ -270,7 +282,7 @@ async def analyze(
     # Run LangGraph workflow
     try:
         logger.info(f"Starting graph execution | ticker={ticker}")
-        graph = build_graph(groq_api_key=groq_api_key)
+        graph = build_graph(groq_api_key=groq_api_key, openrouter_api_key=openrouter_api_key)
         final_state = await asyncio.to_thread(
             graph.invoke, {"ticker_of_company": ticker}
         )
@@ -290,22 +302,22 @@ async def analyze(
                 user_id=user.id,
                 ticker=ticker,
                 result={
-                    "news_analyst_report": final_state.get("news_analyst_report", ""),
+                    "news_analyst_report": final_state.get("news_analyst_report", {}),
                     "news_analyst_summary": final_state.get("news_analyst_summary", ""),
                     "technical_analyst_report": final_state.get(
-                        "technical_analyst_report", ""
+                        "technical_analyst_report", {}
                     ),
                     "technical_analyst_summary": final_state.get(
                         "technical_analyst_summary", ""
                     ),
                     "fundamental_analyst_report": final_state.get(
-                        "fundamental_analyst_report", ""
+                        "fundamental_analyst_report", {}
                     ),
                     "fundamental_analyst_summary": final_state.get(
                         "fundamental_analyst_summary", ""
                     ),
                     "market_analyst_report": final_state.get(
-                        "market_analyst_report", ""
+                        "market_analyst_report", {}
                     ),
                     "market_analyst_summary": final_state.get(
                         "market_analyst_summary", ""
@@ -319,20 +331,32 @@ async def analyze(
                     "company_info": data_bundle.get("company_info"),
                     "historical_prices": data_bundle.get("historical_prices"),
                     "charts_data": final_state.get("charts_data"),
+                    "fundamental_data": data_bundle.get("fundamental_data"),
+                    "technical_data": data_bundle.get("technical_data"),
+                    "market_data": data_bundle.get("market_data"),
+                    "company_news": data_bundle.get("news_data", {}).get("company_news"),
+                    "indian_news": data_bundle.get("news_data", {}).get("indian_news"),
+                    "global_news": data_bundle.get("news_data", {}).get("global_news"),
                 },
             )
             logger.info(f"Analysis saved | ticker={ticker} | analysis_id={analysis_id}")
 
         return AnalyzeResponse(
             ticker=ticker,
-            news_report=final_state.get("news_analyst_report", ""),
-            technical_report=final_state.get("technical_analyst_report", ""),
-            fundamental_report=final_state.get("fundamental_analyst_report", ""),
-            market_report=final_state.get("market_analyst_report", ""),
+            news_report=final_state.get("news_analyst_report", {}),
+            technical_report=final_state.get("technical_analyst_report", {}),
+            fundamental_report=final_state.get("fundamental_analyst_report", {}),
+            market_report=final_state.get("market_analyst_report", {}),
             sector_report=final_state.get("sector_analyst_report", ""),
             company_info=data_bundle.get("company_info"),
             historical_prices=data_bundle.get("historical_prices"),
             charts_data=final_state.get("charts_data"),
+            fundamental_data=data_bundle.get("fundamental_data"),
+            technical_data=data_bundle.get("technical_data"),
+            market_data=data_bundle.get("market_data"),
+            company_news=data_bundle.get("news_data", {}).get("company_news"),
+            indian_news=data_bundle.get("news_data", {}).get("indian_news"),
+            global_news=data_bundle.get("news_data", {}).get("global_news"),
             status="success",
         )
 

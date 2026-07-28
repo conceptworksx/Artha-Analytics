@@ -47,15 +47,21 @@ class AnalyzeRequest(BaseModel):
 
 class AnalyzeResponse(BaseModel):
     ticker: str
-    news_report: str
-    technical_report: str
-    fundamental_report: str
-    market_report: str
+    news_report: dict | str
+    technical_report: dict | str
+    fundamental_report: dict | str
+    market_report: dict | str
     sector_report: str
     status: str
     company_info: dict | None = None
     historical_prices: list | None = None
     charts_data: Optional[dict] = None
+    fundamental_data: dict | None = None
+    technical_data: dict | None = None
+    market_data: dict | None = None
+    company_news: dict | None = None
+    indian_news: dict | None = None
+    global_news: dict | None = None
 
 
 class AnalysisSummary(BaseModel):

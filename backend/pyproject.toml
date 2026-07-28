@@ -27,4 +27,6 @@ dependencies = [
     "dnspython>=2.8.0",
     "pyjwt>=2.13.0",
     "google-auth>=2.53.0",
+    "langchain-openai>=1.4.1",
+    "langchain-openrouter>=0.2.7",
 ]
