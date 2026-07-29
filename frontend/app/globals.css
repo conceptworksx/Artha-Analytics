@@ -4,19 +4,25 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #000000;
-  --border: #e4e4e7;
-  --muted-foreground: #71717a;
-  --label: #71717a;
+  --background: #F8FAFC;
+  --foreground: #1E3A8A;
+  --border: #e2e8f0;
+  --muted-foreground: #64748b;
+  --label: #64748b;
   --buy: #22c55e;
   --sell: #ef4444;
-  --hold: #eab308;
+  --hold: #f59e0b;
+  --primary: #1E40AF;
+  --secondary: #3B82F6;
+  --cta: #F59E0B;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-cta: var(--cta);
   --font-sans: var(--font-active-sans);
   --font-mono: var(--font-active-mono);
 }
@@ -255,11 +261,11 @@ body {
 
 /* Headings spacing and color */
 .prose h1, .prose h2, .prose h3, .prose h4 {
-  color: #000000;
+  color: var(--primary);
   font-family: var(--font-mono), monospace;
   font-weight: 600;
-  margin-top: 1.85em;
-  margin-bottom: 0.8em;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
   letter-spacing: -0.015em;
 }
 
@@ -329,12 +335,12 @@ body {
 }
 
 .prose th {
-  background-color: #f9fafb !important;
-  color: #111827 !important;
+  background-color: #f1f5f9 !important;
+  color: var(--primary) !important;
   font-weight: 600 !important;
   text-align: left;
-  padding: 12px 14px !important;
-  border-bottom: 1px solid var(--border) !important;
+  padding: 8px 12px !important;
+  border-bottom: 2px solid var(--border) !important;
   font-family: var(--font-mono), monospace;
   font-size: 0.8rem !important;
   letter-spacing: 0.05em;
@@ -343,9 +349,9 @@ body {
 }
 
 .prose td {
-  padding: 12px 14px !important;
+  padding: 8px 12px !important;
   border-bottom: 1px solid var(--border) !important;
-  color: #374151 !important;
+  color: var(--foreground) !important;
   background-color: #ffffff !important;
   transition: background-color 0.15s ease;
 }
@@ -357,12 +363,12 @@ body {
 
 /* Zebra striping for table rows */
 .prose tr:nth-child(even) td {
-  background-color: #fcfcfd !important;
+  background-color: #f8fafc !important; /* slate-50 */
 }
 
 /* Hover effect on table rows */
 .prose tr:hover td {
-  background-color: #f3f4f6 !important;
+  background-color: #e2e8f0 !important; /* slate-200 */
 }
 
 /* Remove bottom border from the last row */
@@ -660,5 +666,11 @@ body {
   }
   to {
     transform: translateX(0);
+  }
+}
+
+@layer utilities {
+  .text-white {
+    color: #f1f5f9 !important; /* slate-100 to prevent fading when selected */
   }
 }

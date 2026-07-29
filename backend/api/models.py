@@ -37,8 +37,8 @@ class GoogleAuthRequest(BaseModel):
     credential_token: str
 
 
-class VerifyGroqKeyRequest(BaseModel):
-    groq_api_key: str
+class VerifyOpenRouterKeyRequest(BaseModel):
+    openrouter_api_key: str
 
 
 class AnalyzeRequest(BaseModel):
@@ -51,7 +51,7 @@ class AnalyzeResponse(BaseModel):
     technical_report: dict | str
     fundamental_report: dict | str
     market_report: dict | str
-    sector_report: str
+    sector_report: dict | str
     status: str
     company_info: dict | None = None
     historical_prices: list | None = None

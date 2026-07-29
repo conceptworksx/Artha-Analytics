@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
 import { downloadPdf } from "@/lib/download";
+import { FormattedText } from "@/components/ui/FormattedText";
 
 export function MarketReportView({
   title,
@@ -35,9 +36,9 @@ export function MarketReportView({
       <table className="w-full text-left text-sm whitespace-nowrap">
         <tbody className="divide-y divide-[var(--border)]">
           {rows.map((row, i) => (
-            <tr key={i} className="hover:bg-zinc-50/30 transition-colors">
-              <td className="px-4 py-2 font-medium text-zinc-800 bg-zinc-50/50 w-1/3">{row.label}</td>
-              <td className="px-4 py-2 text-zinc-600">{row.value !== null && row.value !== undefined ? String(row.value) : '-'}</td>
+            <tr key={i} className="even:bg-slate-50 hover:bg-slate-100 transition-colors">
+              <td className="px-4 py-2 font-medium text-zinc-800 w-1/3">{row.label}</td>
+              <td className="px-4 py-2 text-zinc-600">{row.value !== null && row.value !== undefined ? <FormattedText text={String(row.value)} /> : '-'}</td>
             </tr>
           ))}
         </tbody>
@@ -58,23 +59,23 @@ export function MarketReportView({
           {title}
         </h2>
         <div className="flex items-center gap-4">
-          <button disabled={!canDownload} onClick={handleDownloadPdf} className="flex items-center gap-1 rounded-md border border-zinc-900 bg-zinc-950 px-2.5 py-1 font-sans text-[11px] font-medium text-zinc-50 transition-all hover:bg-zinc-800 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 shadow-xs cursor-pointer">
+          <button disabled={!canDownload} onClick={handleDownloadPdf} className="flex items-center gap-1 rounded-md border border-[var(--cta)] bg-[var(--cta)] px-2.5 py-1 font-sans text-[11px] font-medium text-white transition-all hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 shadow-xs cursor-pointer">
             JSON
           </button>
         </div>
       </div>
       <div className="h-px w-full bg-[var(--border)]" />
-      <p className="mt-2 font-mono text-[12px] text-[var(--muted-foreground)] mb-6">
+      <p className="mt-2 font-mono text-[12px] text-[var(--muted-foreground)] mb-4">
         {ticker.split(".")[0]} · Report generated · {status}
       </p>
 
-      <div className="mt-6 border border-[var(--border)] bg-white p-4 sm:p-6 md:p-8 rounded-xl shadow-sm mb-6 space-y-8">
+      <div className="mt-4 border border-[var(--border)] bg-white p-4 sm:p-5 rounded-xl shadow-sm mb-6 space-y-6">
         
         <section>
           <h3 className="text-md font-semibold text-zinc-800 mb-2 border-b pb-1">1. MARKET REGIME</h3>
           <div className="p-4 bg-zinc-50/50 border border-zinc-200 rounded-lg text-[14px] text-zinc-700 leading-relaxed shadow-sm">
             <span className="font-semibold text-zinc-900">Analysis: </span>
-            {analysis.regime || "No analysis available."}
+            <FormattedText text={analysis.regime || "No analysis available."} />
           </div>
         </section>
 
@@ -88,7 +89,7 @@ export function MarketReportView({
           ]} />
           <div className="p-4 bg-zinc-50/50 border border-zinc-200 rounded-lg text-[14px] text-zinc-700 leading-relaxed shadow-sm">
             <span className="font-semibold text-zinc-900">Analysis: </span>
-            {analysis.us_indices || "No analysis available."}
+            <FormattedText text={analysis.us_indices || "No analysis available."} />
           </div>
         </section>
 
@@ -102,7 +103,7 @@ export function MarketReportView({
           ]} />
           <div className="p-4 bg-zinc-50/50 border border-zinc-200 rounded-lg text-[14px] text-zinc-700 leading-relaxed shadow-sm">
             <span className="font-semibold text-zinc-900">Analysis: </span>
-            {analysis.indian_indices || "No analysis available."}
+            <FormattedText text={analysis.indian_indices || "No analysis available."} />
           </div>
         </section>
 
@@ -110,7 +111,7 @@ export function MarketReportView({
           <h3 className="text-md font-semibold text-zinc-800 mb-2 border-b pb-1">4. GLOBAL-DOMESTIC CORRELATION</h3>
           <div className="p-4 bg-zinc-50/50 border border-zinc-200 rounded-lg text-[14px] text-zinc-700 leading-relaxed shadow-sm">
             <span className="font-semibold text-zinc-900">Analysis: </span>
-            {analysis.correlation || "No analysis available."}
+            <FormattedText text={analysis.correlation || "No analysis available."} />
           </div>
         </section>
 
@@ -122,7 +123,7 @@ export function MarketReportView({
           ]} />
           <div className="p-4 bg-zinc-50/50 border border-zinc-200 rounded-lg text-[14px] text-zinc-700 leading-relaxed shadow-sm">
             <span className="font-semibold text-zinc-900">Analysis: </span>
-            {analysis.volatility || "No analysis available."}
+            <FormattedText text={analysis.volatility || "No analysis available."} />
           </div>
         </section>
 
@@ -130,7 +131,7 @@ export function MarketReportView({
           <h3 className="text-md font-semibold text-zinc-800 mb-2 border-b pb-1">6. MARKET OUTLOOK</h3>
           <div className="p-4 bg-zinc-50/50 border border-zinc-200 rounded-lg text-[14px] text-zinc-700 leading-relaxed shadow-sm">
             <span className="font-semibold text-zinc-900">Analysis: </span>
-            {analysis.outlook || "No analysis available."}
+            <FormattedText text={analysis.outlook || "No analysis available."} />
           </div>
         </section>
 

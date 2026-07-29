@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import {
-  Geist,
-  Geist_Mono,
+  Fira_Code,
+  Fira_Sans,
 } from "next/font/google";
 import "./globals.css";
 
-const sans = Geist({ variable: "--font-active-sans", subsets: ["latin"] });
-const mono = Geist_Mono({ variable: "--font-active-mono", subsets: ["latin"] });
+const sans = Fira_Sans({ variable: "--font-active-sans", weight: ["300", "400", "500", "600", "700"], subsets: ["latin"] });
+const mono = Fira_Code({ variable: "--font-active-mono", weight: ["400", "500", "600", "700"], subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Artha Analytics",

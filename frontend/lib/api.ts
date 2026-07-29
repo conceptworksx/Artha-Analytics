@@ -4,7 +4,7 @@ export interface AnalyseResponse {
   technical_report: any;
   fundamental_report: any;
   market_report: any;
-  sector_report: string;
+  sector_report: any;
   status: string;
   company_info?: any;
   fundamental_data?: any;
@@ -182,12 +182,12 @@ function buildErrorMessage(
 
 export async function analyseTicker({
   ticker,
-  groqApiKey,
+  openrouterApiKey,
   authToken,
   signal,
 }: {
   ticker: string;
-  groqApiKey: string;
+  openrouterApiKey: string;
   authToken?: string;
   signal?: AbortSignal;
 }): Promise<AnalyseResponse> {
@@ -198,15 +198,8 @@ export async function analyseTicker({
     "Content-Type": "application/json",
   };
 
-  if (groqApiKey) {
-    headers["Groq-API-Key"] = groqApiKey.trim();
-  }
-
-  if (typeof window !== "undefined") {
-    const orKey = localStorage.getItem("openrouter_api_key");
-    if (orKey) {
-      headers["OpenRouter-API-Key"] = orKey.trim();
-    }
+  if (openrouterApiKey) {
+    headers["OpenRouter-API-Key"] = openrouterApiKey.trim();
   }
 
   if (authToken) {
@@ -295,42 +288,43 @@ export function getAuthUser(): AuthUser | null {
   }
 }
 
-export function getSavedGroqApiKey(): string {
-  if (typeof window === "undefined") return "";
+
+export function getSavedOpenRouterApiKey(): string | null {
+  if (typeof window === "undefined") return null;
   const user = getAuthUser();
   if (!user) {
     try {
-      return localStorage.getItem("groq_api_key_guest") || "";
+      return localStorage.getItem("openrouter_api_key_guest") || "";
     } catch {
       return "";
     }
   }
   try {
-    return localStorage.getItem(`groq_api_key_${user.email}`) || "";
+    return localStorage.getItem(`openrouter_api_key_${user.email}`) || "";
   } catch {
     return "";
   }
 }
 
-export function saveGroqApiKey(key: string) {
+export function saveOpenRouterApiKey(key: string) {
   if (typeof window === "undefined") return;
   const user = getAuthUser();
   const trimmed = key.trim();
   if (!user) {
     try {
       if (!trimmed) {
-        localStorage.removeItem("groq_api_key_guest");
+        localStorage.removeItem("openrouter_api_key_guest");
       } else {
-        localStorage.setItem("groq_api_key_guest", trimmed);
+        localStorage.setItem("openrouter_api_key_guest", trimmed);
       }
     } catch {}
     return;
   }
   try {
     if (!trimmed) {
-      localStorage.removeItem(`groq_api_key_${user.email}`);
+      localStorage.removeItem(`openrouter_api_key_${user.email}`);
     } else {
-      localStorage.setItem(`groq_api_key_${user.email}`, trimmed);
+      localStorage.setItem(`openrouter_api_key_${user.email}`, trimmed);
     }
   } catch {}
 }
@@ -449,11 +443,11 @@ export async function changePassword({
   return res.json();
 }
 
-export async function verifyGroqApiKey({
-  groqApiKey,
+export async function verifyOpenRouterApiKey({
+  openrouterApiKey,
   authToken,
 }: {
-  groqApiKey: string;
+  openrouterApiKey: string;
   authToken?: string;
 }): Promise<{ valid: boolean }> {
   let res: Response;
@@ -464,11 +458,11 @@ export async function verifyGroqApiKey({
     headers.Authorization = `Bearer ${authToken}`;
   }
   try {
-    res = await fetch(`${API_BASE_URL}/auth/verify-groq-key`, {
+    res = await fetch(`${API_BASE_URL}/auth/verify-openrouter-key`, {
       method: "POST",
       headers,
       body: JSON.stringify({
-        groq_api_key: groqApiKey,
+        openrouter_api_key: openrouterApiKey,
       }),
     });
   } catch {

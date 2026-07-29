@@ -12,8 +12,8 @@ import {
   readCached,
   clearCached,
   getAuthToken,
-  getSavedGroqApiKey,
-  saveGroqApiKey,
+  getSavedOpenRouterApiKey,
+  saveOpenRouterApiKey,
   type AnalyseResponse,
 } from "@/lib/api";
 import { LoadingView } from "@/components/research/LoadingView";
@@ -23,9 +23,17 @@ import { FundamentalReportView } from "@/components/research/FundamentalReportVi
 import { TechnicalReportView } from "@/components/research/TechnicalReportView";
 import { MarketReportView } from "@/components/research/MarketReportView";
 import { NewsReportView } from "@/components/research/NewsReportView";
+import { SectorReportView } from "@/components/research/SectorReportView";
 import { StockMetricsPanel } from "@/components/charts/StockMetricsPanel";
-import { TechnicalChart } from "@/components/charts/TechnicalChart";
-import { FundamentalChart } from "@/components/charts/FundamentalChart";
+import { 
+  TechnicalTrendChart,
+  TechnicalVolatilityChart,
+  TechnicalMomentumChart
+} from "@/components/charts/TechnicalChart";
+import { 
+  FundamentalGrowthChart,
+  FundamentalProfitabilityChart 
+} from "@/components/charts/FundamentalChart";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ErrorInfo {
@@ -42,7 +50,6 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
   const [loading, setLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
   const [mounted, setMounted] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const mainRef = useRef<HTMLDivElement>(null);
 
@@ -57,8 +64,8 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
   }, [view]);
 
   const authToken = getAuthToken();
-  const groqApiKey = getSavedGroqApiKey();
-  const isRedirecting = !groqApiKey || !groqApiKey.trim();
+  const openrouterApiKey = getSavedOpenRouterApiKey();
+  const isRedirecting = !openrouterApiKey || !openrouterApiKey.trim();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -80,15 +87,15 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
     setError(null);
     setData(null);
 
-    const groqApiKey = getSavedGroqApiKey();
-    if (!groqApiKey || !groqApiKey.trim()) {
+    const openrouterApiKey = getSavedOpenRouterApiKey();
+    if (!openrouterApiKey || !openrouterApiKey.trim()) {
       router.replace("/search");
       return;
     }
 
     analyseTicker({
       ticker,
-      groqApiKey,
+      openrouterApiKey,
       authToken: authToken || undefined,
       signal: controller.signal,
     })
@@ -106,7 +113,7 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
             return;
           }
           if (e.title === "INVALID API KEY") {
-            saveGroqApiKey("");
+            saveOpenRouterApiKey("");
             router.replace("/search");
             return;
           }
@@ -220,14 +227,6 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
       {/* Navbar */}
       <header className="flex h-14 sm:h-16 shrink-0 items-center justify-between border-b border-[var(--border)] bg-white px-3 sm:px-5">
         <div className="flex items-center gap-2">
-          {/* Hamburger menu — mobile only */}
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="md:hidden flex items-center justify-center h-9 w-9 rounded-lg text-zinc-600 hover:bg-zinc-100 transition-colors cursor-pointer"
-            aria-label="Open navigation"
-          >
-            <Menu size={20} />
-          </button>
           <Link href="/">
             <img
               src="/navbar.png"
@@ -250,26 +249,44 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
         </div>
       </header>
 
+      {isMobile && (
+        <div className="flex overflow-x-auto border-b border-[var(--border)] bg-white px-2 py-2 hide-scrollbar">
+          <div className="flex space-x-2">
+            {[
+              { key: "overview", label: "Overview" },
+              { key: "technical", label: "Technical" },
+              { key: "fundamental", label: "Fundamental" },
+              { key: "market", label: "Market" },
+              { key: "sector", label: "Sector" },
+              { key: "news", label: "News" },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setView(tab.key as ViewKey)}
+                className={`px-3 py-1.5 text-[13px] font-medium whitespace-nowrap rounded-md transition-colors ${
+                  view === tab.key
+                    ? "bg-blue-800 text-white"
+                    : "text-[var(--muted-foreground)] hover:bg-zinc-100"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex min-h-0 flex-1">
         {/* Desktop sidebar */}
-        <AppSidebar
-          active={view}
-          onSelect={setView}
-          isMobile={false}
-        />
-
-        {/* Mobile sidebar overlay */}
-        {isMobile && (
+        {!isMobile && (
           <AppSidebar
             active={view}
             onSelect={setView}
-            isMobile={true}
-            isOpen={sidebarOpen}
-            onClose={() => setSidebarOpen(false)}
+            isMobile={false}
           />
         )}
 
-        <main ref={mainRef} className="flex-1 min-w-0 overflow-y-auto bg-[var(--background)] p-4 sm:p-6 md:p-8">
+        <main ref={mainRef} className="flex-1 min-w-0 overflow-y-auto bg-[var(--background)] p-3 sm:p-4 md:p-6">
           <ViewSwitch view={view} data={data} />
         </main>
       </div>
@@ -323,7 +340,9 @@ function ViewSwitch({
             content={data.technical_report}
             filenameBase={`${t}_technical_report`}
           >
-            <TechnicalChart data={data.charts_data?.technical_history} />
+            <TechnicalTrendChart data={data.charts_data?.technical_history} />
+            <TechnicalVolatilityChart data={data.charts_data?.technical_history} />
+            <TechnicalMomentumChart data={data.charts_data?.technical_history} />
           </ReportView>
         );
       }
@@ -334,10 +353,9 @@ function ViewSwitch({
           status={data.status}
           reportData={data.technical_report}
           technicalData={data.technical_data}
+          chartData={data.charts_data?.technical_history}
           filenameBase={`${t}_technical_report`}
-        >
-          <TechnicalChart data={data.charts_data?.technical_history} />
-        </TechnicalReportView>
+        />
       );
     case "fundamental":
       if (typeof data.fundamental_report === "string") {
@@ -349,7 +367,8 @@ function ViewSwitch({
             content={data.fundamental_report}
             filenameBase={`${t}_fundamental_report`}
           >
-            <FundamentalChart data={data.charts_data?.financials_history} />
+            <FundamentalGrowthChart data={data.charts_data?.financials_history} />
+            <FundamentalProfitabilityChart data={data.charts_data?.financials_history} />
           </ReportView>
         );
       }
@@ -360,10 +379,9 @@ function ViewSwitch({
           status={data.status}
           reportData={data.fundamental_report}
           fundamentalData={data.fundamental_data}
+          chartData={data.charts_data?.financials_history}
           filenameBase={`${t}_fundamental_report`}
-        >
-          <FundamentalChart data={data.charts_data?.financials_history} />
-        </FundamentalReportView>
+        />
       );
     case "market":
       if (typeof data.market_report === "string") {
@@ -388,12 +406,23 @@ function ViewSwitch({
         />
       );
     case "sector":
+      if (typeof data.sector_report === "string") {
+        return (
+          <ReportView
+            title="Sector Analyst"
+            ticker={t}
+            status={data.status}
+            content={data.sector_report}
+            filenameBase={`${t}_sector_report`}
+          />
+        );
+      }
       return (
-        <ReportView
+        <SectorReportView
           title="Sector Analyst"
           ticker={t}
           status={data.status}
-          content={data.sector_report}
+          reportData={data.sector_report}
           filenameBase={`${t}_sector_report`}
         />
       );

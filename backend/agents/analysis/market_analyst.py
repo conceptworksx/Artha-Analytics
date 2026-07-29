@@ -64,9 +64,9 @@ class MarketAnalyst(BaseAgent):
 
     prompt_path = "prompts/market_analyst_prompt.yaml"
 
-    def __init__(self, groq_api_key: str, openrouter_api_key: str = None):
-
-        super().__init__(groq_api_key=groq_api_key, openrouter_api_key=openrouter_api_key)
+    def __init__(self, openrouter_api_key: str = None):
+        """Initializes the market analyst with the given prompts and key."""
+        super().__init__(openrouter_api_key=openrouter_api_key)
 
         # Define the success and error chains for the Market Analyst
 

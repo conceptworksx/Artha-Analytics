@@ -18,7 +18,7 @@ import {
   User,
 } from "lucide-react";
 import { MdErrorOutline } from "react-icons/md";
-import { getAuthUser, clearAuthSession, getSavedGroqApiKey, type AuthUser } from "@/lib/api";
+import { getAuthUser, clearAuthSession, getSavedOpenRouterApiKey, type AuthUser } from "@/lib/api";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { ProfileDialog } from "@/components/auth/ProfileDialog";
 
@@ -37,7 +37,7 @@ export function HomePage() {
   const [showProfile, setShowProfile] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(() => {
     if (typeof window !== "undefined" && hasHydrated) {
-      return !!getSavedGroqApiKey()?.trim();
+      return !!getSavedOpenRouterApiKey()?.trim();
     }
     return false;
   });
@@ -54,7 +54,7 @@ export function HomePage() {
     const authedUser = getAuthUser();
     setUser(authedUser);
     if (authedUser) {
-      setHasApiKey(!!getSavedGroqApiKey()?.trim());
+      setHasApiKey(!!getSavedOpenRouterApiKey()?.trim());
     }
   }, []);
 
@@ -77,7 +77,7 @@ export function HomePage() {
 
   useEffect(() => {
     if (user) {
-      setHasApiKey(!!getSavedGroqApiKey()?.trim());
+      setHasApiKey(!!getSavedOpenRouterApiKey()?.trim());
     } else {
       setHasApiKey(false);
     }
@@ -127,7 +127,7 @@ export function HomePage() {
           </Link>
         </div>
         {user ? (
-          <div className="flex items-center gap-2 sm:gap-4 font-mono text-[12px] text-neutral-500">
+          <div className="flex items-center gap-2 sm:gap-4 font-mono text-[12px] text-neutral-700">
             <button
               type="button"
               onClick={() => setShowProfile(true)}
@@ -200,7 +200,7 @@ export function HomePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.5 }}
-          className="mt-4 max-w-xl font-mono text-[11px] sm:text-[13px] leading-relaxed tracking-wider text-neutral-500 px-2 sm:px-0"
+          className="mt-4 max-w-xl font-mono text-[11px] sm:text-[13px] leading-relaxed tracking-wider text-neutral-700 px-2 sm:px-0"
         >
           AI-POWERED MULTI-AGENT EQUITY RESEARCH FOR INDIAN MARKETS.
           <br />
@@ -273,8 +273,8 @@ export function HomePage() {
           transition={{ duration: 2, repeat: Infinity }}
         >
           <div className="flex flex-col items-center gap-1">
-            <span className="font-mono text-[9px] tracking-[0.3em] text-neutral-400">SCROLL</span>
-            <div className="h-6 w-px bg-gradient-to-b from-neutral-300 to-transparent" />
+            <span className="font-mono text-[9px] tracking-[0.3em] text-neutral-600">SCROLL</span>
+            <div className="h-6 w-px bg-gradient-to-b from-neutral-400 to-transparent" />
           </div>
         </motion.div>
       </section>
@@ -325,7 +325,7 @@ export function HomePage() {
                     {f.icon}
                   </div>
                   <h3 className="mb-2 text-lg font-bold">{f.title}</h3>
-                  <p className="text-sm leading-relaxed text-neutral-600">{f.desc}</p>
+                  <p className="text-sm leading-relaxed text-neutral-800">{f.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -366,7 +366,7 @@ export function HomePage() {
                 </div>
                 <p className="font-mono text-[10px] tracking-[0.3em] text-[#d4a84c]">STEP {s.step}</p>
                 <h3 className="mt-2 text-xl font-bold">{s.title}</h3>
-                <p className="mt-2 text-sm text-neutral-500">{s.desc}</p>
+                <p className="mt-2 text-sm text-neutral-700">{s.desc}</p>
                 {i < 2 && (
                   <div className="absolute right-0 top-8 hidden h-px w-8 translate-x-full bg-black/10 sm:block" />
                 )}
@@ -409,20 +409,27 @@ export function HomePage() {
       </section>
 
       {/* ─── Footer ─── */}
-      <footer className="w-full border-t border-black/5 bg-white py-6 text-center">
-        <span className="font-mono text-[11px] font-semibold tracking-wider text-neutral-400">NSE EQUITY | INDIA</span>
-        <br />
-        <span className="font-mono text-[10px] tracking-wider text-neutral-300">MADE BY CONCEPTWORKSX</span>
-        <div className="mx-auto my-2 h-px w-24 bg-black/5" />
-        <a
-          href="https://github.com/conceptworksx/Agentic-Trade-v2"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 font-mono text-[11px] tracking-wider text-neutral-400 transition-colors hover:text-black"
-        >
-          <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" /></svg>
-          Contribute on GitHub
-        </a>
+      <footer className="w-full border-t border-black/10 bg-neutral-50 py-10 text-center">
+        <div className="flex flex-col items-center justify-center space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[11px] font-bold tracking-widest text-neutral-700">ARTHA ANALYTICS</span>
+            <span className="h-3 w-px bg-neutral-300" />
+            <span className="font-mono text-[11px] font-semibold tracking-wider text-neutral-600">NSE EQUITY INDIA</span>
+          </div>
+          <span className="font-mono text-[10px] tracking-wider text-neutral-500">BUILT WITH AI FOR NEXT-GEN RESEARCH</span>
+          <div className="h-px w-32 bg-black/5" />
+          <a
+            href="https://github.com/conceptworksx/Agentic-Trade-v2"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group inline-flex items-center gap-2 font-mono text-[11px] font-semibold tracking-wider text-neutral-600 transition-colors hover:text-blue-700"
+          >
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" className="transition-transform group-hover:scale-110">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+            </svg>
+            CONTRIBUTE ON GITHUB
+          </a>
+        </div>
       </footer>
 
       {showAuth && (

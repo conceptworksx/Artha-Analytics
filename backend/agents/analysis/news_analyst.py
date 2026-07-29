@@ -44,8 +44,8 @@ class NewsAnalyst(BaseAgent):
 
     prompt_path = "prompts/news_analyst_prompt.yaml"
 
-    def __init__(self, groq_api_key: str, openrouter_api_key: str = None):
-        super().__init__(groq_api_key=groq_api_key, openrouter_api_key=openrouter_api_key)
+    def __init__(self, openrouter_api_key: str = None):
+        super().__init__(openrouter_api_key=openrouter_api_key)
 
         # Define a parallel runnable to fetch all relevant news data simultaneously
         news_fetcher = RunnableParallel(

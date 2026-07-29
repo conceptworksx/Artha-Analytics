@@ -6,13 +6,13 @@ from graph.nodes import make_nodes
 logger = get_logger(__name__)
 
 
-def build_graph(groq_api_key: str, openrouter_api_key: str = None):
+def build_graph(openrouter_api_key: str = None):
     """
-    Built per request with groq_api_key baked into node closures.
+    Built per request with openrouter_api_key baked into node closures.
     Key never enters AgentState — not visible in LangSmith traces.
     """
 
-    nodes = make_nodes(groq_api_key, openrouter_api_key)
+    nodes = make_nodes(openrouter_api_key)
 
     work_flow = StateGraph(AgentState)
 

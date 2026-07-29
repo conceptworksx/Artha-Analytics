@@ -40,20 +40,20 @@ export function ReportView({
           {title}
         </h2>
         <div className="flex items-center gap-4">
-          <DownloadBtn
-            disabled={!canDownload}
+          <button
             onClick={handleDownloadPdf}
+            className="flex items-center gap-1 rounded-md border border-[var(--cta)] bg-[var(--cta)] px-2.5 py-1 font-sans text-[11px] font-medium text-white transition-all hover:opacity-90 active:scale-95 shadow-xs cursor-pointer"
           >
             PDF
-          </DownloadBtn>
+          </button>
         </div>
       </div>
       <div className="h-px w-full bg-[var(--border)]" />
-      <p className="mt-2 font-mono text-[12px] text-[var(--muted-foreground)] mb-6">
+      <p className="mt-2 font-mono text-[12px] text-[var(--muted-foreground)] mb-4">
         {ticker.split(".")[0]} · Report generated · {status}
       </p>
 
-      <div className="mt-6 border border-[var(--border)] bg-white p-4 sm:p-6 md:p-8 rounded-xl shadow-sm mb-6">
+      <div className="mt-4 border border-[var(--border)] bg-white p-4 sm:p-5 rounded-xl shadow-sm mb-6 space-y-6">
         {content.trim() ? <Markdown content={content} /> : <ReportSkeleton />}
       </div>
 

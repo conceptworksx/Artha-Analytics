@@ -1,5 +1,11 @@
 import React, { useRef } from "react";
 import { downloadPdf } from "@/lib/download";
+import { FormattedText } from "@/components/ui/FormattedText";
+import { 
+  FundamentalGrowthChart,
+  FundamentalProfitabilityChart,
+  type FinancialsHistory
+} from "@/components/charts/FundamentalChart";
 
 export function FundamentalReportView({
   title,
@@ -7,6 +13,7 @@ export function FundamentalReportView({
   status,
   reportData,
   fundamentalData,
+  chartData,
   accent,
   filenameBase,
   children,
@@ -16,6 +23,7 @@ export function FundamentalReportView({
   status: string;
   reportData: any; // fundamental_report JSON object
   fundamentalData: any; // fundamental_data JSON object
+  chartData?: FinancialsHistory;
   accent?: string;
   filenameBase: string;
   children?: React.ReactNode;
@@ -71,12 +79,12 @@ export function FundamentalReportView({
         </thead>
         <tbody className="divide-y divide-[var(--border)]">
           {rows.map((row, i) => (
-            <tr key={i} className="hover:bg-zinc-50/30 transition-colors">
+            <tr key={i} className="even:bg-slate-50 hover:bg-slate-100 transition-colors">
               <td className="px-4 py-2 font-medium text-zinc-800">{row.label}</td>
               {row.values.map((v, j) => (
-                <td key={j} className="px-4 py-2 text-zinc-600">{v !== null && v !== undefined ? v : '-'}</td>
+                <td key={j} className="px-4 py-2 text-zinc-600">{v !== null && v !== undefined ? <FormattedText text={String(v)} /> : '-'}</td>
               ))}
-              <td className="px-4 py-2 font-semibold text-zinc-700">{row.trend !== null && row.trend !== undefined ? row.trend : '-'}</td>
+              <td className="px-4 py-2 font-semibold text-zinc-700">{row.trend !== null && row.trend !== undefined ? <FormattedText text={String(row.trend)} /> : '-'}</td>
             </tr>
           ))}
         </tbody>
@@ -100,22 +108,23 @@ export function FundamentalReportView({
           <button
             disabled={!canDownload}
             onClick={handleDownloadPdf}
-            className="flex items-center gap-1 rounded-md border border-zinc-900 bg-zinc-950 px-2.5 py-1 font-sans text-[11px] font-medium text-zinc-50 transition-all hover:bg-zinc-800 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 shadow-xs cursor-pointer"
+            className="flex items-center gap-1 rounded-md border border-[var(--cta)] bg-[var(--cta)] px-2.5 py-1 font-sans text-[11px] font-medium text-white transition-all hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 shadow-xs cursor-pointer"
           >
             JSON
           </button>
         </div>
       </div>
       <div className="h-px w-full bg-[var(--border)]" />
-      <p className="mt-2 font-mono text-[12px] text-[var(--muted-foreground)] mb-6">
+      <p className="mt-2 font-mono text-[12px] text-[var(--muted-foreground)] mb-4">
         {ticker.split(".")[0]} · Report generated · {status}
       </p>
 
-      <div className="mt-6 border border-[var(--border)] bg-white p-4 sm:p-6 md:p-8 rounded-xl shadow-sm mb-6 space-y-8">
+      <div className="mt-4 border border-[var(--border)] bg-white p-4 sm:p-5 rounded-xl shadow-sm mb-6 space-y-6">
         
         {/* REVENUE & GROWTH */}
         <section>
           <h3 className="text-md font-semibold text-zinc-800 mb-2 border-b pb-1">1. REVENUE & GROWTH</h3>
+          <FundamentalGrowthChart data={chartData} />
           <MetricTable 
             headers={revenueDates}
             rows={[
@@ -125,13 +134,14 @@ export function FundamentalReportView({
           />
           <div className="p-4 bg-zinc-50/50 border border-zinc-200 rounded-lg text-[14px] text-zinc-700 leading-relaxed shadow-sm">
             <span className="font-semibold text-zinc-900">Analysis: </span>
-            {analysis.revenue_and_growth || "No analysis available."}
+            <FormattedText text={analysis.revenue_and_growth || "No analysis available."} />
           </div>
         </section>
 
         {/* PROFITABILITY */}
         <section>
           <h3 className="text-md font-semibold text-zinc-800 mb-2 border-b pb-1">2. PROFITABILITY</h3>
+          <FundamentalProfitabilityChart data={chartData} />
           <MetricTable 
             headers={profitDates}
             rows={[
@@ -142,7 +152,7 @@ export function FundamentalReportView({
           />
           <div className="p-4 bg-zinc-50/50 border border-zinc-200 rounded-lg text-[14px] text-zinc-700 leading-relaxed shadow-sm">
             <span className="font-semibold text-zinc-900">Analysis: </span>
-            {analysis.profitability || "No analysis available."}
+            <FormattedText text={analysis.profitability || "No analysis available."} />
           </div>
         </section>
 
@@ -159,7 +169,7 @@ export function FundamentalReportView({
           />
           <div className="p-4 bg-zinc-50/50 border border-zinc-200 rounded-lg text-[14px] text-zinc-700 leading-relaxed shadow-sm">
             <span className="font-semibold text-zinc-900">Analysis: </span>
-            {analysis.capital_structure_and_solvency || "No analysis available."}
+            <FormattedText text={analysis.capital_structure_and_solvency || "No analysis available."} />
           </div>
         </section>
 
@@ -176,7 +186,7 @@ export function FundamentalReportView({
           />
           <div className="p-4 bg-zinc-50/50 border border-zinc-200 rounded-lg text-[14px] text-zinc-700 leading-relaxed shadow-sm">
             <span className="font-semibold text-zinc-900">Analysis: </span>
-            {analysis.cash_flow_and_liquidity || "No analysis available."}
+            <FormattedText text={analysis.cash_flow_and_liquidity || "No analysis available."} />
           </div>
         </section>
 
@@ -192,7 +202,7 @@ export function FundamentalReportView({
           />
           <div className="p-4 bg-zinc-50/50 border border-zinc-200 rounded-lg text-[14px] text-zinc-700 leading-relaxed shadow-sm">
             <span className="font-semibold text-zinc-900">Analysis: </span>
-            {analysis.return_ratios || "No analysis available."}
+            <FormattedText text={analysis.return_ratios || "No analysis available."} />
           </div>
         </section>
 
@@ -210,34 +220,34 @@ export function FundamentalReportView({
               <tbody className="divide-y divide-[var(--border)]">
                 <tr className="hover:bg-zinc-50/30 transition-colors">
                   <td className="px-4 py-2 font-medium text-zinc-800">Market Cap</td>
-                  <td className="px-4 py-2 text-zinc-600">{val.market_cap ?? '-'}</td>
+                  <td className="px-4 py-2 text-zinc-600">{val.market_cap != null ? <FormattedText text={String(val.market_cap)} /> : '-'}</td>
                 </tr>
                 <tr className="hover:bg-zinc-50/30 transition-colors">
                   <td className="px-4 py-2 font-medium text-zinc-800">P/E Ratio</td>
-                  <td className="px-4 py-2 text-zinc-600">{val.valuation_ratios?.pe_ratio ?? '-'}</td>
+                  <td className="px-4 py-2 text-zinc-600">{val.valuation_ratios?.pe_ratio != null ? <FormattedText text={String(val.valuation_ratios.pe_ratio)} /> : '-'}</td>
                 </tr>
                 <tr className="hover:bg-zinc-50/30 transition-colors">
                   <td className="px-4 py-2 font-medium text-zinc-800">EV/EBITDA</td>
-                  <td className="px-4 py-2 text-zinc-600">{val.valuation_ratios?.ev_ebitda ?? '-'}</td>
+                  <td className="px-4 py-2 text-zinc-600">{val.valuation_ratios?.ev_ebitda != null ? <FormattedText text={String(val.valuation_ratios.ev_ebitda)} /> : '-'}</td>
                 </tr>
                 <tr className="hover:bg-zinc-50/30 transition-colors">
                   <td className="px-4 py-2 font-medium text-zinc-800">PEG Ratio</td>
-                  <td className="px-4 py-2 text-zinc-600">{val.valuation_ratios?.peg_ratio ?? '-'}</td>
+                  <td className="px-4 py-2 text-zinc-600">{val.valuation_ratios?.peg_ratio != null ? <FormattedText text={String(val.valuation_ratios.peg_ratio)} /> : '-'}</td>
                 </tr>
                 <tr className="hover:bg-zinc-50/30 transition-colors">
                   <td className="px-4 py-2 font-medium text-zinc-800">Dividend Yield (%)</td>
-                  <td className="px-4 py-2 text-zinc-600">{val.dividend_yield_pct ?? '-'}</td>
+                  <td className="px-4 py-2 text-zinc-600">{val.dividend_yield_pct != null ? <FormattedText text={String(val.dividend_yield_pct)} /> : '-'}</td>
                 </tr>
                 <tr className="hover:bg-zinc-50/30 transition-colors">
                   <td className="px-4 py-2 font-medium text-zinc-800">Promoter Holding (%)</td>
-                  <td className="px-4 py-2 text-zinc-600">{val.promoter_holding_pct ?? '-'}</td>
+                  <td className="px-4 py-2 text-zinc-600">{val.promoter_holding_pct != null ? <FormattedText text={String(val.promoter_holding_pct)} /> : '-'}</td>
                 </tr>
               </tbody>
             </table>
           </div>
           <div className="p-4 bg-zinc-50/50 border border-zinc-200 rounded-lg text-[14px] text-zinc-700 leading-relaxed shadow-sm">
             <span className="font-semibold text-zinc-900">Analysis: </span>
-            {analysis.valuation_and_ownership || "No analysis available."}
+            <FormattedText text={analysis.valuation_and_ownership || "No analysis available."} />
           </div>
         </section>
 

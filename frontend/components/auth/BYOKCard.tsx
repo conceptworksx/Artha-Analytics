@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Key, ArrowRight, Eye, EyeOff, LogOut, X } from "lucide-react";
 import { toast } from "sonner";
-import { AnalysisError, saveGroqApiKey, verifyGroqApiKey, getAuthToken } from "@/lib/api";
+import { AnalysisError, saveOpenRouterApiKey, verifyOpenRouterApiKey, getAuthToken } from "@/lib/api";
 
 interface BYOKCardProps {
   onSuccess?: () => void;
@@ -33,12 +33,12 @@ export function BYOKCard({
     const trimmedKey = apiKey.trim();
 
     if (!trimmedKey) {
-      setError("Please enter a Groq API key.");
+      setError("Please enter an OpenRouter API key.");
       return;
     }
 
-    if (!trimmedKey.startsWith("gsk_")) {
-      setError("Invalid format. Groq API keys usually start with 'gsk_'.");
+    if (!trimmedKey.startsWith("sk-or-v1-")) {
+      setError("Invalid format. OpenRouter API keys usually start with 'sk-or-v1-'.");
       return;
     }
 
@@ -49,15 +49,10 @@ export function BYOKCard({
       const token = getAuthToken();
 
       // Verify key against the backend verify route
-      await verifyGroqApiKey({ groqApiKey: trimmedKey, authToken: token || undefined });
+      await verifyOpenRouterApiKey({ openrouterApiKey: trimmedKey, authToken: token || undefined });
 
       // Save key in localStorage
-      saveGroqApiKey(trimmedKey);
-      if (openrouterApiKey.trim()) {
-        if (typeof window !== "undefined") {
-          localStorage.setItem("openrouter_api_key", openrouterApiKey.trim());
-        }
-      }
+      saveOpenRouterApiKey(trimmedKey);
       toast.success("API Keys verified and saved successfully!");
       if (onSuccess) onSuccess();
       if (onKeySaved) onKeySaved();
@@ -117,12 +112,12 @@ export function BYOKCard({
           <p className="text-[11px] text-[#d4a84c] font-medium font-sans">
             If you do not have an API key, you can generate one for free in the{" "}
             <a
-              href="https://console.groq.com/keys"
+              href="https://openrouter.ai/keys"
               target="_blank"
               rel="noopener noreferrer"
               className="underline hover:text-[#f0c97a] transition-colors"
             >
-              Groq Console
+              OpenRouter Console
             </a>
             .
           </p>
@@ -133,7 +128,7 @@ export function BYOKCard({
           <div className="space-y-4">
             <div className="group">
               <label className="mb-1.5 block text-[9px] font-semibold tracking-[0.2em] text-neutral-500 uppercase">
-                Groq API Key
+                OpenRouter API Key
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 transition-colors group-focus-within:text-[#d4a84c]">
@@ -142,7 +137,7 @@ export function BYOKCard({
                 <input
                   id={isModal ? "modal-byok-api-key" : "byok-api-key"}
                   type={showKey ? "text" : "password"}
-                  placeholder="gsk_..."
+                  placeholder="sk-or-v1-..."
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                   required
@@ -158,31 +153,7 @@ export function BYOKCard({
               </div>
             </div>
 
-            <div className="group mt-4">
-              <label className="mb-1.5 block text-[9px] font-semibold tracking-[0.2em] text-neutral-500 uppercase">
-                OpenRouter API Key (Optional)
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 transition-colors group-focus-within:text-[#d4a84c]">
-                  <Key size={14} />
-                </span>
-                <input
-                  id={isModal ? "modal-openrouter-api-key" : "openrouter-api-key"}
-                  type={showOpenrouterKey ? "text" : "password"}
-                  placeholder="sk-or-v1-..."
-                  value={openrouterApiKey}
-                  onChange={(e) => setOpenrouterApiKey(e.target.value)}
-                  className="block h-10 w-full rounded-lg border border-black/10 bg-neutral-50/50 pl-9 pr-10 font-mono text-[13px] placeholder:text-neutral-400 focus:border-[#d4a84c] focus:outline-none focus:ring-0 transition-colors"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowOpenrouterKey(!showOpenrouterKey)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer"
-                >
-                  {showOpenrouterKey ? <EyeOff size={14} /> : <Eye size={14} />}
-                </button>
-              </div>
-            </div>
+
 
             {error && (
               <p className="text-[11px] font-semibold text-red-500 text-center tracking-wide">

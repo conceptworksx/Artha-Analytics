@@ -26,7 +26,7 @@ class BaseAgent:
 
     prompt_path: str = ""
 
-    def __init__(self, groq_api_key: str = None, openrouter_api_key: str = None):
+    def __init__(self, openrouter_api_key: str = None):
         self.llm = get_openrouter_llm(api_key=openrouter_api_key)
 
         yaml_instructions = load_structured_prompt(self.prompt_path)

@@ -7,7 +7,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { User } from "lucide-react";
 import { MdErrorOutline } from "react-icons/md";
-import { clearCached, getSavedGroqApiKey, type AuthUser } from "@/lib/api";
+import { clearCached, getSavedOpenRouterApiKey, type AuthUser } from "@/lib/api";
 import { LoadingView } from "./LoadingView";
 import { ProfileDialog } from "@/components/auth/ProfileDialog";
 import { BYOKModal } from "./BYOKModal";
@@ -39,7 +39,7 @@ export function SearchView({
   const [showProfile, setShowProfile] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(() => {
     if (typeof window !== "undefined" && hasHydrated) {
-      return !!getSavedGroqApiKey()?.trim();
+      return !!getSavedOpenRouterApiKey()?.trim();
     }
     return true;
   });
@@ -49,7 +49,7 @@ export function SearchView({
 
   useEffect(() => {
     hasHydrated = true;
-    setHasApiKey(!!getSavedGroqApiKey()?.trim());
+    setHasApiKey(!!getSavedOpenRouterApiKey()?.trim());
   }, []);
 
   useEffect(() => {
@@ -127,7 +127,7 @@ export function SearchView({
     const target = t || selected;
     if (!target) return;
 
-    const key = getSavedGroqApiKey();
+    const key = getSavedOpenRouterApiKey();
     if (!key || !key.trim()) {
       setTickerToAnalyse(target);
       setIsModalOpen(true);
@@ -387,7 +387,7 @@ export function SearchView({
           isOpen={showProfile}
           onClose={() => {
             setShowProfile(false);
-            setHasApiKey(!!getSavedGroqApiKey()?.trim());
+            setHasApiKey(!!getSavedOpenRouterApiKey()?.trim());
           }}
         />
       )}

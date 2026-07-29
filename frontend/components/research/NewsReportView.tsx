@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
 import { downloadPdf } from "@/lib/download";
+import { FormattedText } from "@/components/ui/FormattedText";
 
 export function NewsReportView({
   title,
@@ -48,9 +49,9 @@ export function NewsReportView({
           <tbody className="divide-y divide-[var(--border)]">
             {articles.map((a, i) => (
               <tr key={i} className="hover:bg-zinc-50/30 transition-colors">
-                <td className="px-4 py-2 text-zinc-600">{a.published_at ? new Date(a.published_at).toLocaleDateString() : '-'}</td>
-                <td className="px-4 py-2 text-zinc-600">{a.priority || '-'}</td>
-                <td className="px-4 py-2 text-zinc-800 max-w-[300px] truncate" title={a.title}>{a.title}</td>
+                <td className="px-4 py-2 text-zinc-600">{a.published_at ? <FormattedText text={new Date(a.published_at).toLocaleDateString()} /> : '-'}</td>
+                <td className="px-4 py-2 text-zinc-600">{a.priority ? <FormattedText text={String(a.priority)} /> : '-'}</td>
+                <td className="px-4 py-2 text-zinc-800 max-w-[300px] truncate" title={a.title}><FormattedText text={a.title} /></td>
               </tr>
             ))}
           </tbody>
@@ -67,24 +68,24 @@ export function NewsReportView({
           {title}
         </h2>
         <div className="flex items-center gap-4">
-          <button disabled={!canDownload} onClick={handleDownloadPdf} className="flex items-center gap-1 rounded-md border border-zinc-900 bg-zinc-950 px-2.5 py-1 font-sans text-[11px] font-medium text-zinc-50 transition-all hover:bg-zinc-800 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 shadow-xs cursor-pointer">
+          <button disabled={!canDownload} onClick={handleDownloadPdf} className="flex items-center gap-1 rounded-md border border-[var(--cta)] bg-[var(--cta)] px-2.5 py-1 font-sans text-[11px] font-medium text-white transition-all hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 shadow-xs cursor-pointer">
             JSON
           </button>
         </div>
       </div>
       <div className="h-px w-full bg-[var(--border)]" />
-      <p className="mt-2 font-mono text-[12px] text-[var(--muted-foreground)] mb-6">
+      <p className="mt-2 font-mono text-[12px] text-[var(--muted-foreground)] mb-4">
         {ticker.split(".")[0]} · Report generated · {status}
       </p>
 
-      <div className="mt-6 border border-[var(--border)] bg-white p-4 sm:p-6 md:p-8 rounded-xl shadow-sm mb-6 space-y-8">
+      <div className="mt-4 border border-[var(--border)] bg-white p-4 sm:p-5 rounded-xl shadow-sm mb-6 space-y-6">
         
         <section>
           <h3 className="text-md font-semibold text-zinc-800 mb-2 border-b pb-1">1. COMPANY NEWS IMPACT</h3>
           <NewsTable articles={companyNews?.articles || []} />
           <div className="p-4 bg-zinc-50/50 border border-zinc-200 rounded-lg text-[14px] text-zinc-700 leading-relaxed shadow-sm space-y-2">
-            <div><span className="font-semibold text-zinc-900">Short-Term Impact: </span>{analysis.company_short_term || "No analysis available."}</div>
-            <div><span className="font-semibold text-zinc-900">Long-Term Impact: </span>{analysis.company_long_term || "No analysis available."}</div>
+            <div><span className="font-semibold text-zinc-900">Short-Term Impact: </span><FormattedText text={analysis.company_short_term || "No analysis available."} /></div>
+            <div><span className="font-semibold text-zinc-900">Long-Term Impact: </span><FormattedText text={analysis.company_long_term || "No analysis available."} /></div>
           </div>
         </section>
 
@@ -93,7 +94,7 @@ export function NewsReportView({
           <NewsTable articles={indianNews?.articles || []} />
           <div className="p-4 bg-zinc-50/50 border border-zinc-200 rounded-lg text-[14px] text-zinc-700 leading-relaxed shadow-sm">
             <span className="font-semibold text-zinc-900">Analysis: </span>
-            {analysis.indian_impact || "No analysis available."}
+            <FormattedText text={analysis.indian_impact || "No analysis available."} />
           </div>
         </section>
 
@@ -102,7 +103,7 @@ export function NewsReportView({
           <NewsTable articles={globalNews?.articles || []} />
           <div className="p-4 bg-zinc-50/50 border border-zinc-200 rounded-lg text-[14px] text-zinc-700 leading-relaxed shadow-sm">
             <span className="font-semibold text-zinc-900">Analysis: </span>
-            {analysis.macro_impact || "No analysis available."}
+            <FormattedText text={analysis.macro_impact || "No analysis available."} />
           </div>
         </section>
 
@@ -110,15 +111,15 @@ export function NewsReportView({
           <h3 className="text-md font-semibold text-zinc-800 mb-2 border-b pb-1">4. CROSS-MARKET INTERACTION</h3>
           <div className="p-4 bg-zinc-50/50 border border-zinc-200 rounded-lg text-[14px] text-zinc-700 leading-relaxed shadow-sm">
             <span className="font-semibold text-zinc-900">Analysis: </span>
-            {analysis.cross_market || "No analysis available."}
+            <FormattedText text={analysis.cross_market || "No analysis available."} />
           </div>
         </section>
 
         <section>
           <h3 className="text-md font-semibold text-zinc-800 mb-2 border-b pb-1">5. KEY RISKS & OPPORTUNITIES</h3>
           <div className="p-4 bg-zinc-50/50 border border-zinc-200 rounded-lg text-[14px] text-zinc-700 leading-relaxed shadow-sm space-y-2">
-            <div><span className="font-semibold text-zinc-900">Risks: </span>{analysis.risks || "No analysis available."}</div>
-            <div><span className="font-semibold text-zinc-900">Opportunities: </span>{analysis.opportunities || "No analysis available."}</div>
+            <div><span className="font-semibold text-zinc-900">Risks: </span><FormattedText text={analysis.risks || "No analysis available."} /></div>
+            <div><span className="font-semibold text-zinc-900">Opportunities: </span><FormattedText text={analysis.opportunities || "No analysis available."} /></div>
           </div>
         </section>
 

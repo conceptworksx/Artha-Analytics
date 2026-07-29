@@ -11,24 +11,24 @@ from agents.analysis.technical_analyst import TechnicalAnalyst
 from agents.analysis.fundamental_analyst import FundamentalAnalyst
 from core.error import handle_node_errors, validate_state
 from core.logging import get_logger
-from tools.markdown_formatter import fix_markdown_tables
+
 
 logger = get_logger(__name__)
 
 
-def make_nodes(groq_api_key: str, openrouter_api_key: str = None) -> dict:
+def make_nodes(openrouter_api_key: str = None) -> dict:
     """
-    Instantiates all agents with the user's Groq key and OpenRouter key.
+    Instantiates all agents with the user's OpenRouter key.
     Returns dict of node functions with agents baked in via closures.
     Key never touches AgentState.
     """
 
     # Agents instantiated here with key — not at module level
-    market_agent = MarketAnalyst(groq_api_key=groq_api_key, openrouter_api_key=openrouter_api_key)
-    fundamental_agent = FundamentalAnalyst(groq_api_key=groq_api_key, openrouter_api_key=openrouter_api_key)
-    technical_agent = TechnicalAnalyst(groq_api_key=groq_api_key, openrouter_api_key=openrouter_api_key)
-    news_agent = NewsAnalyst(groq_api_key=groq_api_key, openrouter_api_key=openrouter_api_key)
-    sector_agent = SectorAnalyst(groq_api_key=groq_api_key, openrouter_api_key=openrouter_api_key)
+    market_agent = MarketAnalyst(openrouter_api_key=openrouter_api_key)
+    fundamental_agent = FundamentalAnalyst(openrouter_api_key=openrouter_api_key)
+    technical_agent = TechnicalAnalyst(openrouter_api_key=openrouter_api_key)
+    news_agent = NewsAnalyst(openrouter_api_key=openrouter_api_key)
+    sector_agent = SectorAnalyst(openrouter_api_key=openrouter_api_key)
 
     # ── Node functions ────────────────────────────────────────────────────
 
@@ -78,9 +78,8 @@ def make_nodes(groq_api_key: str, openrouter_api_key: str = None) -> dict:
     @handle_node_errors("sector_analyst")
     def run_sector_analyst(state: AgentState) -> dict:
         result = sector_agent.run(state)
-
         return {
-            "sector_analyst_report": fix_markdown_tables(result["report"]),
+            "sector_analyst_report": result["report"],
             "sector_analyst_summary": result["summary"],
         }
 

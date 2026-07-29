@@ -73,7 +73,7 @@ class AgentState(TypedDict):
     ]
 
     sector_analyst_report: Annotated[
-        str, "Specific analysis of sector-level trends, tailwinds, and headwinds."
+        dict | str, "Specific analysis of sector-level trends, tailwinds, and headwinds."
     ]
     sector_analyst_summary: Annotated[
     dict, "Structured sector summary for Bull/Bear debate."

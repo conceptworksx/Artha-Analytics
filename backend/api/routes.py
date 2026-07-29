@@ -13,7 +13,7 @@ from api.models import (
     AuthUser,
     ChangePasswordRequest,
     GoogleAuthRequest,
-    VerifyGroqKeyRequest,
+    VerifyOpenRouterKeyRequest,
     AnalyzeRequest,
     AnalyzeResponse,
     AnalysisSummary,
@@ -179,17 +179,17 @@ def change_password(
     return {"status": "success", "message": "Password updated successfully."}
 
 
-@router.post("/auth/verify-groq-key")
-def verify_groq_key(
-    body: VerifyGroqKeyRequest,
+@router.post("/auth/verify-openrouter-key")
+def verify_openrouter_key(
+    body: VerifyOpenRouterKeyRequest,
 ):
-    is_valid, err_msg = validate_api_keys(groq_api_key=body.groq_api_key)
+    is_valid, err_msg = validate_api_keys(openrouter_api_key=body.openrouter_api_key)
     if not is_valid:
         raise HTTPException(
             status_code=400,
             detail={
-                "error": "invalid_groq_api_key",
-                "message": err_msg or "The Groq API key is invalid.",
+                "error": "invalid_openrouter_api_key",
+                "message": err_msg or "The OpenRouter API key is invalid.",
             },
         )
     return {"valid": True}
@@ -200,7 +200,6 @@ def verify_groq_key(
 async def analyze(
     request: Request,
     body: AnalyzeRequest,
-    groq_api_key: Optional[str] = Header(None, alias="Groq-API-Key"),
     openrouter_api_key: Optional[str] = Header(None, alias="OpenRouter-API-Key"),
     user: Optional[AuthUser] = Depends(get_current_user_optional),
 ):
@@ -226,27 +225,7 @@ async def analyze(
                 },
             )
 
-    # Ensure Groq API Key is provided
-    if (
-        not groq_api_key
-        or groq_api_key == "undefined"
-        or groq_api_key == "null"
-        or not groq_api_key.strip()
-    ):
-        raise HTTPException(
-            status_code=401,
-            detail={"error": "invalid_api_key", "message": "Groq API Key is required."},
-        )
-
-    # Validate API key format
-    is_valid_key, key_error = validate_api_keys(groq_api_key=groq_api_key)
-    if not is_valid_key:
-        logger.warning(f"Invalid API key format | ticker={ticker}")
-        raise HTTPException(
-            status_code=401,
-            detail={"error": "invalid_api_key", "message": key_error},
-        )
-
+    # Ensure OpenRouter API Key is provided
     if (
         not openrouter_api_key
         or openrouter_api_key == "undefined"
@@ -256,6 +235,15 @@ async def analyze(
         raise HTTPException(
             status_code=401,
             detail={"error": "invalid_api_key", "message": "OpenRouter API Key is required."},
+        )
+
+    # Validate API key format
+    is_valid_key, key_error = validate_api_keys(openrouter_api_key=openrouter_api_key)
+    if not is_valid_key:
+        logger.warning(f"Invalid API key format | ticker={ticker}")
+        raise HTTPException(
+            status_code=401,
+            detail={"error": "invalid_api_key", "message": key_error},
         )
 
     # Validate ticker format
@@ -282,7 +270,7 @@ async def analyze(
     # Run LangGraph workflow
     try:
         logger.info(f"Starting graph execution | ticker={ticker}")
-        graph = build_graph(groq_api_key=groq_api_key, openrouter_api_key=openrouter_api_key)
+        graph = build_graph(openrouter_api_key=openrouter_api_key)
         final_state = await asyncio.to_thread(
             graph.invoke, {"ticker_of_company": ticker}
         )
