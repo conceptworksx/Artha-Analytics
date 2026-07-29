@@ -1,10 +1,15 @@
 export interface AnalyseResponse {
   ticker: string;
   news_report: any;
+  news_summary?: any;
   technical_report: any;
+  technical_summary?: any;
   fundamental_report: any;
+  fundamental_summary?: any;
   market_report: any;
+  market_summary?: any;
   sector_report: any;
+  sector_summary?: any;
   status: string;
   company_info?: any;
   fundamental_data?: any;
@@ -55,8 +60,13 @@ export interface AnalyseResponse {
   };
 }
 
-// const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-const API_BASE_URL = "http://localhost:8000";
+// Prioritize the environment variable for production deployments (e.g., Vercel + Heroku).
+// Fall back to dynamic hostname for local network development across devices, or localhost.
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || (
+  typeof window !== "undefined" 
+    ? `http://${window.location.hostname}:8000` 
+    : "http://localhost:8000"
+);
 
 const AUTH_TOKEN_KEY = "artha_auth_token";
 const AUTH_USER_KEY = "artha_auth_user";
@@ -126,7 +136,7 @@ function buildErrorMessage(
     return {
       title: "INVALID API KEY",
       message:
-        "We couldn't authenticate your request. The Groq API key provided appears to be invalid, expired, or improperly formatted.",
+        "We couldn't authenticate your request. The OpenRouter API key provided appears to be invalid, expired, or improperly formatted.",
     };
   }
 
@@ -143,7 +153,7 @@ function buildErrorMessage(
       return {
         title: "LLM RATE LIMIT HIT",
         message:
-          "The Groq AI model has temporarily throttled your requests. Free-tier API keys have a limited number of tokens and requests per minute.",
+          "The OpenRouter API has temporarily throttled your requests. Free-tier or low-balance API keys have a limited number of requests per minute.",
       };
     }
     return {
@@ -172,9 +182,8 @@ function buildErrorMessage(
 
   // Everything else → internal server error
   return {
-    title: "SOMETHING WENT WRONG",
-    message:
-      "The analysis server encountered an unexpected error while processing your request. This is usually a temporary issue on our end.",
+    title: "SERVER OVERLOADED OR ERROR",
+    message: "The server encountered an unexpected error or is currently processing too many requests. Please try again later.",
   };
 }
 
@@ -233,11 +242,16 @@ export async function analyseTicker({
   // Inject fallback dummy values if they are missing from the backend response
   const data: AnalyseResponse = {
     ticker: rawData.ticker ?? cleanTicker,
-    news_report: rawData.news_report || "No news report available.",
-    technical_report: rawData.technical_report || "No technical report available.",
-    fundamental_report: rawData.fundamental_report || "No fundamental report available.",
-    market_report: rawData.market_report || "No market report available.",
-    sector_report: rawData.sector_report || "No sector report available.",
+    news_report: rawData.news_report || rawData.news_analyst_report || "No news report available.",
+    news_summary: rawData.news_analyst_summary || {},
+    technical_report: rawData.technical_report || rawData.technical_analyst_report || "No technical report available.",
+    technical_summary: rawData.technical_analyst_summary || {},
+    fundamental_report: rawData.fundamental_report || rawData.fundamental_analyst_report || "No fundamental report available.",
+    fundamental_summary: rawData.fundamental_analyst_summary || {},
+    market_report: rawData.market_report || rawData.market_analyst_report || "No market report available.",
+    market_summary: rawData.market_analyst_summary || {},
+    sector_report: rawData.sector_report || rawData.sector_analyst_report || "No sector report available.",
+    sector_summary: rawData.sector_analyst_summary || {},
     status: rawData.status || "success",
     company_info: rawData.company_info || null,
     fundamental_data: rawData.fundamental_data || null,
@@ -480,7 +494,7 @@ export async function verifyOpenRouterApiKey({
     } catch {}
     throw new AnalysisError({
       title: "KEY VALIDATION FAILED",
-      message: detail.message || "Failed to verify the Groq API key.",
+      message: detail.message || "Failed to verify the API key.",
     });
   }
 

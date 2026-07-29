@@ -12,8 +12,12 @@ from agents.analysis.fundamental_analyst import FundamentalAnalyst
 from core.error import handle_node_errors, validate_state
 from core.logging import get_logger
 
-
 logger = get_logger(__name__)
+
+def _extract_report(result: any, report_key: str = "analysis") -> tuple:
+    if isinstance(result, dict):
+        return result.get(report_key, result), result.get("summary", {})
+    return result, {}
 
 
 def make_nodes(openrouter_api_key: str = None) -> dict:
@@ -42,45 +46,46 @@ def make_nodes(openrouter_api_key: str = None) -> dict:
     @handle_node_errors("market_analyst")
     def run_market_analyst(state: AgentState) -> dict:
         result = market_agent.run(state)
-
+        report, summary = _extract_report(result)
         return {
-            "market_analyst_report": result,
-            "market_analyst_summary": result.get("summary", {}),
+            "market_analyst_report": report,
+            "market_analyst_summary": summary,
         }
 
     @handle_node_errors("fundamental_analyst")
     def run_fundamental_analyst(state: AgentState) -> dict:
         result = fundamental_agent.run(state)
-
+        report, summary = _extract_report(result)
         return {
-            "fundamental_analyst_report": result,
-            "fundamental_analyst_summary": result.get("summary", {}),
+            "fundamental_analyst_report": report,
+            "fundamental_analyst_summary": summary,
         }
 
     @handle_node_errors("technical_analyst")
     def run_technical_analyst(state: AgentState) -> dict:
         result = technical_agent.run(state)
-
+        report, summary = _extract_report(result)
         return {
-            "technical_analyst_report": result,
-            "technical_analyst_summary": result.get("summary", {}),
+            "technical_analyst_report": report,
+            "technical_analyst_summary": summary,
         }
 
     @handle_node_errors("news_analyst")
     def run_news_analyst(state: AgentState) -> dict:
         result = news_agent.run(state)
-
+        report, summary = _extract_report(result)
         return {
-            "news_analyst_report": result,
-            "news_analyst_summary": result.get("summary", {}),
+            "news_analyst_report": report,
+            "news_analyst_summary": summary,
         }
 
     @handle_node_errors("sector_analyst")
     def run_sector_analyst(state: AgentState) -> dict:
         result = sector_agent.run(state)
+        report, summary = _extract_report(result, "report")
         return {
-            "sector_analyst_report": result["report"],
-            "sector_analyst_summary": result["summary"],
+            "sector_analyst_report": report,
+            "sector_analyst_summary": summary,
         }
 
     @handle_node_errors("aggregator")

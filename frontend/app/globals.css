@@ -674,3 +674,46 @@ body {
     color: #f1f5f9 !important; /* slate-100 to prevent fading when selected */
   }
 }
+
+/* ─── Print Styles for Native PDF Generation ─── */
+@media print {
+  @page {
+    margin: 10mm;
+    size: auto;
+  }
+  
+  /* Hide UI elements that shouldn't be printed */
+  header, aside, nav, button, .ticker-tape-track {
+    display: none !important;
+  }
+
+  /* Reset layout constraints to let content flow naturally on paper */
+  html, body {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    background-color: white !important;
+  }
+
+  main {
+    height: auto !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .flex-1, .h-screen, .flex, .min-h-0 {
+    display: block !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Ensure page breaks don't happen inside critical sections */
+  section, .card {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}

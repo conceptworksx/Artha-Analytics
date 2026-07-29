@@ -77,10 +77,11 @@ export function AppSidebar({
         ))}
       </div>
 
-      <div className="mt-auto flex flex-col items-center gap-4 p-5">
-        <span className="font-mono text-[11px] tracking-wider text-[var(--muted-foreground)] opacity-75">
-          MADE BY CONCEPTWORKSX
-        </span>
+      <div className="mt-auto flex flex-col items-center gap-4 p-5 pb-8">
+        <div className="flex flex-col items-center gap-1 text-center">
+          <span className="font-semibold text-[13px] text-zinc-900">Artha Analytics</span>
+          <span className="text-[11px] text-zinc-500">Designed with precision.</span>
+        </div>
         <div className="h-px w-full bg-[var(--border)]" />
         <a
           href="https://github.com/conceptworksx/Agentic-Trade-v2"
@@ -135,7 +136,7 @@ export function AppSidebar({
 
   // ── Desktop: standard aside ──
   return (
-    <aside className="hidden md:flex w-60 shrink-0 flex-col overflow-y-auto border-r border-[var(--border)] bg-white">
+    <aside className="hidden md:flex h-full w-60 shrink-0 flex-col overflow-y-auto border-r border-[var(--border)] bg-white">
       {sidebarContent}
     </aside>
   );

@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { downloadPdf } from "@/lib/download";
+
 import { FormattedText } from "@/components/ui/FormattedText";
 import {
   TechnicalTrendChart,
@@ -32,11 +32,11 @@ export function TechnicalReportView({
   const containerRef = useRef<HTMLDivElement>(null);
   const canDownload = Boolean(reportData);
 
-  const handleDownloadPdf = async () => {
-    downloadPdf(filenameBase, JSON.stringify(reportData, null, 2));
+  const handleDownloadPdf = () => {
+    window.print();
   };
 
-  const analysis = reportData?.analysis || {};
+  const analysis = reportData?.analysis || reportData || {};
   const t = technicalData || {};
 
   const ma = t.moving_averages || {};
@@ -67,7 +67,7 @@ export function TechnicalReportView({
   return (
     <div ref={containerRef} className="mx-auto max-w-[920px]">
       <div className="mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        <h2 className="flex items-center gap-3 text-[18px] font-medium text-[var(--foreground)]">
+        <h2 className="flex items-center gap-3 text-[22px] font-semibold tracking-tight text-[var(--foreground)]">
           {accent && <span className="inline-block h-2.5 w-2.5" style={{ background: accent }} />}
           {title}
         </h2>
@@ -77,7 +77,7 @@ export function TechnicalReportView({
             onClick={handleDownloadPdf}
             className="flex items-center gap-1 rounded-md border border-[var(--cta)] bg-[var(--cta)] px-2.5 py-1 font-sans text-[11px] font-medium text-white transition-all hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 shadow-xs cursor-pointer"
           >
-            JSON
+            PDF
           </button>
         </div>
       </div>

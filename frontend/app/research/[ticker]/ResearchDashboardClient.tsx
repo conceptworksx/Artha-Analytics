@@ -201,13 +201,13 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
                 setData(null);
                 setRetryCount((prev) => prev + 1);
               }}
-              className="h-10 w-full sm:w-auto border border-[var(--foreground)] bg-[var(--foreground)] px-5 font-mono text-[12px] text-white rounded-lg shadow-sm transition-all hover:bg-[#333330]"
+              className="h-10 w-full sm:w-auto rounded-full bg-gradient-to-b from-zinc-800 to-zinc-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] px-6 font-sans text-[13px] font-medium text-white transition-all hover:scale-105 hover:from-zinc-700 hover:to-zinc-950 hover:shadow-md active:scale-95 cursor-pointer"
             >
               ↻ Retry
             </button>
             <button
               onClick={() => router.push("/search")}
-              className="flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-1.5 h-10 rounded-lg border border-black/10 bg-zinc-50/50 font-mono text-[13px] font-medium text-zinc-800 hover:bg-black hover:text-white transition-all duration-300 hover:shadow-md hover:border-black active:scale-[0.98]"
+              className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 h-10 rounded-full bg-gradient-to-b from-zinc-800 to-zinc-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] font-sans text-[13px] font-medium text-white transition-all hover:scale-105 hover:from-zinc-700 hover:to-zinc-950 hover:shadow-md active:scale-95 cursor-pointer"
             >
               <Search size={14} />
               <span>New Analysis</span>
@@ -223,9 +223,9 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
 
   // ── Dashboard ──────────────────────────────────────────────────────────
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-screen flex-col print:h-auto print:block">
       {/* Navbar */}
-      <header className="flex h-14 sm:h-16 shrink-0 items-center justify-between border-b border-[var(--border)] bg-white px-3 sm:px-5">
+      <header className="print:hidden flex h-14 sm:h-16 shrink-0 items-center justify-between border-b border-black/[0.04] bg-gradient-to-r from-white/60 via-amber-50/30 to-white/60 backdrop-blur-2xl px-3 sm:px-5 transition-all">
         <div className="flex items-center gap-2">
           <Link href="/">
             <img
@@ -241,7 +241,7 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
         <div className="flex items-center gap-2 sm:gap-4">
           <Link
             href="/search"
-            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 rounded-lg border border-black/10 bg-zinc-50/50 font-mono text-[11px] sm:text-[13px] font-medium text-zinc-800 hover:bg-black hover:text-white transition-all duration-300 hover:shadow-md hover:border-black active:scale-[0.98]"
+            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-gradient-to-b from-zinc-800 to-zinc-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] font-sans text-[11px] sm:text-[13px] font-medium text-white transition-all hover:scale-105 hover:from-zinc-700 hover:to-zinc-950 hover:shadow-md active:scale-95 cursor-pointer"
           >
             <Search size={14} />
             <span className="hidden sm:inline">New Analysis</span>
@@ -250,7 +250,7 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
       </header>
 
       {isMobile && (
-        <div className="flex overflow-x-auto border-b border-[var(--border)] bg-white px-2 py-2 hide-scrollbar">
+        <div className="print:hidden flex overflow-x-auto border-b border-[var(--border)] bg-white px-2 py-2 hide-scrollbar">
           <div className="flex space-x-2">
             {[
               { key: "overview", label: "Overview" },
@@ -276,17 +276,19 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
         </div>
       )}
 
-      <div className="flex min-h-0 flex-1">
+      <div className="flex min-h-0 flex-1 print:block print:min-h-0">
         {/* Desktop sidebar */}
         {!isMobile && (
-          <AppSidebar
-            active={view}
-            onSelect={setView}
-            isMobile={false}
-          />
+          <div className="print:hidden h-full">
+            <AppSidebar
+              active={view}
+              onSelect={setView}
+              isMobile={false}
+            />
+          </div>
         )}
 
-        <main ref={mainRef} className="flex-1 min-w-0 overflow-y-auto bg-[var(--background)] p-3 sm:p-4 md:p-6">
+        <main ref={mainRef} className="flex-1 min-w-0 overflow-y-auto bg-gradient-to-b from-[#fafafa] to-white p-3 sm:p-4 md:p-6 print:overflow-visible print:h-auto print:block print:w-full print:m-0 print:p-0">
           <ViewSwitch view={view} data={data} />
         </main>
       </div>

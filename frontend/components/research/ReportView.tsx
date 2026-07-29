@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { downloadMarkdown, downloadPdf } from "@/lib/download";
+
 
 export function ReportView({
   title,
@@ -23,14 +23,14 @@ export function ReportView({
   const canDownload = Boolean(content.trim());
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const handleDownloadPdf = async () => {
-    downloadPdf(filenameBase, content);
+  const handleDownloadPdf = () => {
+    window.print();
   };
 
   return (
     <div ref={containerRef} className="mx-auto max-w-[920px]">
       <div className="mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        <h2 className="flex items-center gap-3 text-[18px] font-medium text-[var(--foreground)]">
+        <h2 className="flex items-center gap-3 text-[22px] font-semibold tracking-tight text-[var(--foreground)]">
           {accent && (
             <span
               className="inline-block h-2.5 w-2.5"
@@ -42,7 +42,7 @@ export function ReportView({
         <div className="flex items-center gap-4">
           <button
             onClick={handleDownloadPdf}
-            className="flex items-center gap-1 rounded-md border border-[var(--cta)] bg-[var(--cta)] px-2.5 py-1 font-sans text-[11px] font-medium text-white transition-all hover:opacity-90 active:scale-95 shadow-xs cursor-pointer"
+            className="flex items-center gap-1.5 rounded-md bg-gradient-to-b from-zinc-800 to-zinc-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] px-3 py-1.5 font-sans text-[11px] font-medium text-white transition-all hover:scale-105 hover:from-zinc-700 hover:to-zinc-950 hover:shadow-md active:scale-95 cursor-pointer"
           >
             PDF
           </button>
@@ -64,7 +64,7 @@ export function ReportView({
 
 export function Markdown({ content }: { content: string }) {
   return (
-    <div className="prose max-w-none">
+    <div className="prose prose-zinc max-w-none prose-headings:font-medium prose-h3:text-[16px] prose-p:text-[14.5px] prose-p:leading-relaxed prose-a:text-blue-600 prose-li:text-[14.5px]">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{

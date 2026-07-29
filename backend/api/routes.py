@@ -54,7 +54,7 @@ limiter = Limiter(key_func=get_remote_address)
 
 # ── Error map ───────────────────────────────────────────────────────────────────
 _ERROR_MAP: dict[type, tuple[int, str]] = {
-    AuthenticationError: (401, "invalid_groq_api_key"),
+    AuthenticationError: (401, "invalid_api_key"),
     LLMRateLimitError: (429, "llm_rate_limit"),
     TokenLimitError: (422, "token_limit_exceeded"),
     ModelUnavailableError: (503, "llm_unavailable"),
@@ -234,7 +234,10 @@ async def analyze(
     ):
         raise HTTPException(
             status_code=401,
-            detail={"error": "invalid_api_key", "message": "OpenRouter API Key is required."},
+            detail={
+                "error": "invalid_api_key",
+                "message": "OpenRouter API Key is required.",
+            },
         )
 
     # Validate API key format
@@ -291,30 +294,30 @@ async def analyze(
                 ticker=ticker,
                 result={
                     "news_analyst_report": final_state.get("news_analyst_report", {}),
-                    "news_analyst_summary": final_state.get("news_analyst_summary", ""),
+                    "news_analyst_summary": final_state.get("news_analyst_summary", {}),
                     "technical_analyst_report": final_state.get(
                         "technical_analyst_report", {}
                     ),
                     "technical_analyst_summary": final_state.get(
-                        "technical_analyst_summary", ""
+                        "technical_analyst_summary", {}
                     ),
                     "fundamental_analyst_report": final_state.get(
                         "fundamental_analyst_report", {}
                     ),
                     "fundamental_analyst_summary": final_state.get(
-                        "fundamental_analyst_summary", ""
+                        "fundamental_analyst_summary", {}
                     ),
                     "market_analyst_report": final_state.get(
                         "market_analyst_report", {}
                     ),
                     "market_analyst_summary": final_state.get(
-                        "market_analyst_summary", ""
+                        "market_analyst_summary", {}
                     ),
                     "sector_analyst_report": final_state.get(
-                        "sector_analyst_report", ""
+                        "sector_analyst_report", {}
                     ),
                     "sector_analyst_summary": final_state.get(
-                        "sector_analyst_summary", ""
+                        "sector_analyst_summary", {}
                     ),
                     "company_info": data_bundle.get("company_info"),
                     "historical_prices": data_bundle.get("historical_prices"),
@@ -322,7 +325,9 @@ async def analyze(
                     "fundamental_data": data_bundle.get("fundamental_data"),
                     "technical_data": data_bundle.get("technical_data"),
                     "market_data": data_bundle.get("market_data"),
-                    "company_news": data_bundle.get("news_data", {}).get("company_news"),
+                    "company_news": data_bundle.get("news_data", {}).get(
+                        "company_news"
+                    ),
                     "indian_news": data_bundle.get("news_data", {}).get("indian_news"),
                     "global_news": data_bundle.get("news_data", {}).get("global_news"),
                 },
@@ -335,7 +340,7 @@ async def analyze(
             technical_report=final_state.get("technical_analyst_report", {}),
             fundamental_report=final_state.get("fundamental_analyst_report", {}),
             market_report=final_state.get("market_analyst_report", {}),
-            sector_report=final_state.get("sector_analyst_report", ""),
+            sector_report=final_state.get("sector_analyst_report", {}),
             company_info=data_bundle.get("company_info"),
             historical_prices=data_bundle.get("historical_prices"),
             charts_data=final_state.get("charts_data"),

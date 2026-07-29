@@ -5,22 +5,21 @@ import { motion, useInView } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  TrendingUp,
   Brain,
   Zap,
   Search,
   Bot,
   FileText,
   ArrowRight,
-  BarChart3,
-  Shield,
-  LineChart,
   User,
+  Activity,
+  Layers
 } from "lucide-react";
 import { MdErrorOutline } from "react-icons/md";
 import { getAuthUser, clearAuthSession, getSavedOpenRouterApiKey, type AuthUser } from "@/lib/api";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { ProfileDialog } from "@/components/auth/ProfileDialog";
+import { Footer } from "@/components/layout/Footer";
 
 let hasHydrated = false;
 
@@ -44,8 +43,8 @@ export function HomePage() {
 
   const featuresRef = useRef(null);
   const howItWorksRef = useRef(null);
-  const featuresInView = useInView(featuresRef, { once: true, margin: "-80px" });
-  const howInView = useInView(howItWorksRef, { once: true, margin: "-80px" });
+  const featuresInView = useInView(featuresRef, { once: true, margin: "-100px" });
+  const howInView = useInView(howItWorksRef, { once: true, margin: "-100px" });
 
   useEffect(() => {
     hasHydrated = true;
@@ -83,73 +82,63 @@ export function HomePage() {
     }
   }, [user]);
 
-
+  if (!mounted) return null;
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-white text-black">
-      {/* Animated background aurora */}
-      <div className="pointer-events-none fixed inset-0 -z-10">
+    <div className="relative min-h-screen bg-[#fafafa] text-zinc-900 selection:bg-amber-100 font-sans">
+
+      {/* Mesh Gradient Ambient Glows */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden flex justify-center">
+        {/* Amber Orb */}
         <motion.div
-          className="absolute -top-60 -left-60 h-[600px] w-[600px] rounded-full bg-[#d4a84c]/15 blur-[100px]"
-          animate={{ x: [0, 120, 0], y: [0, 80, 0] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-[10%] -left-[10%] w-[600px] h-[600px] rounded-[100%] bg-amber-400/15 blur-[120px]"
+          animate={{ x: [0, 50, 0], y: [0, 30, 0], scale: [1, 1.1, 1] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         />
+        {/* Peach/Rose Orb */}
         <motion.div
-          className="absolute -bottom-40 -right-40 h-[500px] w-[500px] rounded-full bg-black/8 blur-[80px]"
-          animate={{ x: [0, -80, 0], y: [0, -60, 0] }}
-          transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[20%] -right-[10%] w-[500px] h-[500px] rounded-[100%] bg-rose-400/10 blur-[120px]"
+          animate={{ x: [0, -40, 0], y: [0, 50, 0], scale: [1, 1.2, 1] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1 }}
         />
+        {/* Soft Violet Orb */}
         <motion.div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[400px] w-[400px] rounded-full bg-[#d4a84c]/8 blur-[120px]"
-          animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -bottom-[20%] left-[20%] w-[700px] h-[500px] rounded-[100%] bg-violet-400/10 blur-[120px]"
+          animate={{ x: [0, 60, 0], y: [0, -40, 0], scale: [1, 1.05, 1] }}
+          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay: 2 }}
         />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(0,0,0,0.04)_1px,transparent_0)] [background-size:32px_32px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
       </div>
 
-      {/* Floating particles */}
-      {mounted &&
-        Array.from({ length: 20 }).map((_, i) => (
-          <motion.span
-            key={i}
-            className="pointer-events-none absolute h-1 w-1 rounded-full bg-[#d4a84c]/40"
-            style={{ left: `${(i * 53 + 7) % 100}%`, top: `${(i * 37 + 13) % 100}%` }}
-            animate={{ y: [0, -40, 0], opacity: [0.1, 0.7, 0.1] }}
-            transition={{ duration: 5 + (i % 4), repeat: Infinity, delay: i * 0.3, ease: "easeInOut" }}
-          />
-        ))}
-
       {/* ─── Navbar ─── */}
-      <header className="sticky top-0 z-50 flex h-14 sm:h-16 items-center justify-between border-b border-black/5 bg-white/70 px-3 sm:px-6 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center justify-between border-b border-black/[0.04] bg-gradient-to-r from-white/60 via-amber-50/30 to-white/60 px-4 sm:px-8 backdrop-blur-2xl transition-all">
         <div className="flex items-center gap-2">
           <Link href="/">
-            <img src="/navbar.png" alt="Artha Analytics" className="h-10 sm:h-14 object-contain cursor-pointer" />
+            <img src="/navbar.png" alt="Artha Analytics" className="h-12 object-contain cursor-pointer transition-transform hover:scale-[1.02]" />
           </Link>
         </div>
         {user ? (
-          <div className="flex items-center gap-2 sm:gap-4 font-mono text-[12px] text-neutral-700">
+          <div className="flex items-center gap-3 font-mono text-[13px] text-zinc-600">
             <button
               type="button"
               onClick={() => setShowProfile(true)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all font-semibold tracking-wider cursor-pointer shadow-sm animate-none ${
-                hasApiKey
-                  ? "border-black/10 hover:border-[#d4a84c]/50 bg-neutral-50/50 hover:bg-neutral-50 text-neutral-700 hover:text-[#d4a84c]"
-                  : "border-red-500 hover:border-red-600 bg-red-50/30 hover:bg-red-50 text-red-600 font-bold"
-              }`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all font-semibold tracking-wide cursor-pointer shadow-sm ${hasApiKey
+                  ? "border-black/5 hover:border-black/10 bg-white hover:bg-zinc-50 text-zinc-800 hover:shadow-md"
+                  : "border-red-200 hover:border-red-300 bg-red-50 text-red-600"
+                }`}
             >
               {hasApiKey ? (
-                <User size={13} className="text-[#d4a84c]" />
+                <User size={14} className="text-zinc-400" />
               ) : (
-                <MdErrorOutline size={14} className="text-red-500 animate-pulse shrink-0" />
+                <MdErrorOutline size={15} className="text-red-500 animate-pulse shrink-0" />
               )}
-              <span className="truncate max-w-[80px] sm:max-w-[150px]">{user.name || user.email.split("@")[0]}</span>
+              <span className="truncate max-w-[100px] sm:max-w-[200px]">{user.name || user.email.split("@")[0]}</span>
               {!hasApiKey && <span className="text-[11px] font-bold text-red-500">!</span>}
             </button>
-            <span className="h-4 w-px bg-black/10 hidden sm:block" />
             <button
               type="button"
               onClick={handleLogout}
-              className="hidden sm:block text-black hover:text-[#d4a84c] transition-colors font-semibold tracking-wider cursor-pointer"
+              className="text-zinc-400 hover:text-zinc-800 transition-colors font-semibold tracking-wider cursor-pointer text-[10px] sm:text-[12px] ml-1 sm:ml-0"
             >
               LOGOUT
             </button>
@@ -157,8 +146,8 @@ export function HomePage() {
         ) : (
           <button
             id="nav-auth-btn"
-            onClick={handleAuth}
-            className="rounded-full bg-black px-5 py-2 font-mono text-[11px] font-semibold tracking-[0.2em] text-white transition-all hover:bg-neutral-800 hover:shadow-lg cursor-pointer"
+            onClick={() => setShowAuth(true)}
+            className="rounded-full bg-gradient-to-b from-zinc-800 to-zinc-950 shadow-inner shadow-white/10 px-6 py-2.5 font-mono text-[12px] font-semibold tracking-wider text-white transition-all hover:from-zinc-700 hover:to-zinc-950 hover:shadow-lg hover:scale-105 active:scale-95 cursor-pointer"
           >
             LOGIN / SIGN UP
           </button>
@@ -166,209 +155,198 @@ export function HomePage() {
       </header>
 
       {/* ─── Hero Section ─── */}
-      <section className="relative flex min-h-[70vh] sm:min-h-[85vh] flex-col items-center justify-center px-4 sm:px-6 py-12 sm:py-20 text-center">
-        {/* Candlestick decoration */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1, ease: "easeOut" }}
-          className="mb-8"
-        >
-          <div className="candle-wrapper">
-            <div className="candle-chart">
-              {Array.from({ length: 18 }).map((_, i) => (
-                <div key={i} className="candle" />
-              ))}
-            </div>
-          </div>
-        </motion.div>
+      <section className="relative flex min-h-[65vh] flex-col items-center justify-center px-4 sm:px-6 py-12 text-center">
 
-        {/* Title */}
+
+        {/* Master Headline */}
         <motion.h1
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="text-3xl font-bold tracking-tight text-black sm:text-5xl md:text-6xl lg:text-7xl"
+          transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-4xl text-5xl font-extrabold tracking-tight text-zinc-900 sm:text-6xl md:text-7xl lg:leading-[1.1]"
         >
-          Artha{" "}
-          <span className="bg-gradient-to-r from-[#d4a84c] via-[#f0c97a] to-[#d4a84c] bg-clip-text text-transparent">
-            Analytics
+          Institutional-Grade Equity Research.{" "}
+          <span className="bg-gradient-to-br from-amber-500 to-amber-700 bg-clip-text text-transparent">
+            In 60 Seconds.
           </span>
         </motion.h1>
 
+        {/* Catchy Subheadline */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          className="mt-4 max-w-xl font-mono text-[11px] sm:text-[13px] leading-relaxed tracking-wider text-neutral-700 px-2 sm:px-0"
+          transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-6 max-w-2xl text-[16px] sm:text-[19px] leading-relaxed text-zinc-500"
         >
-          AI-POWERED MULTI-AGENT EQUITY RESEARCH FOR INDIAN MARKETS.
-          <br />
-          5 SPECIALIZED AI AGENTS ANALYZE EVERY STOCK IN UNDER 60 SECONDS.
+          Artha Analytics deploys a swarm of 5 specialized AI agents to analyze any NSE stock—debating technicals, fundamentals, and market sentiment to give you the ultimate trading edge.
         </motion.p>
 
         {/* CTA Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.7 }}
-          className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:gap-5"
+          transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:gap-6"
         >
           {user ? (
             <button
-              id="hero-go-search-btn"
               onClick={() => router.push("/search")}
-              className="group relative overflow-hidden rounded-full bg-black px-5 sm:px-8 py-3 sm:py-3.5 font-mono text-[11px] sm:text-[12px] font-semibold tracking-[0.15em] sm:tracking-[0.25em] text-white shadow-xl transition-all hover:shadow-2xl hover:scale-[1.02] cursor-pointer"
+              className="group flex h-14 items-center gap-2 rounded-full bg-gradient-to-b from-zinc-800 to-zinc-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] px-8 py-3.5 text-[15px] font-semibold tracking-wide text-white transition-all hover:scale-[1.02] hover:from-zinc-700 hover:to-zinc-950 hover:shadow-2xl active:scale-95 cursor-pointer"
             >
-              <span className="relative z-10 flex items-center gap-2">
-                <Search size={15} />
-                GO TO SEARCH DASHBOARD
-                <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
-              </span>
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-[#d4a84c] via-[#f0c97a] to-[#d4a84c]"
-                initial={{ x: "-100%" }}
-                whileHover={{ x: 0 }}
-                transition={{ duration: 0.4 }}
-              />
+              <Search size={18} />
+              Open Search Dashboard
+              <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
             </button>
           ) : (
             <>
               <button
-                id="hero-try-search-btn"
                 onClick={handleTrySearch}
-                className="group relative overflow-hidden rounded-full bg-black px-5 sm:px-8 py-3 sm:py-3.5 font-mono text-[11px] sm:text-[12px] font-semibold tracking-[0.15em] sm:tracking-[0.25em] text-white shadow-xl transition-all hover:shadow-2xl hover:scale-[1.02] cursor-pointer"
+                className="group flex h-14 items-center gap-3 rounded-full bg-zinc-900 px-8 text-[15px] font-semibold tracking-wide text-white shadow-xl shadow-zinc-900/10 transition-all hover:scale-105 hover:bg-black hover:shadow-2xl active:scale-95 cursor-pointer"
               >
-                <span className="relative z-10 flex items-center gap-2">
-                  <Search size={15} />
-                  TRY FREE SEARCH
-                  <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
-                </span>
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-[#d4a84c] via-[#f0c97a] to-[#d4a84c]"
-                  initial={{ x: "-100%" }}
-                  whileHover={{ x: 0 }}
-                  transition={{ duration: 0.4 }}
-                />
+                Start Free Analysis
+                <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
               </button>
-
               <button
-                id="hero-auth-btn"
                 onClick={handleAuth}
-                className="rounded-full border border-black/20 bg-white text-black px-5 sm:px-8 py-3 sm:py-3.5 font-mono text-[11px] sm:text-[12px] font-semibold tracking-[0.15em] sm:tracking-[0.25em] transition-all hover:border-black hover:bg-neutral-50 cursor-pointer"
+                className="flex h-14 items-center justify-center rounded-full border border-black/10 bg-white px-8 text-[15px] font-semibold tracking-wide text-zinc-700 shadow-sm transition-all hover:scale-105 hover:border-black/20 hover:bg-zinc-50 hover:shadow-md active:scale-95 cursor-pointer"
               >
-                <span className="flex items-center gap-2">
-                  LOGIN / SIGN UP
-                  <ArrowRight size={14} />
-                </span>
+                Log In
               </button>
             </>
           )}
         </motion.div>
 
-        {/* Scroll indicator */}
-        <motion.div
-          className="absolute bottom-8 hidden sm:block"
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <div className="flex flex-col items-center gap-1">
-            <span className="font-mono text-[9px] tracking-[0.3em] text-neutral-600">SCROLL</span>
-            <div className="h-6 w-px bg-gradient-to-b from-neutral-400 to-transparent" />
-          </div>
-        </motion.div>
+
       </section>
 
-      {/* ─── Features Section ─── */}
-      <section ref={featuresRef} className="relative px-4 sm:px-6 py-12 sm:py-24">
-        <div className="mx-auto max-w-5xl">
+      {/* ─── Bento Grid Features ─── */}
+      <section className="relative bg-gradient-to-b from-white to-amber-50/10 px-4 py-12 lg:py-16 sm:px-8">
+        <div className="mx-auto max-w-6xl">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={featuresInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.7 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="mb-16 text-center"
           >
-            <p className="font-mono text-[10px] tracking-[0.4em] text-[#d4a84c]">WHAT WE OFFER</p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-              Intelligence, Not Guesswork
+            <h2 className="text-3xl font-bold tracking-tight text-zinc-900 sm:text-5xl">
+              Intelligence, Not Guesswork.
             </h2>
+            <p className="mt-4 text-[17px] text-zinc-500">
+              The power of an entire research desk, distilled into a single platform.
+            </p>
           </motion.div>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              {
-                icon: <Brain size={24} />,
-                title: "Multi-Agent AI",
-                desc: "5 specialized AI agents — Technical, Fundamental, News, Market & Sector — debate and analyze every stock from multiple angles.",
-              },
-              {
-                icon: <BarChart3 size={24} />,
-                title: "Deep Market Intelligence",
-                desc: "Comprehensive analysis covering price action, financial health, industry trends, breaking news, and macro indicators.",
-              },
-              {
-                icon: <Zap size={24} />,
-                title: "60-Second Reports",
-                desc: "Get institutional-grade equity research reports generated in under a minute. Complete with charts and actionable insights.",
-              },
-            ].map((f, i) => (
-              <motion.div
-                key={f.title}
-                initial={{ opacity: 0, y: 40 }}
-                animate={featuresInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.6, delay: 0.15 * i }}
-                className="group relative overflow-hidden rounded-2xl border border-black/5 bg-white/60 p-5 sm:p-8 backdrop-blur-md transition-all hover:border-[#d4a84c]/30 hover:shadow-xl"
-              >
-                <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-[#d4a84c]/5 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-                <div className="relative">
-                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-black text-white transition-colors group-hover:bg-[#d4a84c]">
-                    {f.icon}
-                  </div>
-                  <h3 className="mb-2 text-lg font-bold">{f.title}</h3>
-                  <p className="text-sm leading-relaxed text-neutral-800">{f.desc}</p>
-                </div>
-              </motion.div>
-            ))}
+            {/* Feature 1 (Spans 2 columns on large screens) */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+              className="group relative overflow-hidden rounded-[2rem] border border-black/[0.04] bg-[#fafafa] p-8 transition-all hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:border-transparent hover:ring-1 hover:ring-amber-500/20 hover:bg-gradient-to-br hover:from-white hover:to-amber-50/50 lg:col-span-2"
+            >
+              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm border border-black/[0.02] text-amber-600 transition-transform group-hover:scale-110">
+                <Brain size={28} />
+              </div>
+              <h3 className="mb-3 text-2xl font-bold text-zinc-900">Multi-Agent Debate System</h3>
+              <p className="max-w-md text-[16px] leading-relaxed text-zinc-500">
+                Five specialized AI personas—Technical, Fundamental, Market, Sector, and News—analyze the exact same stock in parallel, cross-referencing insights to give you an unbiased, bulletproof thesis.
+              </p>
+            </motion.div>
+
+            {/* Feature 2 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="group relative overflow-hidden rounded-[2rem] border border-black/[0.04] bg-[#fafafa] p-8 transition-all hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:border-transparent hover:ring-1 hover:ring-amber-500/20 hover:bg-gradient-to-br hover:from-white hover:to-amber-50/50"
+            >
+              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm border border-black/[0.02] text-amber-600 transition-transform group-hover:scale-110">
+                <Zap size={28} />
+              </div>
+              <h3 className="mb-3 text-2xl font-bold text-zinc-900">60-Second Reports</h3>
+              <p className="text-[16px] leading-relaxed text-zinc-500">
+                What takes an analyst hours, our AI does in seconds. Get deeply researched, beautifully formatted PDF reports instantly.
+              </p>
+            </motion.div>
+
+            {/* Feature 3 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="group relative overflow-hidden rounded-[2rem] border border-black/[0.04] bg-[#fafafa] p-8 transition-all hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:border-transparent hover:ring-1 hover:ring-amber-500/20 hover:bg-gradient-to-br hover:from-white hover:to-amber-50/50"
+            >
+              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm border border-black/[0.02] text-amber-600 transition-transform group-hover:scale-110">
+                <Activity size={28} />
+              </div>
+              <h3 className="mb-3 text-2xl font-bold text-zinc-900">Deep Technicals</h3>
+              <p className="text-[16px] leading-relaxed text-zinc-500">
+                Automated RSI, MACD, Bollinger Bands, and Moving Averages translated into plain English actionable trends.
+              </p>
+            </motion.div>
+
+            {/* Feature 4 (Spans 2 columns) */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="group relative overflow-hidden rounded-[2rem] border border-black/[0.04] bg-[#fafafa] p-8 transition-all hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:border-transparent hover:ring-1 hover:ring-amber-500/20 hover:bg-gradient-to-br hover:from-white hover:to-amber-50/50 lg:col-span-2"
+            >
+              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm border border-black/[0.02] text-amber-600 transition-transform group-hover:scale-110">
+                <Layers size={28} />
+              </div>
+              <h3 className="mb-3 text-2xl font-bold text-zinc-900">Pristine Dashboard UI</h3>
+              <p className="max-w-md text-[16px] leading-relaxed text-zinc-500">
+                A gorgeous, native-feeling dashboard complete with dynamic SVG charts, tabular data parsing, and structured navigation. It’s complex financial data, made beautiful.
+              </p>
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* ─── How It Works ─── */}
-      <section ref={howItWorksRef} className="relative border-t border-black/5 bg-neutral-50/50 px-4 sm:px-6 py-12 sm:py-24">
-        <div className="mx-auto max-w-4xl">
+      <section className="relative bg-gradient-to-b from-amber-50/10 to-rose-50/10 px-4 py-12 lg:py-16 sm:px-8 border-t border-black/[0.04]">
+        <div className="mx-auto max-w-5xl">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={howInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.7 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="mb-16 text-center"
           >
-            <p className="font-mono text-[10px] tracking-[0.4em] text-[#d4a84c]">HOW IT WORKS</p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-              Three Steps to Clarity
+            <h2 className="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">
+              Three Steps to Clarity.
             </h2>
           </motion.div>
 
           <div className="grid gap-8 sm:grid-cols-3">
             {[
-              { icon: <Search size={28} />, step: "01", title: "Search", desc: "Enter any NSE-listed stock ticker" },
-              { icon: <Bot size={28} />, step: "02", title: "Analyze", desc: "5 AI agents process the stock in parallel" },
-              { icon: <FileText size={28} />, step: "03", title: "Report", desc: "Get a comprehensive research report" },
+              { icon: <Search size={28} />, step: "1", title: "Search", desc: "Enter any NSE-listed stock ticker to begin the process." },
+              { icon: <Bot size={28} />, step: "2", title: "Analyze", desc: "Our 5 AI agents fetch data and debate in parallel." },
+              { icon: <FileText size={28} />, step: "3", title: "Report", desc: "Instantly view the stunning, interactive dashboard." },
             ].map((s, i) => (
               <motion.div
                 key={s.step}
-                initial={{ opacity: 0, y: 30 }}
-                animate={howInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.6, delay: 0.2 * i }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.8, delay: 0.2 + (i * 0.1), ease: [0.16, 1, 0.3, 1] }}
                 className="relative text-center"
               >
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-black/10 bg-white shadow-sm">
+                <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[1.5rem] border border-black/[0.04] bg-white shadow-sm text-zinc-700">
                   {s.icon}
                 </div>
-                <p className="font-mono text-[10px] tracking-[0.3em] text-[#d4a84c]">STEP {s.step}</p>
-                <h3 className="mt-2 text-xl font-bold">{s.title}</h3>
-                <p className="mt-2 text-sm text-neutral-700">{s.desc}</p>
+                <h3 className="text-xl font-bold text-zinc-900">Step {s.step}: {s.title}</h3>
+                <p className="mt-2 px-4 text-[15px] text-zinc-500">{s.desc}</p>
+
+                {/* Connecting lines for desktop */}
                 {i < 2 && (
-                  <div className="absolute right-0 top-8 hidden h-px w-8 translate-x-full bg-black/10 sm:block" />
+                  <div className="absolute right-0 top-10 hidden w-[calc(100%-5rem)] translate-x-[50%] border-t-[1.5px] border-dashed border-black/10 sm:block" />
                 )}
               </motion.div>
             ))}
@@ -377,31 +355,26 @@ export function HomePage() {
           {/* Bottom CTA */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={howInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.8 }}
-            className="mt-16 text-center"
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.8, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-20 flex justify-center"
           >
             {user ? (
               <button
-                id="bottom-go-search-btn"
                 onClick={() => router.push("/search")}
-                className="group rounded-full bg-black px-8 py-3.5 font-mono text-[12px] font-semibold tracking-[0.25em] text-white shadow-lg transition-all hover:shadow-xl hover:scale-[1.02] cursor-pointer"
+                className="group mt-6 flex h-14 sm:h-14 w-full max-w-[280px] sm:max-w-none sm:w-auto items-center justify-center gap-2 rounded-full bg-gradient-to-b from-zinc-800 to-zinc-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] px-6 sm:px-8 text-[14px] sm:text-[15px] font-semibold tracking-wide text-white transition-all hover:scale-[1.02] hover:from-zinc-700 hover:to-zinc-950 hover:shadow-2xl active:scale-95 cursor-pointer"
               >
-                <span className="flex items-center gap-2">
-                  GO TO SEARCH DASHBOARD
-                  <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
-                </span>
+                Enter the Dashboard
+                <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
               </button>
             ) : (
               <button
-                id="bottom-try-search-btn"
                 onClick={handleTrySearch}
-                className="group rounded-full bg-black px-8 py-3.5 font-mono text-[12px] font-semibold tracking-[0.25em] text-white shadow-lg transition-all hover:shadow-xl hover:scale-[1.02] cursor-pointer"
+                className="group mt-6 flex h-12 sm:h-14 w-full max-w-[280px] sm:max-w-none sm:w-auto items-center justify-center gap-2 rounded-full bg-zinc-900 px-6 sm:px-10 text-[14px] sm:text-[15px] font-semibold tracking-wide text-white shadow-xl shadow-zinc-900/10 transition-all hover:scale-[1.02] hover:bg-black hover:shadow-2xl active:scale-95 cursor-pointer"
               >
-                <span className="flex items-center gap-2">
-                  START FREE ANALYSIS
-                  <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
-                </span>
+                Start Free Analysis
+                <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
               </button>
             )}
           </motion.div>
@@ -409,28 +382,7 @@ export function HomePage() {
       </section>
 
       {/* ─── Footer ─── */}
-      <footer className="w-full border-t border-black/10 bg-neutral-50 py-10 text-center">
-        <div className="flex flex-col items-center justify-center space-y-4">
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-[11px] font-bold tracking-widest text-neutral-700">ARTHA ANALYTICS</span>
-            <span className="h-3 w-px bg-neutral-300" />
-            <span className="font-mono text-[11px] font-semibold tracking-wider text-neutral-600">NSE EQUITY INDIA</span>
-          </div>
-          <span className="font-mono text-[10px] tracking-wider text-neutral-500">BUILT WITH AI FOR NEXT-GEN RESEARCH</span>
-          <div className="h-px w-32 bg-black/5" />
-          <a
-            href="https://github.com/conceptworksx/Agentic-Trade-v2"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group inline-flex items-center gap-2 font-mono text-[11px] font-semibold tracking-wider text-neutral-600 transition-colors hover:text-blue-700"
-          >
-            <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" className="transition-transform group-hover:scale-110">
-              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
-            </svg>
-            CONTRIBUTE ON GITHUB
-          </a>
-        </div>
-      </footer>
+      <Footer />
 
       {showAuth && (
         <AuthCard
