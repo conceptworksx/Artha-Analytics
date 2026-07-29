@@ -5,12 +5,13 @@ import Fuse from "fuse.js";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { User } from "lucide-react";
+import { User, ArrowRight } from "lucide-react";
 import { MdErrorOutline } from "react-icons/md";
-import { clearCached, getSavedGroqApiKey, type AuthUser } from "@/lib/api";
+import { clearCached, getSavedOpenRouterApiKey, type AuthUser } from "@/lib/api";
 import { LoadingView } from "./LoadingView";
 import { ProfileDialog } from "@/components/auth/ProfileDialog";
 import { BYOKModal } from "./BYOKModal";
+import { Footer } from "@/components/layout/Footer";
 
 let hasHydrated = false;
 
@@ -39,7 +40,7 @@ export function SearchView({
   const [showProfile, setShowProfile] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(() => {
     if (typeof window !== "undefined" && hasHydrated) {
-      return !!getSavedGroqApiKey()?.trim();
+      return !!getSavedOpenRouterApiKey()?.trim();
     }
     return true;
   });
@@ -49,7 +50,7 @@ export function SearchView({
 
   useEffect(() => {
     hasHydrated = true;
-    setHasApiKey(!!getSavedGroqApiKey()?.trim());
+    setHasApiKey(!!getSavedOpenRouterApiKey()?.trim());
   }, []);
 
   useEffect(() => {
@@ -127,7 +128,7 @@ export function SearchView({
     const target = t || selected;
     if (!target) return;
 
-    const key = getSavedGroqApiKey();
+    const key = getSavedOpenRouterApiKey();
     if (!key || !key.trim()) {
       setTickerToAnalyse(target);
       setIsModalOpen(true);
@@ -158,112 +159,89 @@ export function SearchView({
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-white text-black">
-      {/* Animated background aurora & particles container */}
-      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+    <div className="relative min-h-screen bg-[#fafafa] text-zinc-900 selection:bg-amber-100 font-sans flex flex-col">
+      
+      {/* Mesh Gradient Ambient Glows */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden flex justify-center">
+        {/* Amber Orb */}
         <motion.div
-          className="absolute -top-60 -left-60 h-[600px] w-[600px] rounded-full bg-[#d4a84c]/15 blur-[100px]"
-          animate={{ x: [0, 120, 0], y: [0, 80, 0] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-[10%] -left-[10%] w-[600px] h-[600px] rounded-[100%] bg-amber-400/15 blur-[120px]"
+          animate={{ x: [0, 50, 0], y: [0, 30, 0], scale: [1, 1.1, 1] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         />
+        {/* Peach/Rose Orb */}
         <motion.div
-          className="absolute -bottom-40 -right-40 h-[500px] w-[500px] rounded-full bg-black/8 blur-[80px]"
-          animate={{ x: [0, -80, 0], y: [0, -60, 0] }}
-          transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[20%] -right-[10%] w-[500px] h-[500px] rounded-[100%] bg-rose-400/10 blur-[120px]"
+          animate={{ x: [0, -40, 0], y: [0, 50, 0], scale: [1, 1.2, 1] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1 }}
         />
+        {/* Soft Violet Orb */}
         <motion.div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[400px] w-[400px] rounded-full bg-[#d4a84c]/8 blur-[120px]"
-          animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -bottom-[20%] left-[20%] w-[700px] h-[500px] rounded-[100%] bg-violet-400/10 blur-[120px]"
+          animate={{ x: [0, 60, 0], y: [0, -40, 0], scale: [1, 1.05, 1] }}
+          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay: 2 }}
         />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(0,0,0,0.04)_1px,transparent_0)] [background-size:32px_32px]" />
-
-        {/* Floating gold particles */}
-        {Array.from({ length: 20 }).map((_, i) => (
-          <motion.span
-            key={i}
-            className="absolute h-1 w-1 rounded-full bg-[#d4a84c]/40"
-            style={{
-              left: `${(i * 53 + 7) % 100}%`,
-              top: `${(i * 37 + 13) % 100}%`,
-            }}
-            animate={{ y: [0, -40, 0], opacity: [0.1, 0.7, 0.1] }}
-            transition={{
-              duration: 5 + (i % 4),
-              repeat: Infinity,
-              delay: i * 0.3,
-              ease: "easeInOut",
-            }}
-          />
-        ))}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
       </div>
 
-      {/* Navbar matching report page style */}
-      <header className="flex h-14 sm:h-16 shrink-0 items-center justify-between border-b border-black/10 bg-white/70 backdrop-blur-md px-3 sm:px-5 w-full z-10">
-        <div className="flex items-center">
+      {/* ─── Navbar ─── */}
+      <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center justify-between border-b border-black/[0.04] bg-gradient-to-r from-white/60 via-amber-50/30 to-white/60 px-4 sm:px-8 backdrop-blur-2xl transition-all">
+        <div className="flex items-center gap-2">
           <Link href="/">
-            <img
-              src="/navbar.png"
-              alt="Artha Analytics"
-              className="h-10 sm:h-14 object-contain cursor-pointer"
-            />
+            <img src="/navbar.png" alt="Artha Analytics" className="h-12 object-contain cursor-pointer transition-transform hover:scale-[1.02]" />
           </Link>
         </div>
-
         {user && onLogout ? (
-          <div className="flex items-center gap-2 sm:gap-4 font-mono text-[12px] text-[var(--muted-foreground)]">
+          <div className="flex items-center gap-3 font-mono text-[13px] text-zinc-600">
             <button
               type="button"
               onClick={() => setShowProfile(true)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all font-semibold tracking-wider cursor-pointer shadow-sm animate-none ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all font-semibold tracking-wide cursor-pointer shadow-sm ${
                 hasApiKey
-                  ? "border-black/10 hover:border-[#d4a84c]/50 bg-neutral-50/50 hover:bg-neutral-50 text-neutral-700 hover:text-[#d4a84c]"
-                  : "border-red-500 hover:border-red-600 bg-red-50/30 hover:bg-red-50 text-red-600 font-bold"
+                  ? "border-black/5 hover:border-black/10 bg-white hover:bg-zinc-50 text-zinc-800 hover:shadow-md"
+                  : "border-red-200 hover:border-red-300 bg-red-50 text-red-600"
               }`}
             >
               {hasApiKey ? (
-                <User size={13} className="text-[#d4a84c]" />
+                <User size={14} className="text-zinc-400" />
               ) : (
-                <MdErrorOutline
-                  size={14}
-                  className="text-red-500 animate-pulse shrink-0"
-                />
+                <MdErrorOutline size={15} className="text-red-500 animate-pulse shrink-0" />
               )}
-              <span className="truncate max-w-[80px] sm:max-w-[150px]">
-                {user.name || user.email.split("@")[0]}
-              </span>
-              {!hasApiKey && (
-                <span className="text-[11px] font-bold text-red-500">!</span>
-              )}
+              <span className="truncate max-w-[100px] sm:max-w-[200px]">{user.name || user.email.split("@")[0]}</span>
+              {!hasApiKey && <span className="text-[11px] font-bold text-red-500">!</span>}
             </button>
-            <span className="h-4 w-px bg-black/10 hidden sm:block" />
             <button
               type="button"
               onClick={onLogout}
-              className="hidden sm:block text-[var(--foreground)] hover:text-[#d4a84c] transition-colors font-semibold tracking-wider cursor-pointer"
+              className="text-zinc-400 hover:text-zinc-800 transition-colors font-semibold tracking-wider cursor-pointer text-[10px] sm:text-[12px] ml-1 sm:ml-0"
             >
               LOGOUT
             </button>
           </div>
         ) : (
-          <div className="flex items-center gap-4 font-mono text-[12px]">
-            <button
-              type="button"
-              onClick={onLoginClick}
-              className="text-xs font-semibold tracking-widest text-white bg-black hover:bg-neutral-800 px-4.5 py-2 rounded-full transition-all cursor-pointer shadow-sm"
-            >
-              LOGIN / SIGN UP
-            </button>
-          </div>
+          <button
+            id="nav-auth-btn"
+            onClick={onLoginClick}
+            className="rounded-full bg-zinc-900 px-6 py-2.5 font-mono text-[12px] font-semibold tracking-wider text-white transition-all hover:bg-black hover:shadow-lg hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            LOGIN / SIGN UP
+          </button>
         )}
       </header>
 
       {/* Main search panel container */}
-      <main className="flex flex-1 flex-col items-center justify-center px-4 sm:px-6 py-8 sm:py-12 relative z-10 w-full max-w-4xl mx-auto">
-        <div className="w-full max-w-[400px]">
-          <label className="mb-2 ml-3 block font-mono text-[13px] tracking-wider text-[var(--label)]">
-            SEARCH NSE TICKER
-          </label>
+      <main className="flex flex-1 flex-col items-center justify-center px-4 sm:px-6 py-12 relative z-10 w-full mx-auto">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full max-w-md rounded-[2rem] border border-black/[0.04] bg-white/70 p-6 sm:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)] backdrop-blur-xl"
+        >
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold tracking-tight text-zinc-900 mb-2">Initialize Research</h2>
+            <p className="text-[15px] text-zinc-500">Enter any NSE-listed stock ticker to deploy the agents.</p>
+          </div>
+
           {/* Ticker Search Input wrapper */}
           <div className="relative w-full">
             <input
@@ -277,15 +255,15 @@ export function SearchView({
               onFocus={() => setOpen(true)}
               onBlur={() => setTimeout(() => setOpen(false), 120)}
               onKeyDown={handleKey}
-              placeholder="e.g. RELIANCE, TCS, WIPRO  ..."
-              className="block h-12 w-full border-0 bg-white/50 backdrop-blur-md px-4 font-mono text-[14px] text-black placeholder:text-neutral-400 focus:outline-none focus:ring-0 rounded-lg shadow-md transition-all"
+              placeholder="e.g. RELIANCE, TCS, WIPRO..."
+              className="block h-14 w-full border border-black/[0.06] bg-zinc-50/50 px-6 text-[15px] font-medium text-zinc-900 placeholder:text-zinc-400 focus:border-amber-400 focus:outline-none focus:ring-[3px] focus:ring-amber-500/20 rounded-[1rem] shadow-inner transition-all"
             />
 
             {open && results.length > 0 && (
               <div
                 ref={listRef}
                 role="listbox"
-                className="absolute left-0 right-0 top-full mt-2 z-10 max-h-[300px] overflow-y-auto border border-black/5 bg-white/95 backdrop-blur-md rounded-lg shadow-lg"
+                className="absolute left-0 right-0 top-[calc(100%+8px)] z-20 max-h-[300px] overflow-y-auto border border-black/[0.04] bg-white/95 backdrop-blur-xl rounded-[1rem] shadow-[0_8px_30px_rgba(0,0,0,0.08)] py-2"
               >
                 {results.map((t, i) => (
                   <button
@@ -298,14 +276,14 @@ export function SearchView({
                       handleSelect(t);
                     }}
                     onMouseEnter={() => setHighlight(i)}
-                    className={`flex h-10 w-full items-center justify-between px-4 text-left transition-colors duration-100 ${
-                      i === highlight ? "bg-black/5" : "bg-transparent"
+                    className={`flex h-12 w-full items-center justify-between px-6 text-left transition-colors duration-100 ${
+                      i === highlight ? "bg-black/[0.03]" : "bg-transparent"
                     }`}
                   >
-                    <span className="font-mono text-[13px] font-bold text-black">
+                    <span className="font-mono text-[14px] font-bold text-zinc-900">
                       {t.symbol}
                     </span>
-                    <span className="ml-4 truncate text-[12px] text-neutral-500">
+                    <span className="ml-4 truncate text-[13px] text-zinc-500">
                       {t.name}
                     </span>
                   </button>
@@ -317,21 +295,22 @@ export function SearchView({
           {selected && (
             <button
               onClick={() => handleAnalyse()}
-              className="mt-3 block h-11 w-full bg-black text-[13px] font-medium text-white transition-colors hover:bg-neutral-800 rounded-lg shadow-sm font-sans tracking-widest cursor-pointer"
+              className="group mt-6 flex h-14 w-full items-center justify-center gap-2 rounded-full bg-zinc-900 text-[15px] font-semibold tracking-wide text-white shadow-xl shadow-zinc-900/10 transition-all hover:scale-[1.02] hover:bg-black hover:shadow-2xl active:scale-95 cursor-pointer"
             >
-              ANALYSE {selected.symbol} →
+              ANALYSE {selected.symbol}
+              <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
             </button>
           )}
 
           {error && (
-            <p className="mt-4 text-center font-mono text-[11px] text-[var(--sell)]">
+            <p className="mt-4 text-center font-mono text-[12px] text-red-500 font-medium bg-red-50 py-2 rounded-lg border border-red-100">
               {error}
             </p>
           )}
 
           {/* Popular Searches */}
-          <div className="mt-8">
-            <span className="block text-center font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400 mb-3">
+          <div className="mt-10">
+            <span className="block text-center text-[12px] font-semibold uppercase tracking-widest text-zinc-400 mb-4">
               Popular Searches
             </span>
             <div className="flex flex-wrap gap-2.5 justify-center">
@@ -345,41 +324,18 @@ export function SearchView({
                 <button
                   key={t.symbol}
                   onClick={() => handleSelect(t)}
-                  className="font-mono text-[10px] bg-white/50 hover:bg-black hover:text-white border border-black/5 hover:border-black text-neutral-700 px-3 py-1.5 rounded-full shadow-sm transition-all duration-250 cursor-pointer active:scale-95"
+                  className="rounded-full border border-black/[0.04] bg-[#fafafa] px-4 py-2 text-[13px] font-medium text-zinc-600 shadow-sm transition-all hover:bg-white hover:text-zinc-900 hover:shadow-md cursor-pointer active:scale-95"
                 >
                   {t.symbol}
                 </button>
               ))}
             </div>
           </div>
-        </div>
+        </motion.div>
       </main>
 
-      {/* Footer pushed to the bottom of the page */}
-      <footer className="w-full py-5 border-t border-[var(--border)] bg-zinc-50/20 flex flex-col items-center gap-1.5 font-mono tracking-wider text-[var(--label)] text-center mt-auto">
-        <span className="text-[11px] font-semibold text-[var(--muted-foreground)]">
-          NSE EQUITY | INDIA
-        </span>
-        <span className="text-[10px] opacity-75">MADE BY CONCEPTWORKSX</span>
-        <div className="h-px w-24 bg-[var(--border)] my-0.5" />
-        <a
-          href="https://github.com/conceptworksx/Agentic-Trade-v2"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 text-[11px] tracking-wider text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]"
-        >
-          <svg
-            viewBox="0 0 16 16"
-            width="13"
-            height="13"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
-          </svg>
-          <span>Contribute on GitHub</span>
-        </a>
-      </footer>
+      {/* ─── Footer ─── */}
+      <Footer />
 
       {user && (
         <ProfileDialog
@@ -387,7 +343,7 @@ export function SearchView({
           isOpen={showProfile}
           onClose={() => {
             setShowProfile(false);
-            setHasApiKey(!!getSavedGroqApiKey()?.trim());
+            setHasApiKey(!!getSavedOpenRouterApiKey()?.trim());
           }}
         />
       )}

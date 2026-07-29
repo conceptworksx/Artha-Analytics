@@ -13,7 +13,7 @@ from api.models import (
     AuthUser,
     ChangePasswordRequest,
     GoogleAuthRequest,
-    VerifyGroqKeyRequest,
+    VerifyOpenRouterKeyRequest,
     AnalyzeRequest,
     AnalyzeResponse,
     AnalysisSummary,
@@ -54,7 +54,7 @@ limiter = Limiter(key_func=get_remote_address)
 
 # ── Error map ───────────────────────────────────────────────────────────────────
 _ERROR_MAP: dict[type, tuple[int, str]] = {
-    AuthenticationError: (401, "invalid_groq_api_key"),
+    AuthenticationError: (401, "invalid_api_key"),
     LLMRateLimitError: (429, "llm_rate_limit"),
     TokenLimitError: (422, "token_limit_exceeded"),
     ModelUnavailableError: (503, "llm_unavailable"),
@@ -179,17 +179,17 @@ def change_password(
     return {"status": "success", "message": "Password updated successfully."}
 
 
-@router.post("/auth/verify-groq-key")
-def verify_groq_key(
-    body: VerifyGroqKeyRequest,
+@router.post("/auth/verify-openrouter-key")
+def verify_openrouter_key(
+    body: VerifyOpenRouterKeyRequest,
 ):
-    is_valid, err_msg = validate_api_keys(groq_api_key=body.groq_api_key)
+    is_valid, err_msg = validate_api_keys(openrouter_api_key=body.openrouter_api_key)
     if not is_valid:
         raise HTTPException(
             status_code=400,
             detail={
-                "error": "invalid_groq_api_key",
-                "message": err_msg or "The Groq API key is invalid.",
+                "error": "invalid_openrouter_api_key",
+                "message": err_msg or "The OpenRouter API key is invalid.",
             },
         )
     return {"valid": True}
@@ -200,7 +200,7 @@ def verify_groq_key(
 async def analyze(
     request: Request,
     body: AnalyzeRequest,
-    groq_api_key: Optional[str] = Header(None, alias="Groq-API-Key"),
+    openrouter_api_key: Optional[str] = Header(None, alias="OpenRouter-API-Key"),
     user: Optional[AuthUser] = Depends(get_current_user_optional),
 ):
     ticker = body.ticker.strip().upper()
@@ -225,20 +225,23 @@ async def analyze(
                 },
             )
 
-    # Ensure Groq API Key is provided
+    # Ensure OpenRouter API Key is provided
     if (
-        not groq_api_key
-        or groq_api_key == "undefined"
-        or groq_api_key == "null"
-        or not groq_api_key.strip()
+        not openrouter_api_key
+        or openrouter_api_key == "undefined"
+        or openrouter_api_key == "null"
+        or not openrouter_api_key.strip()
     ):
         raise HTTPException(
             status_code=401,
-            detail={"error": "invalid_api_key", "message": "Groq API Key is required."},
+            detail={
+                "error": "invalid_api_key",
+                "message": "OpenRouter API Key is required.",
+            },
         )
 
     # Validate API key format
-    is_valid_key, key_error = validate_api_keys(groq_api_key=groq_api_key)
+    is_valid_key, key_error = validate_api_keys(openrouter_api_key=openrouter_api_key)
     if not is_valid_key:
         logger.warning(f"Invalid API key format | ticker={ticker}")
         raise HTTPException(
@@ -270,7 +273,7 @@ async def analyze(
     # Run LangGraph workflow
     try:
         logger.info(f"Starting graph execution | ticker={ticker}")
-        graph = build_graph(groq_api_key=groq_api_key)
+        graph = build_graph(openrouter_api_key=openrouter_api_key)
         final_state = await asyncio.to_thread(
             graph.invoke, {"ticker_of_company": ticker}
         )
@@ -290,49 +293,63 @@ async def analyze(
                 user_id=user.id,
                 ticker=ticker,
                 result={
-                    "news_analyst_report": final_state.get("news_analyst_report", ""),
-                    "news_analyst_summary": final_state.get("news_analyst_summary", ""),
+                    "news_analyst_report": final_state.get("news_analyst_report", {}),
+                    "news_analyst_summary": final_state.get("news_analyst_summary", {}),
                     "technical_analyst_report": final_state.get(
-                        "technical_analyst_report", ""
+                        "technical_analyst_report", {}
                     ),
                     "technical_analyst_summary": final_state.get(
-                        "technical_analyst_summary", ""
+                        "technical_analyst_summary", {}
                     ),
                     "fundamental_analyst_report": final_state.get(
-                        "fundamental_analyst_report", ""
+                        "fundamental_analyst_report", {}
                     ),
                     "fundamental_analyst_summary": final_state.get(
-                        "fundamental_analyst_summary", ""
+                        "fundamental_analyst_summary", {}
                     ),
                     "market_analyst_report": final_state.get(
-                        "market_analyst_report", ""
+                        "market_analyst_report", {}
                     ),
                     "market_analyst_summary": final_state.get(
-                        "market_analyst_summary", ""
+                        "market_analyst_summary", {}
                     ),
                     "sector_analyst_report": final_state.get(
-                        "sector_analyst_report", ""
+                        "sector_analyst_report", {}
                     ),
                     "sector_analyst_summary": final_state.get(
-                        "sector_analyst_summary", ""
+                        "sector_analyst_summary", {}
                     ),
                     "company_info": data_bundle.get("company_info"),
                     "historical_prices": data_bundle.get("historical_prices"),
                     "charts_data": final_state.get("charts_data"),
+                    "fundamental_data": data_bundle.get("fundamental_data"),
+                    "technical_data": data_bundle.get("technical_data"),
+                    "market_data": data_bundle.get("market_data"),
+                    "company_news": data_bundle.get("news_data", {}).get(
+                        "company_news"
+                    ),
+                    "indian_news": data_bundle.get("news_data", {}).get("indian_news"),
+                    "global_news": data_bundle.get("news_data", {}).get("global_news"),
                 },
             )
             logger.info(f"Analysis saved | ticker={ticker} | analysis_id={analysis_id}")
 
         return AnalyzeResponse(
             ticker=ticker,
-            news_report=final_state.get("news_analyst_report", ""),
-            technical_report=final_state.get("technical_analyst_report", ""),
-            fundamental_report=final_state.get("fundamental_analyst_report", ""),
-            market_report=final_state.get("market_analyst_report", ""),
-            sector_report=final_state.get("sector_analyst_report", ""),
+            news_report=final_state.get("news_analyst_report", {}),
+            technical_report=final_state.get("technical_analyst_report", {}),
+            fundamental_report=final_state.get("fundamental_analyst_report", {}),
+            market_report=final_state.get("market_analyst_report", {}),
+            sector_report=final_state.get("sector_analyst_report", {}),
             company_info=data_bundle.get("company_info"),
             historical_prices=data_bundle.get("historical_prices"),
             charts_data=final_state.get("charts_data"),
+            fundamental_data=data_bundle.get("fundamental_data"),
+            technical_data=data_bundle.get("technical_data"),
+            market_data=data_bundle.get("market_data"),
+            company_news=data_bundle.get("news_data", {}).get("company_news"),
+            indian_news=data_bundle.get("news_data", {}).get("indian_news"),
+            global_news=data_bundle.get("news_data", {}).get("global_news"),
             status="success",
         )
 

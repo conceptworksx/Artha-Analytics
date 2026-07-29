@@ -65,75 +65,40 @@ ANALYTICAL_INTERPRETATION_RULES:
 GOAL: >
   Analyze the provided multi-year financial data and map it directly into the 
   Final Output Format specified below. The response must be serialized as a single, 
-  valid JSON object containing a complete markdown report string and a structured quantitative summary object.
+  valid JSON object containing a detailed analysis object and a structured quantitative summary object.
 
 FINAL_OUTPUT_FORMAT:
   type: "object"
-  required: ["report", "summary"]
+  required: ["analysis", "summary"]
   properties:
-    report:
-      type: "string"
-      format: "markdown"
-      structure: |
-        # GENERAL FUNDAMENTAL ANALYSIS REPORT
-
-        ## 1. REVENUE & GROWTH
-        | Metric | FY23 | FY24 | FY25 | FY26 | CAGR / Trend |
-        |---|---|---|---|---|---|
-        | Revenue | ... | ... | ... | ... | ... |
-        | Net Income | ... | ... | ... | ... | ... |
-        - Analysis: [Detailed paragraph explaining revenue trends, demand strength, and operational leverage indicators]
-
-        ## 2. PROFITABILITY
-        | Metric | FY23 | FY24 | FY25 | FY26 | CAGR / Trend |
-        |---|---|---|---|---|---|
-        | EBITDA | ... | ... | ... | ... | - |
-        | Net Margin | ... | ... | ... | ... | - |
-        | Diluted EPS | ... | ... | ... | ... | - |
-        - Analysis: [Detailed paragraph breaking down operating margins, cost vectors, and per-share earnings quality]
-
-        ## 3. CAPITAL STRUCTURE & SOLVENCY
-        | Metric | FY23 | FY24 | FY25 | FY26 | Trend |
-        |---|---|---|---|---|---|
-        | Total Debt | ... | ... | ... | ... | - |
-        | Debt-to-Equity | ... | ... | ... | ... | - |
-        | Interest Coverage | ... | ... | ... | ... | - |
-        - Analysis: [Detailed paragraph tracking long-term structural liabilities and balance sheet safety parameters]
-         
-        ## 4. CASH FLOW & LIQUIDITY
-        | Metric | FY23 | FY24 | FY25 | FY26 | Trend |
-        |---|---|---|---|---|---|
-        | Operating Cash Flow | ... | ... | ... | ... | - |
-        | Free Cash Flow | ... | ... | ... | ... | - |
-        | Cash Balance | ... | ... | ... | ... | - |
-        - Analysis: [Detailed paragraph analyzing cash conversion cycles, capital spending efficiency, and runway stability]
-         
-        ## 5. RETURN RATIOS
-        | Metric | FY23 | FY24 | FY25 | FY26 | Trend |
-        |---|---|---|---|---|---|
-        | ROE | ... | ... | ... | ... | - |
-        | ROCE | ... | ... | ... | ... | - |
-        - Analysis: [Detailed paragraph assessing management's structural asset efficiency and reinvestment performance]
-         
-        ## 6. VALUATION & OWNERSHIP
-        | Metric | Current Value |
-        |---|---|
-        | Market Cap |  |
-        | P/E Ratio |  |
-        | EV/EBITDA |  |
-        | PEG Ratio |  |
-        | Dividend Yield |  |
-        | Promoter Holding |  |
-        - Analysis: [Detailed paragraph mapping current market multiples against underlying growth realities and governance safety]
-         
-        ## 7. SUMMARY TABLE (FINANCIAL SCORECARD)
-        | Parameter | Value | Assessment | Impact |
-        |---|---|---|---|
-        | Revenue Growth | |  |  |
-        | Net Margin |  |  |  |
-        | ROE | |  |  |
-        | Debt-to-Equity |  | |  |
-        | Free Cash Flow | |  |  |
+    analysis:
+      type: "object"
+      required:
+        - "revenue_and_growth"
+        - "profitability"
+        - "capital_structure_and_solvency"
+        - "cash_flow_and_liquidity"
+        - "return_ratios"
+        - "valuation_and_ownership"
+      properties:
+        revenue_and_growth:
+          type: "string"
+          description: "Detailed paragraph explaining revenue trends, demand strength, and operational leverage indicators"
+        profitability:
+          type: "string"
+          description: "Detailed paragraph breaking down operating margins, cost vectors, and per-share earnings quality"
+        capital_structure_and_solvency:
+          type: "string"
+          description: "Detailed paragraph tracking long-term structural liabilities and balance sheet safety parameters"
+        cash_flow_and_liquidity:
+          type: "string"
+          description: "Detailed paragraph analyzing cash conversion cycles, capital spending efficiency, and runway stability"
+        return_ratios:
+          type: "string"
+          description: "Detailed paragraph assessing management's structural asset efficiency and reinvestment performance"
+        valuation_and_ownership:
+          type: "string"
+          description: "Detailed paragraph mapping current market multiples against underlying growth realities and governance safety"
 
     summary:
       type: "object"
@@ -212,9 +177,9 @@ FEW_SHOT_QUALITY_BENCHMARKS:
 CRITICAL QUALITY CONSTRAINTS:
   - "Avoid all generic qualitative traps. Do NOT use empty filler phrases such as 'revenue growth', 'positive cash flow', 'good growth', or 'strong fundamentals'."
   - "Every single argument, claim, or trend statement made across any field MUST be anchored with clear quantitative figures."
-  - "Absolute textual and mathematical alignment is mandatory. Every single metric, ratio, and CAGR value nested within the 'summary' object fields MUST match the generated markdown report text values exactly down to the single digit."
+  - "Absolute textual and mathematical alignment is mandatory. Every single metric, ratio, and CAGR value nested within the 'summary' object fields MUST match the generated analysis text values exactly down to the single digit."
   - "Do not perform arithmetic calculations unless the required value is explicitly provided in the input dataset."
-  - "All monetary values in the report MUST be formatted exactly as provided
+  - "All monetary values in the analysis MUST be formatted exactly as provided
     in the input dataset, preserving the ₹ symbol and Cr suffix.
     Example: ₹ 237,150.82 Cr — never strip currency symbols or units."
 
@@ -222,7 +187,3 @@ JSON_GENERATION_INSTRUCTION:
   - "Your output response must contain exactly one valid JSON object mapping cleanly to the properties specified in FINAL_OUTPUT_FORMAT."
   - "Do NOT wrap the raw JSON output within markdown code block fences (e.g., do not use ```json ... ```)."
   - "Do NOT output any conversational text, commentary, prefaces, or post-scripts. Start execution with the opening curly brace '{{' and terminate immediately with the closing curly brace '}}'."
-  - "When generating the report string, every markdown table row MUST begin
-    immediately with the pipe character '|' — no leading spaces, no indentation."
-  - "The separator row |---|---| MUST be immediately followed by the first
-    data row with NO blank line between them."

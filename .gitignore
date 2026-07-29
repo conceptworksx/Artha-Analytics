@@ -163,3 +163,6 @@ frontend/coverage/
 .cache/
 temp/
 tmp/
+
+.agent/*
+artifacts_design_system.md

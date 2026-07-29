@@ -12,16 +12,28 @@ import {
   readCached,
   clearCached,
   getAuthToken,
-  getSavedGroqApiKey,
-  saveGroqApiKey,
+  getSavedOpenRouterApiKey,
+  saveOpenRouterApiKey,
   type AnalyseResponse,
 } from "@/lib/api";
 import { LoadingView } from "@/components/research/LoadingView";
 import { AppSidebar, type ViewKey } from "@/components/layout/AppSidebar";
 import { ReportView } from "@/components/research/ReportView";
+import { FundamentalReportView } from "@/components/research/FundamentalReportView";
+import { TechnicalReportView } from "@/components/research/TechnicalReportView";
+import { MarketReportView } from "@/components/research/MarketReportView";
+import { NewsReportView } from "@/components/research/NewsReportView";
+import { SectorReportView } from "@/components/research/SectorReportView";
 import { StockMetricsPanel } from "@/components/charts/StockMetricsPanel";
-import { TechnicalChart } from "@/components/charts/TechnicalChart";
-import { FundamentalChart } from "@/components/charts/FundamentalChart";
+import { 
+  TechnicalTrendChart,
+  TechnicalVolatilityChart,
+  TechnicalMomentumChart
+} from "@/components/charts/TechnicalChart";
+import { 
+  FundamentalGrowthChart,
+  FundamentalProfitabilityChart 
+} from "@/components/charts/FundamentalChart";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ErrorInfo {
@@ -38,7 +50,6 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
   const [loading, setLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
   const [mounted, setMounted] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const mainRef = useRef<HTMLDivElement>(null);
 
@@ -53,8 +64,8 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
   }, [view]);
 
   const authToken = getAuthToken();
-  const groqApiKey = getSavedGroqApiKey();
-  const isRedirecting = !groqApiKey || !groqApiKey.trim();
+  const openrouterApiKey = getSavedOpenRouterApiKey();
+  const isRedirecting = !openrouterApiKey || !openrouterApiKey.trim();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -76,15 +87,15 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
     setError(null);
     setData(null);
 
-    const groqApiKey = getSavedGroqApiKey();
-    if (!groqApiKey || !groqApiKey.trim()) {
+    const openrouterApiKey = getSavedOpenRouterApiKey();
+    if (!openrouterApiKey || !openrouterApiKey.trim()) {
       router.replace("/search");
       return;
     }
 
     analyseTicker({
       ticker,
-      groqApiKey,
+      openrouterApiKey,
       authToken: authToken || undefined,
       signal: controller.signal,
     })
@@ -102,7 +113,7 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
             return;
           }
           if (e.title === "INVALID API KEY") {
-            saveGroqApiKey("");
+            saveOpenRouterApiKey("");
             router.replace("/search");
             return;
           }
@@ -190,13 +201,13 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
                 setData(null);
                 setRetryCount((prev) => prev + 1);
               }}
-              className="h-10 w-full sm:w-auto border border-[var(--foreground)] bg-[var(--foreground)] px-5 font-mono text-[12px] text-white rounded-lg shadow-sm transition-all hover:bg-[#333330]"
+              className="h-10 w-full sm:w-auto rounded-full bg-gradient-to-b from-zinc-800 to-zinc-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] px-6 font-sans text-[13px] font-medium text-white transition-all hover:scale-105 hover:from-zinc-700 hover:to-zinc-950 hover:shadow-md active:scale-95 cursor-pointer"
             >
               ↻ Retry
             </button>
             <button
               onClick={() => router.push("/search")}
-              className="flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-1.5 h-10 rounded-lg border border-black/10 bg-zinc-50/50 font-mono text-[13px] font-medium text-zinc-800 hover:bg-black hover:text-white transition-all duration-300 hover:shadow-md hover:border-black active:scale-[0.98]"
+              className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 h-10 rounded-full bg-gradient-to-b from-zinc-800 to-zinc-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] font-sans text-[13px] font-medium text-white transition-all hover:scale-105 hover:from-zinc-700 hover:to-zinc-950 hover:shadow-md active:scale-95 cursor-pointer"
             >
               <Search size={14} />
               <span>New Analysis</span>
@@ -212,18 +223,10 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
 
   // ── Dashboard ──────────────────────────────────────────────────────────
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-screen flex-col print:h-auto print:block">
       {/* Navbar */}
-      <header className="flex h-14 sm:h-16 shrink-0 items-center justify-between border-b border-[var(--border)] bg-white px-3 sm:px-5">
+      <header className="print:hidden flex h-14 sm:h-16 shrink-0 items-center justify-between border-b border-black/[0.04] bg-gradient-to-r from-white/60 via-amber-50/30 to-white/60 backdrop-blur-2xl px-3 sm:px-5 transition-all">
         <div className="flex items-center gap-2">
-          {/* Hamburger menu — mobile only */}
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="md:hidden flex items-center justify-center h-9 w-9 rounded-lg text-zinc-600 hover:bg-zinc-100 transition-colors cursor-pointer"
-            aria-label="Open navigation"
-          >
-            <Menu size={20} />
-          </button>
           <Link href="/">
             <img
               src="/navbar.png"
@@ -238,7 +241,7 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
         <div className="flex items-center gap-2 sm:gap-4">
           <Link
             href="/search"
-            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 rounded-lg border border-black/10 bg-zinc-50/50 font-mono text-[11px] sm:text-[13px] font-medium text-zinc-800 hover:bg-black hover:text-white transition-all duration-300 hover:shadow-md hover:border-black active:scale-[0.98]"
+            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-gradient-to-b from-zinc-800 to-zinc-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] font-sans text-[11px] sm:text-[13px] font-medium text-white transition-all hover:scale-105 hover:from-zinc-700 hover:to-zinc-950 hover:shadow-md active:scale-95 cursor-pointer"
           >
             <Search size={14} />
             <span className="hidden sm:inline">New Analysis</span>
@@ -246,26 +249,46 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1">
-        {/* Desktop sidebar */}
-        <AppSidebar
-          active={view}
-          onSelect={setView}
-          isMobile={false}
-        />
+      {isMobile && (
+        <div className="print:hidden flex overflow-x-auto border-b border-[var(--border)] bg-white px-2 py-2 hide-scrollbar">
+          <div className="flex space-x-2">
+            {[
+              { key: "overview", label: "Overview" },
+              { key: "technical", label: "Technical" },
+              { key: "fundamental", label: "Fundamental" },
+              { key: "market", label: "Market" },
+              { key: "sector", label: "Sector" },
+              { key: "news", label: "News" },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setView(tab.key as ViewKey)}
+                className={`px-3 py-1.5 text-[13px] font-medium whitespace-nowrap rounded-md transition-colors ${
+                  view === tab.key
+                    ? "bg-blue-800 text-white"
+                    : "text-[var(--muted-foreground)] hover:bg-zinc-100"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
-        {/* Mobile sidebar overlay */}
-        {isMobile && (
-          <AppSidebar
-            active={view}
-            onSelect={setView}
-            isMobile={true}
-            isOpen={sidebarOpen}
-            onClose={() => setSidebarOpen(false)}
-          />
+      <div className="flex min-h-0 flex-1 print:block print:min-h-0">
+        {/* Desktop sidebar */}
+        {!isMobile && (
+          <div className="print:hidden h-full">
+            <AppSidebar
+              active={view}
+              onSelect={setView}
+              isMobile={false}
+            />
+          </div>
         )}
 
-        <main ref={mainRef} className="flex-1 min-w-0 overflow-y-auto bg-[var(--background)] p-4 sm:p-6 md:p-8">
+        <main ref={mainRef} className="flex-1 min-w-0 overflow-y-auto bg-gradient-to-b from-[#fafafa] to-white p-3 sm:p-4 md:p-6 print:overflow-visible print:h-auto print:block print:w-full print:m-0 print:p-0">
           <ViewSwitch view={view} data={data} />
         </main>
       </div>
@@ -286,56 +309,122 @@ function ViewSwitch({
     case "overview":
       return <StockMetricsPanel data={data} />;
     case "news":
+      if (typeof data.news_report === "string") {
+        return (
+          <ReportView
+            title="News Analyst"
+            ticker={t}
+            status={data.status}
+            content={data.news_report}
+            filenameBase={`${t}_news_report`}
+          />
+        );
+      }
       return (
-        <ReportView
+        <NewsReportView
           title="News Analyst"
           ticker={t}
           status={data.status}
-          content={data.news_report}
+          reportData={data.news_report}
+          companyNews={data.company_news}
+          indianNews={data.indian_news}
+          globalNews={data.global_news}
           filenameBase={`${t}_news_report`}
         />
       );
     case "technical":
+      if (typeof data.technical_report === "string") {
+        return (
+          <ReportView
+            title="Technical Analyst"
+            ticker={t}
+            status={data.status}
+            content={data.technical_report}
+            filenameBase={`${t}_technical_report`}
+          >
+            <TechnicalTrendChart data={data.charts_data?.technical_history} />
+            <TechnicalVolatilityChart data={data.charts_data?.technical_history} />
+            <TechnicalMomentumChart data={data.charts_data?.technical_history} />
+          </ReportView>
+        );
+      }
       return (
-        <ReportView
+        <TechnicalReportView
           title="Technical Analyst"
           ticker={t}
           status={data.status}
-          content={data.technical_report}
+          reportData={data.technical_report}
+          technicalData={data.technical_data}
+          chartData={data.charts_data?.technical_history}
           filenameBase={`${t}_technical_report`}
-        >
-          <TechnicalChart data={data.charts_data?.technical_history} />
-        </ReportView>
+        />
       );
     case "fundamental":
+      if (typeof data.fundamental_report === "string") {
+        return (
+          <ReportView
+            title="Fundamental Analyst"
+            ticker={t}
+            status={data.status}
+            content={data.fundamental_report}
+            filenameBase={`${t}_fundamental_report`}
+          >
+            <FundamentalGrowthChart data={data.charts_data?.financials_history} />
+            <FundamentalProfitabilityChart data={data.charts_data?.financials_history} />
+          </ReportView>
+        );
+      }
       return (
-        <ReportView
+        <FundamentalReportView
           title="Fundamental Analyst"
           ticker={t}
           status={data.status}
-          content={data.fundamental_report}
+          reportData={data.fundamental_report}
+          fundamentalData={data.fundamental_data}
+          chartData={data.charts_data?.financials_history}
           filenameBase={`${t}_fundamental_report`}
-        >
-          <FundamentalChart data={data.charts_data?.financials_history} />
-        </ReportView>
+        />
       );
     case "market":
+      if (typeof data.market_report === "string") {
+        return (
+          <ReportView
+            title="Market Analyst"
+            ticker={t}
+            status={data.status}
+            content={data.market_report}
+            filenameBase={`${t}_market_report`}
+          />
+        );
+      }
       return (
-        <ReportView
+        <MarketReportView
           title="Market Analyst"
           ticker={t}
           status={data.status}
-          content={data.market_report}
+          reportData={data.market_report}
+          marketData={data.market_data}
           filenameBase={`${t}_market_report`}
         />
       );
     case "sector":
+      if (typeof data.sector_report === "string") {
+        return (
+          <ReportView
+            title="Sector Analyst"
+            ticker={t}
+            status={data.status}
+            content={data.sector_report}
+            filenameBase={`${t}_sector_report`}
+          />
+        );
+      }
       return (
-        <ReportView
+        <SectorReportView
           title="Sector Analyst"
           ticker={t}
           status={data.status}
-          content={data.sector_report}
+          reportData={data.sector_report}
           filenameBase={`${t}_sector_report`}
         />
       );
