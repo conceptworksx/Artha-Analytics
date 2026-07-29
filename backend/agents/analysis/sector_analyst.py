@@ -30,8 +30,8 @@ Supported Sector Catalog
 class SectorAnalyst(BaseAgent):
     prompt_path = "prompts/sector_resolver_prompt.yaml"
 
-    def __init__(self, groq_api_key: str):
-        super().__init__(groq_api_key)
+    def __init__(self, openrouter_api_key: str = None):
+        super().__init__(openrouter_api_key=openrouter_api_key)
 
         resolver_yaml = load_structured_prompt("prompts/sector_resolver_prompt.yaml")
         self.prompt = ChatPromptTemplate.from_messages(

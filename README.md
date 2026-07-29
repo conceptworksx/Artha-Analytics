@@ -53,7 +53,7 @@ graph TD
 
 ## ⚡ Key Features
 
-* **Bring Your Own Key (BYOK) Model**: Users can supply their own Groq API keys locally for unlimited analysis, validated through API key format and connection checkers.
+* **Bring Your Own Key (BYOK) Model**: Users can supply their own Openroter API keys locally for unlimited  analysis, validated through API key format and connection checkers.
 * **Guest Rate Limiting & User Management**:
   - Guest users receive up to **3 free analyses** tracked securely by client IP (using MongoDB and FastAPI rate limiters).
   - Secure **Email Signup/Login** using JSON Web Tokens (JWT) and integrated **Google OAuth** login.
@@ -79,7 +79,7 @@ graph TD
 ### Backend
 * **Runtime**: Python (>= 3.11)
 * **API Framework**: FastAPI, Uvicorn
-* **Agent Framework**: LangGraph, LangChain Core, LangChain Groq
+* **Agent Framework**: LangGraph, LangChain Core, LangChain 
 * **Database**: MongoDB (IP limits, Auth management)
 * **Authentication**: PyJWT, Google Auth client libraries
 * **Data Sources**: yfinance (with centralized serialization locking), ta (Technical Analysis library)
@@ -103,7 +103,7 @@ graph TD
 3. **Configure environment variables**:
    Create a `.env` file based on `.env.example`:
    ```env
-   GROQ_API_KEY=your_groq_api_key_here
+   OPENROUTER_API_KEY=your_api_key_here
    MONGODB_URI=your_mongodb_connection_string
    ```
 4. **Start the FastAPI server**:

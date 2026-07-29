@@ -7,9 +7,9 @@ import { toast } from "sonner";
 import {
   changePassword,
   getAuthToken,
-  verifyGroqApiKey,
-  getSavedGroqApiKey,
-  saveGroqApiKey,
+  verifyOpenRouterApiKey,
+  getSavedOpenRouterApiKey,
+  saveOpenRouterApiKey,
   AnalysisError,
   type AuthUser,
 } from "@/lib/api";
@@ -21,37 +21,59 @@ interface ProfileDialogProps {
 }
 
 export function ProfileDialog({ user, isOpen, onClose }: ProfileDialogProps) {
-  const [keyState, setKeyState] = useState({ value: "", visible: false, loading: false });
+  const [keyInput, setKeyInput] = useState("");
+  const [keyVisible, setKeyVisible] = useState(false);
+  const [keyLoading, setKeyLoading] = useState(false);
+  const [keyError, setKeyError] = useState<string | null>(null);
+  const [hasApiKey, setHasApiKey] = useState(false);
+  const [isEditingKey, setIsEditingKey] = useState(false);
   const [pwState, setPwState] = useState({ error: null as string | null, loading: false });
 
   useEffect(() => {
     if (isOpen) {
-      setKeyState({ value: getSavedGroqApiKey(), visible: false, loading: false });
+      const currentKey = getSavedOpenRouterApiKey() || "";
+      setKeyInput(currentKey);
+      setHasApiKey(!!currentKey.trim());
+      setIsEditingKey(!currentKey.trim());
+      setKeyVisible(false);
+      setKeyLoading(false);
+      setKeyError(null);
       setPwState({ error: null, loading: false });
     }
   }, [isOpen]);
 
   const handleSaveApiKey = async (e: React.FormEvent) => {
     e.preventDefault();
-    const keyToSave = keyState.value.trim();
+    const keyToSave = keyInput.trim();
 
     if (!keyToSave) {
-      saveGroqApiKey("");
-      toast.success("Groq API Key cleared successfully.");
+      saveOpenRouterApiKey("");
+      setHasApiKey(false);
+      setIsEditingKey(true);
+      toast.success("OpenRouter API Key cleared.");
       return;
     }
 
-    setKeyState((prev) => ({ ...prev, loading: true }));
+    if (!keyToSave.startsWith("sk-or-v1-")) {
+      setKeyError("OpenRouter keys usually start with 'sk-or-v1-'.");
+      return;
+    }
+
+    setKeyLoading(true);
+    setKeyError(null);
     try {
       const token = getAuthToken();
-      await verifyGroqApiKey({ groqApiKey: keyToSave, authToken: token });
-      saveGroqApiKey(keyToSave);
-      toast.success("Groq API Key verified & saved successfully!");
+      await verifyOpenRouterApiKey({ openrouterApiKey: keyToSave, authToken: token });
+      saveOpenRouterApiKey(keyToSave);
+      setHasApiKey(true);
+      setIsEditingKey(false);
+      toast.success("OpenRouter API Key verified & saved successfully!");
     } catch (err) {
-      const errMsg = err instanceof AnalysisError ? err.message : "Invalid Groq API Key.";
+      const errMsg = err instanceof AnalysisError ? err.message : "Invalid OpenRouter API Key.";
+      setKeyError(errMsg);
       toast.error(errMsg);
     } finally {
-      setKeyState((prev) => ({ ...prev, loading: false }));
+      setKeyLoading(false);
     }
   };
 
@@ -60,7 +82,6 @@ export function ProfileDialog({ user, isOpen, onClose }: ProfileDialogProps) {
     setPwState({ error: null, loading: false });
 
     const formData = new FormData(e.currentTarget);
-    const currentPassword = (formData.get("currentPassword") as string) || "";
     const newPassword = (formData.get("newPassword") as string) || "";
     const confirmPassword = (formData.get("confirmPassword") as string) || "";
 
@@ -81,7 +102,7 @@ export function ProfileDialog({ user, isOpen, onClose }: ProfileDialogProps) {
     setPwState((prev) => ({ ...prev, loading: true }));
     try {
       const token = getAuthToken();
-      await changePassword({ currentPassword, newPassword, authToken: token });
+      await changePassword({ currentPassword: "", newPassword, authToken: token });
       toast.success("Password changed successfully!");
       e.currentTarget.reset();
     } catch (err) {
@@ -97,7 +118,6 @@ export function ProfileDialog({ user, isOpen, onClose }: ProfileDialogProps) {
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-none">
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -106,14 +126,12 @@ export function ProfileDialog({ user, isOpen, onClose }: ProfileDialogProps) {
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
           />
 
-          {/* Modal Container */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             className="relative w-full max-w-[440px] overflow-hidden rounded-2xl border border-black/10 bg-white p-4 sm:p-6 shadow-2xl z-10 flex flex-col gap-5 sm:gap-6 max-h-[90vh] overflow-y-auto"
           >
-            {/* Header */}
             <div className="flex items-center justify-between border-b border-black/5 pb-3">
               <div className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#d4a84c]/10 text-[#d4a84c]">
@@ -132,7 +150,6 @@ export function ProfileDialog({ user, isOpen, onClose }: ProfileDialogProps) {
               </button>
             </div>
 
-            {/* User Info (Read-Only) */}
             <div className="rounded-xl border border-black/5 bg-neutral-50/50 p-4 font-mono text-[12px] flex flex-col gap-2">
               <div className="flex justify-between">
                 <span className="text-neutral-400">NAME:</span>
@@ -144,70 +161,67 @@ export function ProfileDialog({ user, isOpen, onClose }: ProfileDialogProps) {
               </div>
             </div>
 
-            {/* Groq API Key Section */}
             <form onSubmit={handleSaveApiKey} className="flex flex-col gap-2.5">
-              <label className="font-mono text-[10px] font-bold tracking-wider text-neutral-500">GROQ API KEY</label>
+              <label className="font-mono text-[10px] font-bold tracking-wider text-neutral-500">OPENROUTER API KEY</label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
                   <Key size={14} />
                 </span>
                 <input
-                  type={keyState.visible ? "text" : "password"}
-                  placeholder="gsk_..."
-                  value={keyState.value}
-                  onChange={(e) => setKeyState((prev) => ({ ...prev, value: e.target.value }))}
-                  className="w-full rounded-lg border border-black/10 bg-white py-2 pl-9 pr-10 text-xs font-mono text-black placeholder:text-neutral-300 focus:border-[#d4a84c] focus:outline-none focus:ring-4 focus:ring-[#d4a84c]/10"
+                  type={keyVisible ? "text" : "password"}
+                  placeholder="sk-or-v1-..."
+                  value={keyInput}
+                  disabled={!isEditingKey}
+                  onChange={(e) => setKeyInput(e.target.value)}
+                  className="w-full rounded-lg border border-black/10 bg-white py-2 pl-9 pr-10 text-xs font-mono text-black placeholder:text-neutral-300 focus:border-[#d4a84c] focus:outline-none focus:ring-4 focus:ring-[#d4a84c]/10 disabled:bg-neutral-50"
                 />
-                <button
-                  type="button"
-                  onClick={() => setKeyState((prev) => ({ ...prev, visible: !prev.visible }))}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-black transition-colors"
-                >
-                  {keyState.visible ? <EyeOff size={14} /> : <Eye size={14} />}
-                </button>
+                {!isEditingKey ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingKey(true)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#d4a84c] text-[10px] font-bold hover:underline"
+                  >
+                    EDIT
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setKeyVisible(!keyVisible)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-black transition-colors"
+                  >
+                    {keyVisible ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                )}
               </div>
+              {keyError && <p className="text-[10px] font-bold text-red-500">{keyError}</p>}
               <div className="flex justify-between items-center mt-1">
                 <span className="font-sans text-[10px] text-neutral-500">
-                  Don&apos;t have a key?{" "}
                   <a
-                    href="https://console.groq.com/keys"
+                    href="https://openrouter.ai/keys"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[#d4a84c] hover:underline font-semibold"
                   >
-                    Get one here
+                    Get API Key
                   </a>
                 </span>
-                <button
-                  type="submit"
-                  disabled={keyState.loading}
-                  className="rounded-lg bg-black px-4 py-1.5 font-mono text-[10px] font-bold tracking-widest text-white hover:bg-neutral-800 disabled:opacity-50 transition-colors cursor-pointer"
-                >
-                  {keyState.loading ? "VERIFYING..." : "SAVE API KEY"}
-                </button>
+                {isEditingKey && (
+                  <button
+                    type="submit"
+                    disabled={keyLoading}
+                    className="rounded-lg bg-black px-4 py-1.5 font-mono text-[10px] font-bold tracking-widest text-white hover:bg-neutral-800 disabled:opacity-50 transition-colors cursor-pointer"
+                  >
+                    {keyLoading ? "VERIFYING..." : "SAVE KEY"}
+                  </button>
+                )}
               </div>
             </form>
 
             <div className="h-px bg-black/5" />
 
-            {/* Change Password Section */}
             <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-3">
               <label className="font-mono text-[10px] font-bold tracking-wider text-neutral-500">CHANGE PASSWORD</label>
-
               <div className="flex flex-col gap-2">
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
-                    <Lock size={14} />
-                  </span>
-                  <input
-                    name="currentPassword"
-                    type="password"
-                    placeholder="Current Password"
-                    required
-                    className="w-full rounded-lg border border-black/10 bg-white py-2 pl-9 pr-3 text-xs text-black placeholder:text-neutral-400 focus:border-[#d4a84c] focus:outline-none focus:ring-4 focus:ring-[#d4a84c]/10"
-                  />
-                </div>
-
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
                     <Lock size={14} />
@@ -221,7 +235,6 @@ export function ProfileDialog({ user, isOpen, onClose }: ProfileDialogProps) {
                     className="w-full rounded-lg border border-black/10 bg-white py-2 pl-9 pr-3 text-xs text-black placeholder:text-neutral-400 focus:border-[#d4a84c] focus:outline-none focus:ring-4 focus:ring-[#d4a84c]/10"
                   />
                 </div>
-
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
                     <Lock size={14} />
@@ -236,11 +249,7 @@ export function ProfileDialog({ user, isOpen, onClose }: ProfileDialogProps) {
                   />
                 </div>
               </div>
-
-              {pwState.error && (
-                <p className="text-[10px] font-bold text-red-500 tracking-wide">{pwState.error}</p>
-              )}
-
+              {pwState.error && <p className="text-[10px] font-bold text-red-500 tracking-wide">{pwState.error}</p>}
               <button
                 type="submit"
                 disabled={pwState.loading}

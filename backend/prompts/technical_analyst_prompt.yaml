@@ -48,51 +48,30 @@ GOAL: >
 
 FINAL_OUTPUT_FORMAT:
   type: "object"
-  required: ["report", "summary"]
+  required: ["analysis", "summary"]
   properties:
-    report:
-      type: "string"
-      format: "markdown"
-      structure: |
-        # TECHNICAL ANALYSIS REPORT 
-
-        ## 1. MARKET STRUCTURE & COMPREHENSIVE TREND
-        - **Moving Average Alignment**: [Relationship between short-, medium-, and long-term moving averages detailing crossover angles using ma10, ma50, ma100, ma200]
-        - **Trend Classification**: [Directional trend state derived via multi-year trend alignment definitions using trend_alignment]
-        - **Cross Status**: [Explicit validation of Golden Cross / Death Cross status from JSON data]
-        - **Price vs VWMA**: [Price relative to VWMA and its institutional support implication]
-
-        ## 2. VOLATILITY ANALYSIS (BOLLINGER BANDS & ATR)
-        - **ATR & Implication**: [Raw ATR value and ATR percentage with immediate structural volatility implications using atr_pct]
-        - **Bollinger Bandwidth & Squeeze**: [Detailed bandwidth trend tracking and explicit squeeze status using bandwidth_trend]
-        - **Percent B Position**: [Metric position of price relative to bands using percent_b]
-        - **Band Levels**: [Upside to upper band and downside to lower band percentages]
-
-        ## 3. MOMENTUM ANALYSIS (RSI)
-        - **RSI Value & Condition**: [Exact RSI value, indicator boundary condition, and rolling momentum trend direction]
-        - **Divergence**: [Momentum divergence or confirmation check]
-
-        ## 4. MACD ANALYSIS
-        - **MACD vs Signal**: [Distance comparison between the MACD line and the Signal line]
-        - **MACD Bias**: [Momentum bias and crossover status using bias]
-        - **MACD Histogram**: [Histogram bar expansion or contraction behavior]
-
-        ## 5. VOLUME & MONEY FLOW (MFI & VOLUME RATIOS)
-        - **MFI Value & Condition**: [Exact Money Flow Index value and its associated overbought, oversold, or consolidation status]
-        - **Volume Ratio**: [Rolling 5-day vs 20-day volume participation ratio value using ratio_5d_20d]
-        - **Volume Confirmation**: [Clear verification of institutional participation strength or volume divergence weakness]
-
-        ## 6. KEY PRICE LEVELS
-        - **52-Week Range**: [Explicit 52-week High and Low boundary status along with distance percentages to current price]
-        - **Support & Resistance**: [Hard support and resistance levels mapped from structural Bollinger Bands and primary moving average zones]
-
-        ## 7. SUMMARY TABLE (TECHNICAL SIGNALS)
-        | Parameter | Value / Signal | Assessment / Impact |
-        |---|---|---|
-        | Trend (Moving Averages) | ... | |
-        | Momentum (RSI) | ... | |
-        | Volatility (Bollinger Bands) | ... | |
-        | Support & Resistance | ... | |
+    analysis:
+      type: "object"
+      required: ["market_structure", "volatility", "momentum", "macd", "volume", "price_levels"]
+      properties:
+        market_structure:
+          type: "string"
+          description: "Comprehensive paragraph detailing the Moving Average Alignment, Trend Classification, Cross Status, and Price vs VWMA."
+        volatility:
+          type: "string"
+          description: "Detailed analysis of ATR implications, Bollinger Bandwidth, Squeeze status, Percent B, and Band Levels."
+        momentum:
+          type: "string"
+          description: "Analysis of exact RSI values, conditions, momentum trend direction, and divergences."
+        macd:
+          type: "string"
+          description: "Comparison between MACD vs Signal, MACD Bias, and MACD Histogram expansion/contraction."
+        volume:
+          type: "string"
+          description: "Interpretation of MFI value/condition, Volume Ratios, and confirmation of institutional participation."
+        price_levels:
+          type: "string"
+          description: "Explicit details on 52-Week Range, Support & Resistance zones mapped from structural bands and MA lines."
 
     summary:
       type: "object"
@@ -172,8 +151,7 @@ CONSTRAINTS:
   - "Strictly utilize the provided JSON data structure for all interpretations and calculations."
   - "Do NOT forecast future price targets or make speculative statements beyond raw indicator bounds."
   - "Do not invent structural support or resistance levels if they are not derived directly from Bollinger Bands or major moving average data lines."
-  - "In Sections 1 to 6, you MUST bold all key parameter names, raw metrics, numeric values, percentages, and indicator regimes (e.g. '**ATR Value**', '**30.1**', '**2.58%**', '**CONTRACTING**', '**Active Squeeze**', '**near the middle**'). This is critical for visual clarity."
-  - "To optimize formatting parity, render multi-timeframe profile structures strictly as markdown tables containing parameters, values, and direct trend impacts."
+  - "To optimize output, ensure the analysis paragraphs are rich in detail and clearly explain the implications of the data."
 
 CRITICAL QUALITY CONSTRAINTS:
   - "Avoid all generic qualitative traps. Do NOT use empty filler phrases such as 'bullish chart pattern', 'strong momentum indicators', 'good support zones', or 'volatile setup'."
@@ -184,7 +162,3 @@ JSON_GENERATION_INSTRUCTION:
   - "Your output response must contain exactly one valid JSON object mapping cleanly to the properties specified in FINAL_OUTPUT_FORMAT."
   - "Do NOT wrap the raw JSON output within markdown code block fences (e.g., do not use ```json ... ```)."
   - "Do NOT output any conversational text, commentary, prefaces, or post-scripts. Start execution with the opening curly brace '{{' and terminate immediately with the closing curly brace '}}'."
-  - "When generating the report string, every markdown table row MUST begin
-    immediately with the pipe character '|' — no leading spaces, no indentation."
-  - "The separator row |---|---| MUST be immediately followed by the first
-    data row with NO blank line between them."

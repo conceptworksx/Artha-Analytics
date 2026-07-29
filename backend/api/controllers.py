@@ -12,6 +12,7 @@ import pandas as pd
 from io import StringIO
 from typing import Optional
 from langchain_groq import ChatGroq
+from config.settings import get_openrouter_llm
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from core.logging import get_logger
@@ -376,19 +377,20 @@ def validate_ticker_exists(ticker: str) -> tuple[bool, str | None]:
     return True, None
 
 
-def validate_api_keys(groq_api_key: str) -> tuple[bool, str]:
-    if not groq_api_key or not groq_api_key.strip():
-        return False, "Groq API key is required."
+def validate_api_keys(openrouter_api_key: str) -> tuple[bool, str]:
+    if not openrouter_api_key or not openrouter_api_key.strip():
+        return False, "OpenRouter API key is required."
+        
+    key = openrouter_api_key.strip()
+    if not key.startswith("sk-or-v1-"):
+        return False, "Invalid OpenRouter API Key format. It should start with 'sk-or-v1-'."
+        
     try:
-        llm = ChatGroq(
-            api_key=groq_api_key,
-            model="llama-3.1-8b-instant",
-            temperature=0,
-        )
+        llm = get_openrouter_llm(api_key=key)
         llm.invoke("ping")
         return True, None
     except Exception:
-        return False, "Invalid Groq API key"
+        return False, "Invalid OpenRouter API key"
 
 
 def init_auth_store() -> None:

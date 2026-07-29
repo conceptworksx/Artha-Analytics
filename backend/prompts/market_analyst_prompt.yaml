@@ -58,44 +58,33 @@ GOAL: >
 
 FINAL_OUTPUT_FORMAT:
   type: "object"
-  required: ["report", "summary"]
+  required: ["analysis", "summary"]
   properties:
-    report:
-      type: "string"
-      format: "markdown"
-      structure: |
-        # MARKET REGIME ANALYSIS REPORT
-
-        ## 1. MARKET REGIME
-        - **Classification**: [Detailed summary paragraph classifying the current overall global and domestic market regime based on cross-market evidence and applied interpretation rules]
-
-        ## 2. PARAMETER EVIDENCE
-        ### US INDICES
-        - **S&P 500 Index (GSPC)**: [Comprehensive paragraph detailing the index's 10-day momentum, segmented trend velocity over the last 30 days, quarterly structural trend health, and relative upside/downside parameters]
-        - **NASDAQ Composite Index (IXIC)**: [Comprehensive paragraph detailing the index's 10-day momentum, monthly trend segments, quarterly structural trend health, and relative upside/downside parameters]
-
-        ### INDIAN INDICES
-        - **National Stock Exchange Nifty 50 Index (NSEI)**: [Comprehensive paragraph detailing the index's 10-day momentum, monthly trend segments, quarterly structural trend health, and relative upside/downside parameters]
-        - **Sensex Index (BSESN)**: [Comprehensive paragraph detailing the index's 10-day momentum, monthly trend segments, quarterly structural trend health, and relative upside/downside parameters]
-
-        ## 3. GLOBAL-DOMESTIC CORRELATION
-        - [Detailed analysis of the correlation and alignment between US and Indian indices, explicitly explaining whether Indian indices show independent strength or closely follow US market movements]
-
-        ## 4. MOMENTUM & TREND PROFILE
-        - [Deep-dive momentum and trend analysis interpreting the trend continuation, reversal, or bounce-back characteristics of both US and Indian markets using monthly and quarterly data]
-
-        ## 5. VOLATILITY & RISK SENTIMENT
-        - [Detailed interpretation of the CBOE Volatility Index (VIX), analyzing risk appetite, volatility trajectory, and its implications on the stability of the global and domestic market environment]
-
-        ## 6. MARKET OUTLOOK & TRAJECTORY
-        - [Data-driven assessment of the current market environment and key parameters to monitor for regime changes]
-
-        ## 7. SUMMARY TABLE (MARKET REGIME PARAMETERS)
-        | Parameter | Value / Trend | Assessment / Impact |
-        |---|---|---|
-        | US Indices (Nasdaq, S&P 500) | ... | |
-        | Indian Indices (Nifty 50, Sensex) | ... | |
-        | CBOE Volatility Index (VIX) | ... | |
+    analysis:
+      type: "object"
+      required: ["regime", "us_indices", "indian_indices", "correlation", "momentum", "volatility", "outlook"]
+      properties:
+        regime:
+          type: "string"
+          description: "Detailed summary paragraph classifying the current overall global and domestic market regime based on cross-market evidence and applied interpretation rules."
+        us_indices:
+          type: "string"
+          description: "Comprehensive paragraph detailing US indices 10-day momentum, segmented trend velocity, structural trend health, and relative upside/downside parameters."
+        indian_indices:
+          type: "string"
+          description: "Comprehensive paragraph detailing Indian indices 10-day momentum, segmented trend velocity, structural trend health, and relative upside/downside parameters."
+        correlation:
+          type: "string"
+          description: "Detailed analysis of the correlation and alignment between US and Indian indices, explaining whether Indian indices show independent strength or closely follow US market movements."
+        momentum:
+          type: "string"
+          description: "Deep-dive momentum and trend analysis interpreting trend continuation, reversal, or bounce-back characteristics using monthly and quarterly data."
+        volatility:
+          type: "string"
+          description: "Detailed interpretation of the VIX, analyzing risk appetite, volatility trajectory, and its implications."
+        outlook:
+          type: "string"
+          description: "Data-driven assessment of the current market environment and key parameters to monitor for regime changes."
 
     summary:
       type: "object"
@@ -182,7 +171,6 @@ CONSTRAINTS:
   - "Avoid vague statements; always reference trends or percentages."
   - "Keep explanation detailed, comprehensive, analytical, and structured."
   - "Analyze whether the National Stock Exchange is following NASDAQ Composite Index movements or showing independent strength."
-  - "In Sections 1 to 6, you MUST bold all key parameter names, raw metrics, numeric values, percentages, and indicator regimes (e.g. '**S&P 500 Index**', '**10d momentum**', '**+3.5%**', '**Bullish**', '**CONTRACTING**', '**CBOE Volatility Index**'). This is critical for visual clarity."
   - "Avoid forecasting future market movements beyond what is directly supported by the provided data."
   - "Do not invent support or resistance levels if they are not explicitly provided."
 
@@ -195,7 +183,3 @@ JSON_GENERATION_INSTRUCTION:
   - "Your output response must contain exactly one valid JSON object mapping cleanly to the properties specified in FINAL_OUTPUT_FORMAT."
   - "Do NOT wrap the raw JSON output within markdown code block fences (e.g., do not use ```json ... ```)."
   - "Do NOT output any conversational text, commentary, prefaces, or post-scripts. Start execution with the opening curly brace '{{' and terminate immediately with the closing curly brace '}}'."
-  - "When generating the report string, every markdown table row MUST begin
-    immediately with the pipe character '|' — no leading spaces, no indentation."
-  - "The separator row |---|---| MUST be immediately followed by the first
-    data row with NO blank line between them."

@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import {
-  Geist,
-  Geist_Mono,
+  Fira_Code,
+  Inter,
 } from "next/font/google";
 import "./globals.css";
 
-const sans = Geist({ variable: "--font-active-sans", subsets: ["latin"] });
-const mono = Geist_Mono({ variable: "--font-active-mono", subsets: ["latin"] });
+const sans = Inter({ variable: "--font-active-sans", subsets: ["latin"] });
+const mono = Fira_Code({ variable: "--font-active-mono", weight: ["400", "500", "600", "700"], subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Artha Analytics",
@@ -24,9 +24,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${sans.variable} ${mono.variable} h-full antialiased`}
+      className={`${sans.variable} ${mono.variable} h-full antialiased print:h-auto print:overflow-visible`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col print:block print:h-auto print:min-h-0 print:overflow-visible">{children}</body>
     </html>
   );
 }

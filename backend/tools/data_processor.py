@@ -2,7 +2,7 @@ from tools.fundamental_tools import process_fundamental_data
 from tools.technical_tools import process_technical_data
 from tools.sector_tools import get_company_sector
 from tools.market_tools import process_market_data
-from tools.news_tools import get_company_news
+from tools.news_tools import get_company_news, get_indian_market_news, get_global_market_news
 from tools.chart_tools import extract_charts_data
 import json
 
@@ -27,7 +27,9 @@ def process_prefetch_result(raw_data: dict) -> dict:
     processed_bundle["news_data"] = {
         "company_news": get_company_news(
             ticker=raw_data.get("ticker"), prefetched_news=raw_data.get("news", [])
-        )
+        ),
+        "indian_news": get_indian_market_news(),
+        "global_news": get_global_market_news(),
     }
     processed_bundle["sector_data"] = get_company_sector(
         ticker=raw_data.get("ticker", ""), prefetched_info=raw_data.get("info", {})

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Toaster, toast } from "sonner";
-import { clearAuthSession, getAuthUser, getSavedGroqApiKey, type AuthUser } from "@/lib/api";
+import { clearAuthSession, getAuthUser, getSavedOpenRouterApiKey, type AuthUser } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { SearchView } from "@/components/research/SearchView";
@@ -23,7 +23,7 @@ export function AppGate() {
   });
   const [hasSavedKey, setHasSavedKey] = useState(() => {
     if (typeof window !== "undefined" && hasHydrated) {
-      return !!getSavedGroqApiKey()?.trim();
+      return !!getSavedOpenRouterApiKey()?.trim();
     }
     return false;
   });
@@ -35,7 +35,7 @@ export function AppGate() {
     const authedUser = getAuthUser();
     setUser(authedUser);
     if (authedUser) {
-      setHasSavedKey(!!getSavedGroqApiKey()?.trim());
+      setHasSavedKey(!!getSavedOpenRouterApiKey()?.trim());
     }
 
     // Check query params
@@ -75,7 +75,7 @@ export function AppGate() {
 
   const handleAuthed = (authedUser: AuthUser) => {
     setUser(authedUser);
-    setHasSavedKey(!!getSavedGroqApiKey()?.trim());
+    setHasSavedKey(!!getSavedOpenRouterApiKey()?.trim());
   };
 
   const handleLogout = () => {

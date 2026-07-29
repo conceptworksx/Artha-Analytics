@@ -1,12 +1,23 @@
 export interface AnalyseResponse {
   ticker: string;
-  news_report: string;
-  technical_report: string;
-  fundamental_report: string;
-  market_report: string;
-  sector_report: string;
+  news_report: any;
+  news_summary?: any;
+  technical_report: any;
+  technical_summary?: any;
+  fundamental_report: any;
+  fundamental_summary?: any;
+  market_report: any;
+  market_summary?: any;
+  sector_report: any;
+  sector_summary?: any;
   status: string;
   company_info?: any;
+  fundamental_data?: any;
+  technical_data?: any;
+  market_data?: any;
+  company_news?: any;
+  indian_news?: any;
+  global_news?: any;
   historical_prices?: any[];
 
   charts_data?: {
@@ -49,7 +60,14 @@ export interface AnalyseResponse {
   };
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+// Prioritize the environment variable for production deployments (e.g., Vercel + Heroku).
+// Fall back to dynamic hostname for local network development across devices, or localhost.
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || (
+  typeof window !== "undefined" 
+    ? `http://${window.location.hostname}:8000` 
+    : "http://localhost:8000"
+);
+
 const AUTH_TOKEN_KEY = "artha_auth_token";
 const AUTH_USER_KEY = "artha_auth_user";
 
@@ -118,7 +136,7 @@ function buildErrorMessage(
     return {
       title: "INVALID API KEY",
       message:
-        "We couldn't authenticate your request. The Groq API key provided appears to be invalid, expired, or improperly formatted.",
+        "We couldn't authenticate your request. The OpenRouter API key provided appears to be invalid, expired, or improperly formatted.",
     };
   }
 
@@ -135,7 +153,7 @@ function buildErrorMessage(
       return {
         title: "LLM RATE LIMIT HIT",
         message:
-          "The Groq AI model has temporarily throttled your requests. Free-tier API keys have a limited number of tokens and requests per minute.",
+          "The OpenRouter API has temporarily throttled your requests. Free-tier or low-balance API keys have a limited number of requests per minute.",
       };
     }
     return {
@@ -164,9 +182,8 @@ function buildErrorMessage(
 
   // Everything else → internal server error
   return {
-    title: "SOMETHING WENT WRONG",
-    message:
-      "The analysis server encountered an unexpected error while processing your request. This is usually a temporary issue on our end.",
+    title: "SERVER OVERLOADED OR ERROR",
+    message: "The server encountered an unexpected error or is currently processing too many requests. Please try again later.",
   };
 }
 
@@ -174,12 +191,12 @@ function buildErrorMessage(
 
 export async function analyseTicker({
   ticker,
-  groqApiKey,
+  openrouterApiKey,
   authToken,
   signal,
 }: {
   ticker: string;
-  groqApiKey: string;
+  openrouterApiKey: string;
   authToken?: string;
   signal?: AbortSignal;
 }): Promise<AnalyseResponse> {
@@ -190,8 +207,8 @@ export async function analyseTicker({
     "Content-Type": "application/json",
   };
 
-  if (groqApiKey) {
-    headers["Groq-API-Key"] = groqApiKey.trim();
+  if (openrouterApiKey) {
+    headers["OpenRouter-API-Key"] = openrouterApiKey.trim();
   }
 
   if (authToken) {
@@ -225,13 +242,24 @@ export async function analyseTicker({
   // Inject fallback dummy values if they are missing from the backend response
   const data: AnalyseResponse = {
     ticker: rawData.ticker ?? cleanTicker,
-    news_report: rawData.news_report || "No news report available.",
-    technical_report: rawData.technical_report || "No technical report available.",
-    fundamental_report: rawData.fundamental_report || "No fundamental report available.",
-    market_report: rawData.market_report || "No market report available.",
-    sector_report: rawData.sector_report || "No sector report available.",
+    news_report: rawData.news_report || rawData.news_analyst_report || "No news report available.",
+    news_summary: rawData.news_analyst_summary || {},
+    technical_report: rawData.technical_report || rawData.technical_analyst_report || "No technical report available.",
+    technical_summary: rawData.technical_analyst_summary || {},
+    fundamental_report: rawData.fundamental_report || rawData.fundamental_analyst_report || "No fundamental report available.",
+    fundamental_summary: rawData.fundamental_analyst_summary || {},
+    market_report: rawData.market_report || rawData.market_analyst_report || "No market report available.",
+    market_summary: rawData.market_analyst_summary || {},
+    sector_report: rawData.sector_report || rawData.sector_analyst_report || "No sector report available.",
+    sector_summary: rawData.sector_analyst_summary || {},
     status: rawData.status || "success",
     company_info: rawData.company_info || null,
+    fundamental_data: rawData.fundamental_data || null,
+    technical_data: rawData.technical_data || null,
+    market_data: rawData.market_data || null,
+    company_news: rawData.company_news || null,
+    indian_news: rawData.indian_news || null,
+    global_news: rawData.global_news || null,
     historical_prices: rawData.historical_prices || [],
     charts_data: rawData.charts_data,
   };
@@ -274,42 +302,43 @@ export function getAuthUser(): AuthUser | null {
   }
 }
 
-export function getSavedGroqApiKey(): string {
-  if (typeof window === "undefined") return "";
+
+export function getSavedOpenRouterApiKey(): string | null {
+  if (typeof window === "undefined") return null;
   const user = getAuthUser();
   if (!user) {
     try {
-      return localStorage.getItem("groq_api_key_guest") || "";
+      return localStorage.getItem("openrouter_api_key_guest") || "";
     } catch {
       return "";
     }
   }
   try {
-    return localStorage.getItem(`groq_api_key_${user.email}`) || "";
+    return localStorage.getItem(`openrouter_api_key_${user.email}`) || "";
   } catch {
     return "";
   }
 }
 
-export function saveGroqApiKey(key: string) {
+export function saveOpenRouterApiKey(key: string) {
   if (typeof window === "undefined") return;
   const user = getAuthUser();
   const trimmed = key.trim();
   if (!user) {
     try {
       if (!trimmed) {
-        localStorage.removeItem("groq_api_key_guest");
+        localStorage.removeItem("openrouter_api_key_guest");
       } else {
-        localStorage.setItem("groq_api_key_guest", trimmed);
+        localStorage.setItem("openrouter_api_key_guest", trimmed);
       }
     } catch {}
     return;
   }
   try {
     if (!trimmed) {
-      localStorage.removeItem(`groq_api_key_${user.email}`);
+      localStorage.removeItem(`openrouter_api_key_${user.email}`);
     } else {
-      localStorage.setItem(`groq_api_key_${user.email}`, trimmed);
+      localStorage.setItem(`openrouter_api_key_${user.email}`, trimmed);
     }
   } catch {}
 }
@@ -428,11 +457,11 @@ export async function changePassword({
   return res.json();
 }
 
-export async function verifyGroqApiKey({
-  groqApiKey,
+export async function verifyOpenRouterApiKey({
+  openrouterApiKey,
   authToken,
 }: {
-  groqApiKey: string;
+  openrouterApiKey: string;
   authToken?: string;
 }): Promise<{ valid: boolean }> {
   let res: Response;
@@ -443,11 +472,11 @@ export async function verifyGroqApiKey({
     headers.Authorization = `Bearer ${authToken}`;
   }
   try {
-    res = await fetch(`${API_BASE_URL}/auth/verify-groq-key`, {
+    res = await fetch(`${API_BASE_URL}/auth/verify-openrouter-key`, {
       method: "POST",
       headers,
       body: JSON.stringify({
-        groq_api_key: groqApiKey,
+        openrouter_api_key: openrouterApiKey,
       }),
     });
   } catch {
@@ -465,7 +494,7 @@ export async function verifyGroqApiKey({
     } catch {}
     throw new AnalysisError({
       title: "KEY VALIDATION FAILED",
-      message: detail.message || "Failed to verify the Groq API key.",
+      message: detail.message || "Failed to verify the API key.",
     });
   }
 

@@ -66,12 +66,11 @@ class FundamentalAnalyst(BaseAgent):
 
     prompt_path = "prompts/fundamental_analyst_prompt.yaml"
 
-    def __init__(self, groq_api_key: str):
-
-        super().__init__(groq_api_key)
+    def __init__(self, openrouter_api_key: str = None):
+        """Initializes the fundamental analyst with the given prompt and API keys."""
+        super().__init__(openrouter_api_key=openrouter_api_key)
 
         # Define the success and error chains for the Fundamental Analyst
-        self.llm = self.llm.bind(response_format={"type": "json_object"})
 
         success_chain = (
             RunnableLambda(_build_messages)
