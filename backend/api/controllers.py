@@ -380,17 +380,25 @@ def validate_ticker_exists(ticker: str) -> tuple[bool, str | None]:
 def validate_api_keys(openrouter_api_key: str) -> tuple[bool, str]:
     if not openrouter_api_key or not openrouter_api_key.strip():
         return False, "OpenRouter API key is required."
-        
+
     key = openrouter_api_key.strip()
     if not key.startswith("sk-or-v1-"):
-        return False, "Invalid OpenRouter API Key format. It should start with 'sk-or-v1-'."
-        
+        return (
+            False,
+            "Invalid OpenRouter API Key format. It should start with 'sk-or-v1-'.",
+        )
+
     try:
-        llm = get_openrouter_llm(api_key=key)
-        llm.invoke("ping")
-        return True, None
-    except Exception:
+        response = requests.get(
+            "https://openrouter.ai/api/v1/auth/key",
+            headers={"Authorization": f"Bearer {key}"},
+            timeout=10,
+        )
+        if response.status_code == 200:
+            return True, None
         return False, "Invalid OpenRouter API key"
+    except Exception:
+        return False, "Failed to validate OpenRouter API key"
 
 
 def init_auth_store() -> None:
