@@ -5,7 +5,7 @@ from langchain_core.runnables import (
     RunnableBranch,
 )
 from langchain_core.output_parsers import JsonOutputParser
-from agents.base_agent import BaseAgent
+from agents.base_agent import BaseAgent, AnalystOutput
 from core.error import handle_llm_errors
 from core.logging import get_logger
 
@@ -68,7 +68,11 @@ class FundamentalAnalyst(BaseAgent):
 
     def __init__(self, openrouter_api_key: str = None):
         """Initializes the fundamental analyst with the given prompt and API keys."""
-        super().__init__(openrouter_api_key=openrouter_api_key)
+        super().__init__(
+            openrouter_api_key=openrouter_api_key,
+            thinking_level="none",
+            max_tokens=2500,
+        )
 
         # Define the success and error chains for the Fundamental Analyst
 
@@ -76,7 +80,7 @@ class FundamentalAnalyst(BaseAgent):
             RunnableLambda(_build_messages)
             | self.prompt
             | self.llm
-            | JsonOutputParser()
+            | JsonOutputParser(pydantic_object=AnalystOutput)
         )
 
         error_chain = RunnableLambda(
