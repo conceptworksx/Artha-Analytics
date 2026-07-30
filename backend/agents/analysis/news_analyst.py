@@ -2,7 +2,7 @@ import json
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableParallel, RunnableLambda
 from langchain_core.output_parsers import JsonOutputParser
-from agents.base_agent import BaseAgent
+from agents.base_agent import BaseAgent, AnalystOutput
 from tools.news_tools import (
     get_indian_market_news,
     get_global_market_news,
@@ -45,7 +45,7 @@ class NewsAnalyst(BaseAgent):
     prompt_path = "prompts/news_analyst_prompt.yaml"
 
     def __init__(self, openrouter_api_key: str = None):
-        super().__init__(openrouter_api_key=openrouter_api_key)
+        super().__init__(openrouter_api_key=openrouter_api_key, max_tokens=1500)
 
         # Define a parallel runnable to fetch all relevant news data simultaneously
         news_fetcher = RunnableParallel(
@@ -64,7 +64,7 @@ class NewsAnalyst(BaseAgent):
             | RunnableLambda(_build_messages)
             | self.prompt
             | structured_llm
-            | JsonOutputParser()
+            | JsonOutputParser(pydantic_object=AnalystOutput)
         )
 
     @handle_llm_errors()

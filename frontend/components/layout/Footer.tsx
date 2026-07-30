@@ -1,6 +1,6 @@
 export function Footer() {
   return (
-    <footer className="w-full border-t border-black/[0.04] bg-gradient-to-b from-white to-rose-50/20 py-4 text-center mt-auto">
+    <footer className="w-full border-t border-slate-200/50 bg-slate-50 py-4 text-center mt-auto">
       <div className="flex flex-col items-center justify-center space-y-2">
         <div className="flex items-center gap-3">
           <span className="font-semibold text-zinc-900">Artha Analytics</span>

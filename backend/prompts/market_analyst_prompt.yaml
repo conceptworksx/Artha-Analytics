@@ -50,6 +50,8 @@ ANALYTICAL_INTERPRETATION_RULES:
     - "Avoid repeating similar interpretations across multiple indices."
     - "Prioritize cross-market synthesis over metric-by-metric narration."
     - "Use investor-friendly language instead of internal analytical terminology."
+    - "CRITICAL: Do not just list or repeat the data. You MUST provide deep analysis explaining the outcome, the real-world impact, and what the data symbolizes for the broader markets. Answer the 'so what?' for the investor."
+    - "Each field in the analysis section MUST be a substantial, impactful paragraph of approximately 5 to 7 lines."
 
 GOAL: >
   Analyze the provided cross-market financial data and map it directly into the 
@@ -66,25 +68,25 @@ FINAL_OUTPUT_FORMAT:
       properties:
         regime:
           type: "string"
-          description: "Detailed summary paragraph classifying the current overall global and domestic market regime based on cross-market evidence and applied interpretation rules."
+          description: "Detailed summary classifying the global and domestic market regime based on cross-market evidence. Must be 5-7 lines of impactful analysis explaining the real-world outcome and what it symbolizes."
         us_indices:
           type: "string"
-          description: "Comprehensive paragraph detailing US indices 10-day momentum, segmented trend velocity, structural trend health, and relative upside/downside parameters."
+          description: "Deep analysis of US indices momentum and structural trends. Do not just list data; explain the macroeconomic impact and what this signifies for global liquidity. Must be 5-7 lines."
         indian_indices:
           type: "string"
-          description: "Comprehensive paragraph detailing Indian indices 10-day momentum, segmented trend velocity, structural trend health, and relative upside/downside parameters."
+          description: "Deep analysis of Indian indices momentum and structural trends. Explain the domestic economic impact and what it symbolizes for domestic growth. Must be 5-7 lines."
         correlation:
           type: "string"
-          description: "Detailed analysis of the correlation and alignment between US and Indian indices, explaining whether Indian indices show independent strength or closely follow US market movements."
+          description: "Detailed analysis of alignment between US and Indian indices. Explain the real-world outcome of this correlation (e.g., decoupling vs. dependency). Must be 5-7 lines."
         momentum:
           type: "string"
-          description: "Deep-dive momentum and trend analysis interpreting trend continuation, reversal, or bounce-back characteristics using monthly and quarterly data."
+          description: "Deep-dive momentum analysis interpreting trend continuation or bounce-backs. Explain the broader outcome of these momentum shifts. Must be 5-7 lines."
         volatility:
           type: "string"
-          description: "Detailed interpretation of the VIX, analyzing risk appetite, volatility trajectory, and its implications."
+          description: "Detailed interpretation of the VIX. Analyze risk appetite and what this level of fear/greed symbolizes for institutional positioning. Must be 5-7 lines."
         outlook:
           type: "string"
-          description: "Data-driven assessment of the current market environment and key parameters to monitor for regime changes."
+          description: "Data-driven assessment of the current market environment and key parameters to monitor for regime changes. Explain the real-world impact. Must be 5-7 lines."
 
     summary:
       type: "object"

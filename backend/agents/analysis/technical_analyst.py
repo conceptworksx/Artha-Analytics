@@ -6,7 +6,7 @@ from langchain_core.runnables import (
     RunnableBranch,
 )
 from langchain_core.output_parsers import JsonOutputParser
-from agents.base_agent import BaseAgent
+from agents.base_agent import BaseAgent, AnalystOutput
 from core.error import handle_llm_errors
 from core.logging import get_logger
 
@@ -65,7 +65,7 @@ class TechnicalAnalyst(BaseAgent):
     prompt_path = "prompts/technical_analyst_prompt.yaml"
 
     def __init__(self, openrouter_api_key: str = None):
-        super().__init__(openrouter_api_key=openrouter_api_key)
+        super().__init__(openrouter_api_key=openrouter_api_key, max_tokens=2500)
 
         # Define the success and error chains for the Technical Analyst
         structured_llm = self.llm
@@ -73,7 +73,7 @@ class TechnicalAnalyst(BaseAgent):
             RunnableLambda(_build_messages)
             | self.prompt
             | structured_llm
-            | JsonOutputParser()
+            | JsonOutputParser(pydantic_object=AnalystOutput)
         )
         error_chain = RunnableLambda(
             lambda x: f"Failed to fetch fundamental data for "

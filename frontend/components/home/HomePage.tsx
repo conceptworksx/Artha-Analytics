@@ -85,25 +85,25 @@ export function HomePage() {
   if (!mounted) return null;
 
   return (
-    <div className="relative min-h-screen bg-[#fafafa] text-zinc-900 selection:bg-amber-100 font-sans">
+    <div className="relative min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-100 font-sans">
 
       {/* Mesh Gradient Ambient Glows */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden flex justify-center">
-        {/* Amber Orb */}
+        {/* Blue Orb */}
         <motion.div
-          className="absolute -top-[10%] -left-[10%] w-[600px] h-[600px] rounded-[100%] bg-amber-400/15 blur-[120px]"
+          className="absolute -top-[10%] -left-[10%] w-[600px] h-[600px] rounded-[100%] bg-blue-400/20 blur-[120px]"
           animate={{ x: [0, 50, 0], y: [0, 30, 0], scale: [1, 1.1, 1] }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         />
-        {/* Peach/Rose Orb */}
+        {/* Amber Orb */}
         <motion.div
-          className="absolute top-[20%] -right-[10%] w-[500px] h-[500px] rounded-[100%] bg-rose-400/10 blur-[120px]"
+          className="absolute top-[20%] -right-[10%] w-[500px] h-[500px] rounded-[100%] bg-amber-400/15 blur-[120px]"
           animate={{ x: [0, -40, 0], y: [0, 50, 0], scale: [1, 1.2, 1] }}
           transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1 }}
         />
-        {/* Soft Violet Orb */}
+        {/* Indigo Orb */}
         <motion.div
-          className="absolute -bottom-[20%] left-[20%] w-[700px] h-[500px] rounded-[100%] bg-violet-400/10 blur-[120px]"
+          className="absolute -bottom-[20%] left-[20%] w-[700px] h-[500px] rounded-[100%] bg-indigo-400/10 blur-[120px]"
           animate={{ x: [0, 60, 0], y: [0, -40, 0], scale: [1, 1.05, 1] }}
           transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay: 2 }}
         />
@@ -111,7 +111,7 @@ export function HomePage() {
       </div>
 
       {/* ─── Navbar ─── */}
-      <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center justify-between border-b border-black/[0.04] bg-gradient-to-r from-white/60 via-amber-50/30 to-white/60 px-4 sm:px-8 backdrop-blur-2xl transition-all">
+      <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center justify-between border-b border-slate-200/50 bg-white/70 px-4 sm:px-8 backdrop-blur-md shadow-sm transition-all">
         <div className="flex items-center gap-2">
           <Link href="/">
             <img src="/navbar.png" alt="Artha Analytics" className="h-12 object-contain cursor-pointer transition-transform hover:scale-[1.02]" />
@@ -123,8 +123,8 @@ export function HomePage() {
               type="button"
               onClick={() => setShowProfile(true)}
               className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all font-semibold tracking-wide cursor-pointer shadow-sm ${hasApiKey
-                  ? "border-black/5 hover:border-black/10 bg-white hover:bg-zinc-50 text-zinc-800 hover:shadow-md"
-                  : "border-red-200 hover:border-red-300 bg-red-50 text-red-600"
+                ? "border-black/5 hover:border-black/10 bg-white hover:bg-zinc-50 text-zinc-800 hover:shadow-md"
+                : "border-red-200 hover:border-red-300 bg-red-50 text-red-600"
                 }`}
             >
               {hasApiKey ? (
@@ -156,7 +156,6 @@ export function HomePage() {
 
       {/* ─── Hero Section ─── */}
       <section className="relative flex min-h-[65vh] flex-col items-center justify-center px-4 sm:px-6 py-12 text-center">
-
 
         {/* Master Headline */}
         <motion.h1
@@ -201,7 +200,7 @@ export function HomePage() {
             <>
               <button
                 onClick={handleTrySearch}
-                className="group flex h-14 items-center gap-3 rounded-full bg-zinc-900 px-8 text-[15px] font-semibold tracking-wide text-white shadow-xl shadow-zinc-900/10 transition-all hover:scale-105 hover:bg-black hover:shadow-2xl active:scale-95 cursor-pointer"
+                className="group flex h-14 items-center gap-3 rounded-full bg-blue-700 px-8 text-[15px] font-semibold tracking-wide text-white shadow-xl shadow-blue-900/20 transition-all hover:scale-105 hover:bg-blue-800 hover:shadow-2xl active:scale-95 cursor-pointer"
               >
                 Start Free Analysis
                 <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
@@ -244,9 +243,9 @@ export function HomePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-              className="group relative overflow-hidden rounded-[2rem] border border-black/[0.04] bg-[#fafafa] p-8 transition-all hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:border-transparent hover:ring-1 hover:ring-amber-500/20 hover:bg-gradient-to-br hover:from-white hover:to-amber-50/50 lg:col-span-2"
+              className="group relative overflow-hidden rounded-[2rem] border border-slate-200/50 bg-white/60 backdrop-blur-sm p-8 transition-all hover:shadow-[0_8px_30px_rgba(30,58,138,0.08)] hover:border-blue-200/50 hover:ring-1 hover:ring-blue-500/20 hover:bg-gradient-to-br hover:from-white hover:to-blue-50/50 lg:col-span-2"
             >
-              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm border border-black/[0.02] text-amber-600 transition-transform group-hover:scale-110">
+              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm border border-slate-200/50 text-blue-600 transition-transform group-hover:scale-110">
                 <Brain size={28} />
               </div>
               <h3 className="mb-3 text-2xl font-bold text-zinc-900">Multi-Agent Debate System</h3>
@@ -261,9 +260,9 @@ export function HomePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="group relative overflow-hidden rounded-[2rem] border border-black/[0.04] bg-[#fafafa] p-8 transition-all hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:border-transparent hover:ring-1 hover:ring-amber-500/20 hover:bg-gradient-to-br hover:from-white hover:to-amber-50/50"
+              className="group relative overflow-hidden rounded-[2rem] border border-slate-200/50 bg-white/60 backdrop-blur-sm p-8 transition-all hover:shadow-[0_8px_30px_rgba(30,58,138,0.08)] hover:border-blue-200/50 hover:ring-1 hover:ring-blue-500/20 hover:bg-gradient-to-br hover:from-white hover:to-blue-50/50"
             >
-              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm border border-black/[0.02] text-amber-600 transition-transform group-hover:scale-110">
+              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm border border-slate-200/50 text-blue-600 transition-transform group-hover:scale-110">
                 <Zap size={28} />
               </div>
               <h3 className="mb-3 text-2xl font-bold text-zinc-900">60-Second Reports</h3>
@@ -278,9 +277,9 @@ export function HomePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="group relative overflow-hidden rounded-[2rem] border border-black/[0.04] bg-[#fafafa] p-8 transition-all hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:border-transparent hover:ring-1 hover:ring-amber-500/20 hover:bg-gradient-to-br hover:from-white hover:to-amber-50/50"
+              className="group relative overflow-hidden rounded-[2rem] border border-slate-200/50 bg-white/60 backdrop-blur-sm p-8 transition-all hover:shadow-[0_8px_30px_rgba(30,58,138,0.08)] hover:border-blue-200/50 hover:ring-1 hover:ring-blue-500/20 hover:bg-gradient-to-br hover:from-white hover:to-blue-50/50"
             >
-              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm border border-black/[0.02] text-amber-600 transition-transform group-hover:scale-110">
+              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm border border-slate-200/50 text-blue-600 transition-transform group-hover:scale-110">
                 <Activity size={28} />
               </div>
               <h3 className="mb-3 text-2xl font-bold text-zinc-900">Deep Technicals</h3>
@@ -295,9 +294,9 @@ export function HomePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-              className="group relative overflow-hidden rounded-[2rem] border border-black/[0.04] bg-[#fafafa] p-8 transition-all hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:border-transparent hover:ring-1 hover:ring-amber-500/20 hover:bg-gradient-to-br hover:from-white hover:to-amber-50/50 lg:col-span-2"
+              className="group relative overflow-hidden rounded-[2rem] border border-slate-200/50 bg-white/60 backdrop-blur-sm p-8 transition-all hover:shadow-[0_8px_30px_rgba(30,58,138,0.08)] hover:border-blue-200/50 hover:ring-1 hover:ring-blue-500/20 hover:bg-gradient-to-br hover:from-white hover:to-blue-50/50 lg:col-span-2"
             >
-              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm border border-black/[0.02] text-amber-600 transition-transform group-hover:scale-110">
+              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm border border-slate-200/50 text-blue-600 transition-transform group-hover:scale-110">
                 <Layers size={28} />
               </div>
               <h3 className="mb-3 text-2xl font-bold text-zinc-900">Pristine Dashboard UI</h3>
@@ -310,7 +309,7 @@ export function HomePage() {
       </section>
 
       {/* ─── How It Works ─── */}
-      <section className="relative bg-gradient-to-b from-amber-50/10 to-rose-50/10 px-4 py-12 lg:py-16 sm:px-8 border-t border-black/[0.04]">
+      <section className="relative bg-gradient-to-b from-slate-50 to-blue-50/40 px-4 py-12 lg:py-16 sm:px-8 border-t border-slate-200/50">
         <div className="mx-auto max-w-5xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -338,7 +337,7 @@ export function HomePage() {
                 transition={{ duration: 0.8, delay: 0.2 + (i * 0.1), ease: [0.16, 1, 0.3, 1] }}
                 className="relative text-center"
               >
-                <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[1.5rem] border border-black/[0.04] bg-white shadow-sm text-zinc-700">
+                <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[1.5rem] border border-slate-200/50 bg-white/80 backdrop-blur-sm shadow-sm text-blue-600">
                   {s.icon}
                 </div>
                 <h3 className="text-xl font-bold text-zinc-900">Step {s.step}: {s.title}</h3>
@@ -371,7 +370,7 @@ export function HomePage() {
             ) : (
               <button
                 onClick={handleTrySearch}
-                className="group mt-6 flex h-12 sm:h-14 w-full max-w-[280px] sm:max-w-none sm:w-auto items-center justify-center gap-2 rounded-full bg-zinc-900 px-6 sm:px-10 text-[14px] sm:text-[15px] font-semibold tracking-wide text-white shadow-xl shadow-zinc-900/10 transition-all hover:scale-[1.02] hover:bg-black hover:shadow-2xl active:scale-95 cursor-pointer"
+                className="group mt-6 flex h-12 sm:h-14 w-full max-w-[280px] sm:max-w-none sm:w-auto items-center justify-center gap-2 rounded-full bg-blue-700 px-6 sm:px-10 text-[14px] sm:text-[15px] font-semibold tracking-wide text-white shadow-xl shadow-blue-900/20 transition-all hover:scale-[1.02] hover:bg-blue-800 hover:shadow-2xl active:scale-95 cursor-pointer"
               >
                 Start Free Analysis
                 <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />

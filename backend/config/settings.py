@@ -24,17 +24,33 @@ def get_llm(api_key: str = None):
     )
 
 
-def get_openrouter_llm(api_key: str = None):
+def get_openrouter_llm(
+    api_key: str = None,
+    thinking_level: str = "none",  # "none", "low", "medium", "high"
+    temperature: float = 0.2,
+    max_tokens: int = 2500,
+    top_p: float = 0.9,
+):
+    """
+    Get OpenRouter LLM instance.
+    `thinking_level` controls the reasoning effort (e.g. for o1/o3 models).
+    """
 
-    return ChatOpenRouter(
-        model=OPEN_ROUTER_MODEL,
-        openrouter_api_key=api_key,
-        temperature=0.2,
-        top_p=0.9,
-        frequency_penalty=0.5,
-        presence_penalty=0.1,
-        max_completion_tokens=4000,
-        reasoning={
-            "effort": "none",
+    # Adjust default max_tokens if thinking is enabled and not explicitly overridden
+    if thinking_level != "none" and max_tokens == 2500:
+        max_tokens = 4000
+
+    kwargs = {
+        "model": OPEN_ROUTER_MODEL,
+        "openrouter_api_key": api_key,
+        "temperature": temperature,
+        "top_p": top_p,
+        "frequency_penalty": 0.5,
+        "presence_penalty": 0.1,
+        "max_completion_tokens": max_tokens,
+        "reasoning": {
+            "effort": thinking_level,
         },
-    )
+    }
+
+    return ChatOpenRouter(**kwargs)
