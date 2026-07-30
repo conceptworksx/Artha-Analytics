@@ -48,8 +48,8 @@ def make_nodes(openrouter_api_key: str = None) -> dict:
         result = market_agent.run(state)
         report, summary = _extract_report(result)
         return {
-            "market_analyst_report": report,
-            "market_analyst_summary": summary,
+            "market_analyst_report": report or "Market analysis unavailable.",
+            "market_analyst_summary": summary or {},
         }
 
     @handle_node_errors("fundamental_analyst")
@@ -57,8 +57,8 @@ def make_nodes(openrouter_api_key: str = None) -> dict:
         result = fundamental_agent.run(state)
         report, summary = _extract_report(result)
         return {
-            "fundamental_analyst_report": report,
-            "fundamental_analyst_summary": summary,
+            "fundamental_analyst_report": report or "Fundamental analysis unavailable.",
+            "fundamental_analyst_summary": summary or {},
         }
 
     @handle_node_errors("technical_analyst")
@@ -66,8 +66,8 @@ def make_nodes(openrouter_api_key: str = None) -> dict:
         result = technical_agent.run(state)
         report, summary = _extract_report(result)
         return {
-            "technical_analyst_report": report,
-            "technical_analyst_summary": summary,
+            "technical_analyst_report": report or "Technical analysis unavailable.",
+            "technical_analyst_summary": summary or {},
         }
 
     @handle_node_errors("news_analyst")
@@ -75,8 +75,8 @@ def make_nodes(openrouter_api_key: str = None) -> dict:
         result = news_agent.run(state)
         report, summary = _extract_report(result)
         return {
-            "news_analyst_report": report,
-            "news_analyst_summary": summary,
+            "news_analyst_report": report or "News analysis unavailable.",
+            "news_analyst_summary": summary or {},
         }
 
     @handle_node_errors("sector_analyst")
@@ -84,8 +84,8 @@ def make_nodes(openrouter_api_key: str = None) -> dict:
         result = sector_agent.run(state)
         report, summary = _extract_report(result, "report")
         return {
-            "sector_analyst_report": report,
-            "sector_analyst_summary": summary,
+            "sector_analyst_report": report or "Sector analysis unavailable. Sector data might be missing for this ticker.",
+            "sector_analyst_summary": summary or {},
         }
 
     @handle_node_errors("aggregator")
