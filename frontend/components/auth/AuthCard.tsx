@@ -275,16 +275,9 @@ export function AuthCard({
           <div className="h-px flex-1 bg-black/10" />
         </div>
 
-        <div className="group relative w-full h-[40px] flex-shrink-0 flex justify-center mt-1">
-          {/* Visual custom button */}
-          <div className="relative w-full h-full overflow-hidden rounded-lg bg-black text-white flex items-center justify-center font-semibold text-xs tracking-[0.2em] border border-black/10 cursor-pointer select-none transition-all duration-200 group-hover:scale-[1.01]">
-            <span className="relative z-10 flex items-center justify-center gap-2">
-              <FaGoogle size={13} className="text-white" />
-              CONTINUE WITH GOOGLE
-            </span>
-          </div>
-          {/* Google Native button overlay */}
-          <div id="google-signin-btn" className="absolute inset-0 w-full h-full opacity-0 z-20 cursor-pointer overflow-hidden [&_iframe]:w-full [&_iframe]:h-full" />
+        <div className="w-full flex-shrink-0 flex justify-center mt-1">
+          {/* Native Google Sign-In Button */}
+          <div id="google-signin-btn" />
         </div>
       </motion.div>
     </div>

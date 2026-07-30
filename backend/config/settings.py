@@ -5,7 +5,9 @@ from langchain_openrouter import ChatOpenRouter
 
 load_dotenv()
 
-OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "meta-llama/llama-prompt-guard-2-86m")
+OPEN_ROUTER_MODEL = os.getenv(
+    "OPEN_ROUTER_MODEL", "nvidia/nemotron-3-super-120b-a12b:free"
+)
 GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 
 LANGCHAIN_TRACING_V2 = os.getenv("LANGCHAIN_TRACING_V2", "false").lower() == "true"
@@ -25,7 +27,7 @@ def get_llm(api_key: str = None):
 def get_openrouter_llm(api_key: str = None):
 
     return ChatOpenRouter(
-        model=OPENROUTER_MODEL,
+        model=OPEN_ROUTER_MODEL,
         openrouter_api_key=api_key,
         temperature=0.2,
         top_p=0.9,
