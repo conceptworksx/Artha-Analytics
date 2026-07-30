@@ -54,6 +54,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+async def root():
+    return {
+        "name": "Artha Analytics API",
+        "status": "online",
+        "description": "Multi-agent stock analysis for Indian markets",
+        "docs_url": "/docs"
+    }
+
 app.include_router(router)
 
 if __name__ == "__main__":

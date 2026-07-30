@@ -37,7 +37,7 @@ export function FundamentalReportView({
 
   // Extract analysis
   const analysis = reportData?.analysis || reportData || {};
-  const summary = reportData?.summary || {};
+  // const summary = reportData?.summary || {};
 
   // Extract tables from fundamentalData
   const inc = fundamentalData?.income_stmt?.income_statement || {};
