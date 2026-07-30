@@ -4,7 +4,7 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableLambda, RunnableParallel, RunnableBranch
 
-from agents.base_agent import BaseAgent, load_structured_prompt
+from agents.base_agent import BaseAgent, load_structured_prompt, AnalystOutput
 from core.constants import get_sector_catalog
 from core.error import handle_llm_errors
 from core.logging import get_logger
@@ -31,7 +31,7 @@ class SectorAnalyst(BaseAgent):
     prompt_path = "prompts/sector_resolver_prompt.yaml"
 
     def __init__(self, openrouter_api_key: str = None):
-        super().__init__(openrouter_api_key=openrouter_api_key)
+        super().__init__(openrouter_api_key=openrouter_api_key, max_tokens=200)
 
         resolver_yaml = load_structured_prompt("prompts/sector_resolver_prompt.yaml")
         self.prompt = ChatPromptTemplate.from_messages(
@@ -46,7 +46,7 @@ class SectorAnalyst(BaseAgent):
             RunnableLambda(_build_sector_resolver_message)
             | self.prompt
             | self.llm
-            | JsonOutputParser()
+            | JsonOutputParser(pydantic_object=AnalystOutput)
             | RunnableBranch(
                 (
                     lambda x: not x.get("sector_name"),

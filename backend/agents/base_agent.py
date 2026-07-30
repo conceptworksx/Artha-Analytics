@@ -3,6 +3,12 @@ from pathlib import Path
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from config.settings import get_llm, get_openrouter_llm
 
+from pydantic import BaseModel, Field
+from typing import Dict, Any
+
+class AnalystOutput(BaseModel):
+    analysis: Dict[str, Any] = Field(description="The detailed analysis report.")
+    summary: Dict[str, Any] = Field(description="The structured summary.")
 
 def load_structured_prompt(file_path: str) -> str:
     path = Path(file_path)
@@ -26,8 +32,8 @@ class BaseAgent:
 
     prompt_path: str = ""
 
-    def __init__(self, openrouter_api_key: str = None):
-        self.llm = get_openrouter_llm(api_key=openrouter_api_key)
+    def __init__(self, openrouter_api_key: str = None, **llm_kwargs):
+        self.llm = get_openrouter_llm(api_key=openrouter_api_key, **llm_kwargs)
 
         yaml_instructions = load_structured_prompt(self.prompt_path)
 

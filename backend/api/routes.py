@@ -387,7 +387,9 @@ def list_analyses(user: AuthUser = Depends(get_current_user)):
             analysis_id=doc["analysis_id"],
             ticker=doc["ticker"],
             company_name=(
-                doc.get("company_info", {}).get("name")
+                doc.get("company_info", {}).get("longName")
+                or doc.get("company_info", {}).get("shortName")
+                or doc.get("company_info", {}).get("name")
                 if doc.get("company_info")
                 else None
             ),

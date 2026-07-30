@@ -36,8 +36,22 @@ def process_prefetch_result(raw_data: dict) -> dict:
     )
 
     # Attach raw company info and serialized ohlcv data for frontend charts/overview
-    processed_bundle["company_info"] = raw_data.get("info", {})
-    
+    info = raw_data.get("info", {})
+    allowed_keys = {
+        "symbol", "longName", "shortName", "name", "currency", 
+        "previousClose", "regularMarketPreviousClose", 
+        "open", "regularMarketOpen", 
+        "dayHigh", "regularMarketDayHigh", 
+        "dayLow", "regularMarketDayLow", 
+        "currentPrice", "regularMarketPrice", 
+        "marketCap", "trailingPE", "forwardPE", 
+        "volume", "regularMarketVolume", 
+        "fiftyTwoWeekHigh", "fiftyTwoWeekLow", 
+        "sector", "industry", 
+        "longBusinessSummary", "description"
+    }
+    processed_bundle["company_info"] = {k: info[k] for k in allowed_keys if k in info}
+
     ohlcv_df = raw_data.get("ohlcv")
     ohlcv_list = []
     if ohlcv_df is not None and not ohlcv_df.empty:
