@@ -1,17 +1,21 @@
 import json
-
-from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableLambda, RunnableParallel, RunnableBranch
-
-from agents.base_agent import BaseAgent, load_structured_prompt, AnalystOutput
+from agents.base_agent import BaseAgent, load_structured_prompt
 from core.constants import get_sector_catalog
 from core.error import handle_llm_errors
 from core.logging import get_logger
 from tools.sector_tools import validate_sector, get_sector_content
+from agents.agents_models import SectorResolverOutput
 
 logger = get_logger(__name__)
 
+
+
+def _format_output(x) -> dict:
+    if not x:
+        return {"sector_name": None, "confidence": 0.0, "reason": "LLM failed to generate structured output"}
+    return x.dict() if hasattr(x, "dict") else x.model_dump()
 
 def _build_sector_resolver_message(data: dict) -> dict:
     content = f"""
@@ -41,12 +45,11 @@ class SectorAnalyst(BaseAgent):
             ]
         )
 
-        # LLM resolver → JSON parse → validate
         self.sector_resolver_llm_chain = (
             RunnableLambda(_build_sector_resolver_message)
             | self.prompt
-            | self.llm
-            | JsonOutputParser(pydantic_object=AnalystOutput)
+            | self.llm.with_structured_output(SectorResolverOutput)
+            | RunnableLambda(_format_output)
             | RunnableBranch(
                 (
                     lambda x: not x.get("sector_name"),

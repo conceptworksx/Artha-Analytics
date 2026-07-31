@@ -1,52 +1,8 @@
 import json
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage
-from pydantic import BaseModel, Field
-from typing import Literal
+from agents.agents_models import Verdict
 from config.settings import get_openrouter_llm
-
-
-class Verdict(BaseModel):
-    """Structured verdict produced by the Research Manager after evaluating the debate."""
-
-    decision: Literal["BUY", "SELL", "HOLD"]
-    confidence: float = Field(
-        ge=0.0, le=1.0, description="Confidence level in the decision (0.0–1.0)"
-    )
-    entry_price: str = Field(
-        description="Recommended entry price or range, e.g. '₹4,150–₹4,200'"
-    )
-    exit_price: str = Field(
-        description="Target exit / take-profit price, e.g. '₹4,600'"
-    )
-    stop_loss: str = Field(
-        description="Stop-loss price level, e.g. '₹3,950'"
-    )
-    hold_duration: str = Field(
-        description="Recommended holding period, e.g. '3–6 months' or 'Exit immediately' for SELL"
-    )
-    rationale: str = Field(
-        description="2–3 sentence decision rationale explaining why one side prevailed"
-    )
-    strategy: str = Field(
-        description="Concise investment strategy based on the decision"
-    )
-    bull_strength: Literal["strong", "moderate", "weak"] = Field(
-        description="Assessment of bull thesis strength"
-    )
-    bear_strength: Literal["strong", "moderate", "weak"] = Field(
-        description="Assessment of bear thesis strength"
-    )
-    key_catalysts: list[str] = Field(
-        max_length=3, description="List of 2-3 key upcoming events or triggers"
-    )
-    status: Literal["success", "failure"] = Field(
-        description="Status of the verdict generation", default="success"
-    )
-    key_risks: list[str] = Field(
-        max_length=3, description="Top 3 risks to monitor"
-    )
-
 
 class ResearchManager:
     """

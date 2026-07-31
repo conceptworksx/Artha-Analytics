@@ -46,74 +46,7 @@ GOAL: >
   Final Output Format specified below. The response must be serialized as a single, 
   valid JSON object containing a complete markdown report string and a structured execution summary object.
 
-FINAL_OUTPUT_FORMAT:
-  type: "object"
-  required: ["analysis", "summary"]
-  properties:
-    analysis:
-      type: "object"
-      required: ["market_structure", "volatility", "momentum", "macd", "volume", "price_levels"]
-      properties:
-        market_structure:
-          type: "string"
-          description: "Comprehensive paragraph detailing the Moving Average Alignment, Trend Classification, Cross Status, and Price vs VWMA."
-        volatility:
-          type: "string"
-          description: "Detailed analysis of ATR implications, Bollinger Bandwidth, Squeeze status, Percent B, and Band Levels."
-        momentum:
-          type: "string"
-          description: "Analysis of exact RSI values, conditions, momentum trend direction, and divergences."
-        macd:
-          type: "string"
-          description: "Comparison between MACD vs Signal, MACD Bias, and MACD Histogram expansion/contraction."
-        volume:
-          type: "string"
-          description: "Interpretation of MFI value/condition, Volume Ratios, and confirmation of institutional participation."
-        price_levels:
-          type: "string"
-          description: "Explicit details on 52-Week Range, Support & Resistance zones mapped from structural bands and MA lines."
 
-    summary:
-      type: "object"
-      required:
-        [
-          "sentiment",
-          "key_driver",
-          "primary_risk",
-          "bull_signals",
-          "bear_signals",
-        ]
-      properties:
-        sentiment:
-          type: "string"
-          enum:
-            [
-              "strongly_positive",
-              "positive",
-              "neutral",
-              "negative",
-              "strongly_negative",
-            ]
-        key_driver:
-          type: "string"
-          description: "Main dominant bullish technical indicator or breakout signature extracted directly from the summary payload (Strictly 1–2 lines, no introductory filler)."
-        primary_risk:
-          type: "string"
-          description: "Main critical bearish indicator, momentum exhaustion signal, or breakdown vulnerability extracted directly from the summary payload (Strictly 1–2 lines, no introductory filler)."
-        bull_signals:
-          type: "array"
-          minItems: 1
-          maxItems: 5
-          items:
-            type: "string"
-            description: "Evidence-backed bullish insight matching the formula: [INDICATOR_NAME] + [Value & Direction Profile] + [Technical Mechanism & Actionable Zone]."
-        bear_signals:
-          type: "array"
-          minItems: 1
-          maxItems: 5
-          items:
-            type: "string"
-            description: "Evidence-backed bearish warning matching the formula: [INDICATOR_NAME] + [Value & Distressed Profile] + [Technical Mechanism & Downside Risk Zone]."
 
 FIELD_POPULATION_RULES:
   key_driver:

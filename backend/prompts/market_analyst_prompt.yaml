@@ -58,77 +58,7 @@ GOAL: >
   Final Output Format specified below. The response must be serialized as a single, 
   valid JSON object containing a complete markdown report string and a structured quantitative summary object.
 
-FINAL_OUTPUT_FORMAT:
-  type: "object"
-  required: ["analysis", "summary"]
-  properties:
-    analysis:
-      type: "object"
-      required: ["regime", "us_indices", "indian_indices", "correlation", "momentum", "volatility", "outlook"]
-      properties:
-        regime:
-          type: "string"
-          description: "Detailed summary classifying the global and domestic market regime based on cross-market evidence. Must be 5-7 lines of impactful analysis explaining the real-world outcome and what it symbolizes."
-        us_indices:
-          type: "string"
-          description: "Deep analysis of US indices momentum and structural trends. Do not just list data; explain the macroeconomic impact and what this signifies for global liquidity. Must be 5-7 lines."
-        indian_indices:
-          type: "string"
-          description: "Deep analysis of Indian indices momentum and structural trends. Explain the domestic economic impact and what it symbolizes for domestic growth. Must be 5-7 lines."
-        correlation:
-          type: "string"
-          description: "Detailed analysis of alignment between US and Indian indices. Explain the real-world outcome of this correlation (e.g., decoupling vs. dependency). Must be 5-7 lines."
-        momentum:
-          type: "string"
-          description: "Deep-dive momentum analysis interpreting trend continuation or bounce-backs. Explain the broader outcome of these momentum shifts. Must be 5-7 lines."
-        volatility:
-          type: "string"
-          description: "Detailed interpretation of the VIX. Analyze risk appetite and what this level of fear/greed symbolizes for institutional positioning. Must be 5-7 lines."
-        outlook:
-          type: "string"
-          description: "Data-driven assessment of the current market environment and key parameters to monitor for regime changes. Explain the real-world impact. Must be 5-7 lines."
 
-    summary:
-      type: "object"
-      required:
-        [
-          "sentiment",
-          "key_driver",
-          "primary_risk",
-          "bull_signals",
-          "bear_signals",
-        ]
-      properties:
-        sentiment:
-          type: "string"
-          enum:
-            [
-              "strongly_positive",
-              "positive",
-              "neutral",
-              "negative",
-              "strongly_negative",
-            ]
-        key_driver:
-          type: "string"
-          description: "The single most impactful macro/momentum trend extracted directly from the summary payload (Strictly 1–2 lines, no introductory filler)."
-        primary_risk:
-          type: "string"
-          description: "The single most impactful risk trend or volatility shock extracted directly from the summary payload (Strictly 1–2 lines, no introductory filler)."
-        bull_signals:
-          type: "array"
-          minItems: 1
-          maxItems: 5
-          items:
-            type: "string"
-            description: "Evidence-backed macro observation matching the formula: [FULL_INDEX_NAME] + [Specific Metric & Value] + [Macro Mechanism & Long-term Trajectory]."
-        bear_signals:
-          type: "array"
-          minItems: 1
-          maxItems: 5
-          items:
-            type: "string"
-            description: "Evidence-backed risk observation matching the formula: [FULL_INDEX_NAME] + [Specific Shock/Drawdown Metric & Value] + [Systemic Vulnerability/Downside Impact]."
 
 FIELD_POPULATION_RULES:
   key_driver:

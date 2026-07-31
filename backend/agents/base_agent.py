@@ -3,24 +3,6 @@ from pathlib import Path
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from config.settings import get_llm, get_openrouter_llm
 
-from pydantic import BaseModel, Field
-from typing import Dict, Any
-
-class AnalystOutput(BaseModel):
-    analysis: Dict[str, Any] = Field(description="The detailed analysis report.")
-    summary: Dict[str, Any] = Field(description="The structured summary.")
-
-class ThesisArgument(BaseModel):
-    heading: str = Field(description="The main point or heading of the argument")
-    details: list[str] = Field(description="List of detailed points and evidence supporting the argument")
-    rebuttal: str = Field(description="Rebuttal to the opposing side's counterpoint, if applicable", default="")
-
-class ThesisOutput(BaseModel):
-    title: str = Field(description="A strong, descriptive title for the thesis")
-    introduction: str = Field(description="An introductory paragraph summarizing the stance")
-    arguments: list[ThesisArgument] = Field(description="The main arguments supporting the thesis")
-    status: str = Field(description="Status of the thesis generation ('success' or 'failure')", default="success")
-
 def load_structured_prompt(file_path: str) -> str:
     path = Path(file_path)
     if not path.exists():

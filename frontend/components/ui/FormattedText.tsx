@@ -6,8 +6,15 @@ export function FormattedText({ text }: { text: string }) {
   if (!text) return null;
   if (typeof text !== "string") text = String(text);
 
-  const parts = text.split(BOLD_REGEX);
-  const matches = text.match(BOLD_REGEX) || [];
+  // Strip raw markdown annotations like **, *, and leading dashes that LLM might output
+  const cleanText = text
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/^-\s*/gm, '')
+    .trim();
+
+  const parts = cleanText.split(BOLD_REGEX);
+  const matches = cleanText.match(BOLD_REGEX) || [];
 
   return (
     <>

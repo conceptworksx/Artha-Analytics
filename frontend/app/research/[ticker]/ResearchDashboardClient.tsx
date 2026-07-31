@@ -441,6 +441,6 @@ function ViewSwitch({
     case "bear":
       return <BearThesisView ticker={t} data={data.bear_thesis} />;
     case "verdict":
-      return <ManagerVerdictView ticker={t} data={data.verdict} />;
+      return <ManagerVerdictView ticker={t} data={data.verdict} chartsData={data.charts_data} />;
   }
 }

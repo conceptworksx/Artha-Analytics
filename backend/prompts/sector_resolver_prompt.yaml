@@ -18,9 +18,4 @@ RULES:
   - Return ONLY a valid JSON object.
   - No explanation, no markdown, no code fences, no preamble, no commentary.
 
-OUTPUT_FORMAT:
-  type: json
-  schema:
-    sector_name: string
-    confidence: float
-    reason: string
+

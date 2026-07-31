@@ -1,18 +1,21 @@
 import json
-
 from langchain_core.messages import HumanMessage
-from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.runnables import (
     RunnableLambda,
     RunnableBranch,
 )
-from langchain_core.output_parsers import JsonOutputParser
-from agents.base_agent import BaseAgent, AnalystOutput
+from agents.base_agent import BaseAgent
 from core.error import handle_llm_errors
 from core.logging import get_logger
+from agents.agents_models import MarketAnalystOutput
 
 logger = get_logger(__name__)
 
+
+def _format_output(x) -> dict:
+    if not x:
+        return {"analysis": "LLM failed to generate structured output", "summary": {}}
+    return x.dict() if hasattr(x, "dict") else x.model_dump()
 
 def _extract_market_section(data: dict, key: str):
     """
@@ -69,7 +72,7 @@ class MarketAnalyst(BaseAgent):
         super().__init__(
             openrouter_api_key=openrouter_api_key,
             thinking_level="none",
-            max_tokens=1500,
+            max_tokens=2000,
         )
 
         # Define the success and error chains for the Market Analyst
@@ -77,8 +80,8 @@ class MarketAnalyst(BaseAgent):
         success_chain = (
             RunnableLambda(_build_messages)
             | self.prompt
-            | self.llm
-            | JsonOutputParser(pydantic_object=AnalystOutput)
+            | self.llm.with_structured_output(MarketAnalystOutput)
+            | RunnableLambda(_format_output)
         )
 
         error_chain = RunnableLambda(

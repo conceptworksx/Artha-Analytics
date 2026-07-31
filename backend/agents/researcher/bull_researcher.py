@@ -1,7 +1,8 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage
 from config.settings import get_openrouter_llm
-from agents.base_agent import BaseAgent, ThesisOutput
+from agents.base_agent import BaseAgent
+from agents.agents_models import ThesisOutput
 
 
 class BullResearcher:

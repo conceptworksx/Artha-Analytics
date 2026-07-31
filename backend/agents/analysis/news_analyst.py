@@ -1,17 +1,21 @@
 import json
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableParallel, RunnableLambda
-from langchain_core.output_parsers import JsonOutputParser
-from agents.base_agent import BaseAgent, AnalystOutput
+from agents.base_agent import BaseAgent
 from tools.news_tools import (
     get_indian_market_news,
     get_global_market_news,
 )
 from core.error import handle_llm_errors
 from core.logging import get_logger
+from agents.agents_models import NewsAnalystOutput
 
 logger = get_logger(__name__)
 
+def _format_output(x) -> dict:
+    if not x:
+        return {"analysis": "LLM failed to generate structured output", "summary": {}}
+    return x.dict() if hasattr(x, "dict") else x.model_dump()
 
 def _build_messages(data: dict) -> dict:
     """
@@ -58,13 +62,12 @@ class NewsAnalyst(BaseAgent):
         )
 
         # Define the chain to process the news data and generate the report
-        structured_llm = self.llm
         self.chain = (
             news_fetcher
             | RunnableLambda(_build_messages)
             | self.prompt
-            | structured_llm
-            | JsonOutputParser(pydantic_object=AnalystOutput)
+            | self.llm.with_structured_output(NewsAnalystOutput)
+            | RunnableLambda(_format_output)
         )
 
     @handle_llm_errors()
