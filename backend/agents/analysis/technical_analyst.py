@@ -1,17 +1,21 @@
 import json
-
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import (
     RunnableLambda,
     RunnableBranch,
 )
-from langchain_core.output_parsers import JsonOutputParser
-from agents.base_agent import BaseAgent, AnalystOutput
+from agents.base_agent import BaseAgent
 from core.error import handle_llm_errors
 from core.logging import get_logger
+from agents.agents_models import TechnicalAnalystOutput
 
 logger = get_logger(__name__)
 
+
+def _format_output(x) -> dict:
+    if not x:
+        return {"analysis": "LLM failed to generate structured output", "summary": {}}
+    return x.dict() if hasattr(x, "dict") else x.model_dump()
 
 def _build_messages(data: dict) -> dict:
     """
@@ -68,12 +72,11 @@ class TechnicalAnalyst(BaseAgent):
         super().__init__(openrouter_api_key=openrouter_api_key, max_tokens=2500)
 
         # Define the success and error chains for the Technical Analyst
-        structured_llm = self.llm
         success_chain = (
             RunnableLambda(_build_messages)
             | self.prompt
-            | structured_llm
-            | JsonOutputParser(pydantic_object=AnalystOutput)
+            | self.llm.with_structured_output(TechnicalAnalystOutput)
+            | RunnableLambda(_format_output)
         )
         error_chain = RunnableLambda(
             lambda x: f"Failed to fetch fundamental data for "

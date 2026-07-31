@@ -7,6 +7,9 @@ import {
   Layers,
   Activity,
   X,
+  TrendingUp,
+  TrendingDown,
+  Scale,
   type LucideIcon,
 } from "lucide-react";
 
@@ -16,7 +19,10 @@ export type ViewKey =
   | "technical"
   | "fundamental"
   | "market"
-  | "sector";
+  | "sector"
+  | "bull"
+  | "bear"
+  | "verdict";
 
 interface Item {
   key: ViewKey;
@@ -30,6 +36,12 @@ const ANALYSTS: Item[] = [
   { key: "market", label: "Market Analyst", icon: Globe },
   { key: "sector", label: "Sector Analyst", icon: Layers },
   { key: "news", label: "News Analyst", icon: Newspaper },
+];
+
+const DEBATE: Item[] = [
+  { key: "bull", label: "Bull Thesis", icon: TrendingUp },
+  { key: "bear", label: "Bear Thesis", icon: TrendingDown },
+  { key: "verdict", label: "Manager Verdict", icon: Scale },
 ];
 
 export function AppSidebar({
@@ -73,6 +85,11 @@ export function AppSidebar({
         
         <SectionLabel>ANALYSTS</SectionLabel>
         {ANALYSTS.map((it) => (
+          <Row key={it.key} item={it} active={active === it.key} onSelect={handleSelect} />
+        ))}
+
+        <SectionLabel>INVESTMENT DEBATE</SectionLabel>
+        {DEBATE.map((it) => (
           <Row key={it.key} item={it} active={active === it.key} onSelect={handleSelect} />
         ))}
       </div>
