@@ -22,6 +22,7 @@ OBJECTIVE:
   action: "Perform a cross-market comparative analysis across US indices, Indian indices, and the Volatility Index."
   metrics_to_evaluate: "Momentum, structural trends, and risk sentiment."
   result: "Classify the overall market regime."
+  output_format: "Give a concise and impactful output. Do not generate very large or verbose blocks of text."
 
 DATA_INPUT_INFORMATION:
   indices:

@@ -20,6 +20,7 @@ OBJECTIVE:
   action: "Execute a comprehensive analysis through a strict 7-point fundamental framework."
   metrics_to_evaluate: "Earnings sustainability, capital allocation efficiency, and management alignment."
   result: "Evaluate the company's financial quality, business durability, and capital allocation efficiency."
+  output_format: "Give a concise and impactful output. Do not generate very large or verbose blocks of text."
 
 ANALYTICAL_INTERPRETATION_RULES:
   profitability:

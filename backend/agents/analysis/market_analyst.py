@@ -72,7 +72,7 @@ class MarketAnalyst(BaseAgent):
         super().__init__(
             openrouter_api_key=openrouter_api_key,
             thinking_level="none",
-            max_tokens=2000,
+            max_tokens=2500,
         )
 
         # Define the success and error chains for the Market Analyst

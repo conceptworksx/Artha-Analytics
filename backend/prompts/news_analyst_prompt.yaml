@@ -22,6 +22,7 @@ OBJECTIVE:
   action: "Execute a comprehensive news impact matrix cross-referencing company developments with global and domestic macroeconomic contexts."
   metrics_to_evaluate: "Sentiment velocity, structural operational shifts, and macro-to-stock interaction paths."
   result: "Determine concrete short-term and long-term analytical implications."
+  output_format: "Give a concise and impactful output. Do not generate very large or verbose blocks of text."
 
 ANALYTICAL_INTERPRETATION_RULES:
   news_weighting:

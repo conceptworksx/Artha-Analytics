@@ -21,6 +21,7 @@ OBJECTIVE:
   action: "Analyze technical datasets to isolate trend structure, volatility regimes, momentum conditions, and volume confirmation signals."
   metrics_to_evaluate: "Trend alignment strength, volatility squeezes, momentum divergences, and volume confirmation ratios."
   result: "Determine concrete market states and support/resistance matrices."
+  output_format: "Give a concise and impactful output. Do not generate very large or verbose blocks of text."
 
 ANALYTICAL_INTERPRETATION_RULES:
   trend_logic:
