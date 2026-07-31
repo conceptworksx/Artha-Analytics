@@ -5,11 +5,11 @@ from langgraph.graph import MessagesState, add_messages
 class InvestmentDebateState(TypedDict):
 
     bull_thesis: Annotated[
-        str,
+        str | dict,
         "Optimistic investment thesis highlighting potential upside drivers and catalysts.",
     ]
     bear_thesis: Annotated[
-        str,
+        str | dict,
         "Pessimistic investment thesis outlining key risks, weaknesses, and downside triggers.",
     ]
     debate_history: Annotated[
@@ -21,6 +21,9 @@ class InvestmentDebateState(TypedDict):
     ]
     current_response: Annotated[str, "Current outcome of the researcher"]
     debate_rounds: Annotated[int, "Number of debate iterations conducted."]
+    last_speaker: Annotated[
+        str, "Who spoke last in the debate: 'bull' or 'bear'."
+    ]
 
 
 class AgentState(TypedDict):
@@ -28,6 +31,9 @@ class AgentState(TypedDict):
     # --- Contextual Metadata ---
     ticker_of_company: Annotated[
         str, "The specific company ticker or name target for research."
+    ]
+    include_debate: Annotated[
+        bool, "Whether or not to include the debate phase in the research process."
     ]
     data_bundle: Annotated[
         dict,
@@ -81,18 +87,22 @@ class AgentState(TypedDict):
         dict, "Structured sector summary for Bull/Bear debate."
     ]
 
-    final_report: Annotated[
-        str, "single concatenated report combining all analyst report"
-    ]
-
     # --- Strategic Perspectives ---
     investment_debate: Annotated[
         InvestmentDebateState,
-        "Structured state capturing the ongoing investment debate, including bull and bear arguments ,"
+        "Structured state capturing the ongoing investment debate, including bull and bear arguments,"
         "discussion history, final decision, and debate iteration count.",
     ]
     investment_strategy: Annotated[
         str, "Final synthesized investment strategy derived from the debate."
+    ]
+
+    # --- Verdict (from Research Manager) ---
+    verdict: Annotated[
+        dict,
+        "Structured verdict from the Research Manager: decision, confidence, "
+        "entry_price, exit_price, stop_loss, hold_duration, rationale, strategy, "
+        "bull_strength, bear_strength, key_catalysts, key_risks.",
     ]
 
     # --- Orchestration & Logic ---
@@ -115,6 +125,3 @@ class AgentState(TypedDict):
     # --- Conversation History ---
     # We use add_messages to ensure new messages are appended to the history rather than overwriting it
     # messages: Annotated[list, add_messages]
-
-    # ----Temporary State----------
-    final_report: Annotated[str, "Contains all the report and used by the aggregator"]

@@ -10,6 +10,17 @@ class AnalystOutput(BaseModel):
     analysis: Dict[str, Any] = Field(description="The detailed analysis report.")
     summary: Dict[str, Any] = Field(description="The structured summary.")
 
+class ThesisArgument(BaseModel):
+    heading: str = Field(description="The main point or heading of the argument")
+    details: list[str] = Field(description="List of detailed points and evidence supporting the argument")
+    rebuttal: str = Field(description="Rebuttal to the opposing side's counterpoint, if applicable", default="")
+
+class ThesisOutput(BaseModel):
+    title: str = Field(description="A strong, descriptive title for the thesis")
+    introduction: str = Field(description="An introductory paragraph summarizing the stance")
+    arguments: list[ThesisArgument] = Field(description="The main arguments supporting the thesis")
+    status: str = Field(description="Status of the thesis generation ('success' or 'failure')", default="success")
+
 def load_structured_prompt(file_path: str) -> str:
     path = Path(file_path)
     if not path.exists():
@@ -46,3 +57,41 @@ class BaseAgent:
         raise NotImplementedError(
             f"{self.__class__.__name__} must implement run()"
         )
+
+    @staticmethod
+    def _format_summaries(state: dict) -> str:
+        """
+        Format all 5 analyst summaries from state into a readable evidence block.
+        Called directly by Bull/Bear researchers — no _unpack_debate needed.
+        """
+        analysts = ["market", "fundamental", "technical", "news", "sector"]
+        sections = []
+        for analyst in analysts:
+            data = state.get(f"{analyst}_analyst_summary", {})
+            if not data:
+                continue
+            
+            section = f"=== {analyst.upper()} ANALYST ==="
+            
+            # If data is a string (e.g., from an LLM parsing fallback), try to parse it or handle as raw text
+            if isinstance(data, str):
+                import json
+                try:
+                    data = json.loads(data)
+                except json.JSONDecodeError:
+                    section += f"\nRaw Output: {data}"
+                    sections.append(section)
+                    continue
+
+            section += f"\nSentiment: {data.get('sentiment', 'N/A')}"
+            section += f"\nKey Driver: {data.get('key_driver', 'N/A')}"
+            section += f"\nPrimary Risk: {data.get('primary_risk', 'N/A')}"
+            for label, key in [("Bull Signals", "bull_signals"), ("Bear Signals", "bear_signals")]:
+                signals = data.get(key, [])[:3]  # Top 3 only
+                if signals:
+                    section += f"\n{label}:"
+                    for s in signals:
+                        display = s.get('statement', str(s)) if analyst == "sector" and isinstance(s, dict) else s
+                        section += f"\n  • {display}"
+            sections.append(section)
+        return "\n\n".join(sections) if sections else "No analyst summaries available."

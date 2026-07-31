@@ -1,3 +1,32 @@
+export interface ThesisArgument {
+  heading: string;
+  details: string[];
+  rebuttal?: string;
+}
+
+export interface ThesisOutput {
+  title: string;
+  introduction: string;
+  arguments: ThesisArgument[];
+  status: string;
+}
+
+export interface Verdict {
+  decision: "BUY" | "SELL" | "HOLD";
+  confidence: number;
+  entry_price: string;
+  exit_price: string;
+  stop_loss: string;
+  hold_duration: string;
+  rationale: string;
+  strategy: string;
+  bull_strength: "strong" | "moderate" | "weak";
+  bear_strength: "strong" | "moderate" | "weak";
+  key_catalysts: string[];
+  key_risks: string[];
+  status: "success" | "failure";
+}
+
 export interface AnalyseResponse {
   ticker: string;
   news_report: any;
@@ -14,6 +43,10 @@ export interface AnalyseResponse {
   indian_news?: any;
   global_news?: any;
   historical_prices?: any[];
+  
+  bull_thesis?: ThesisOutput | null;
+  bear_thesis?: ThesisOutput | null;
+  verdict?: Verdict | null;
 
   charts_data?: {
     technical_history: Array<{
@@ -189,11 +222,13 @@ export async function analyseTicker({
   openrouterApiKey,
   authToken,
   signal,
+  include_debate = false,
 }: {
   ticker: string;
   openrouterApiKey: string;
   authToken?: string;
   signal?: AbortSignal;
+  include_debate?: boolean;
 }): Promise<AnalyseResponse> {
   const cleanTicker = normalizeTicker(ticker);
   const url = `${API_BASE_URL}/analyze`;
@@ -215,7 +250,7 @@ export async function analyseTicker({
     res = await fetch(url, {
       method: "POST",
       headers,
-      body: JSON.stringify({ ticker: cleanTicker }),
+      body: JSON.stringify({ ticker: cleanTicker, include_debate }),
       signal,
     });
   } catch (fetchErr) {
@@ -251,6 +286,9 @@ export async function analyseTicker({
     indian_news: rawData.indian_news || null,
     global_news: rawData.global_news || null,
     historical_prices: rawData.historical_prices || [],
+    bull_thesis: rawData.bull_thesis || null,
+    bear_thesis: rawData.bear_thesis || null,
+    verdict: rawData.verdict || null,
     charts_data: rawData.charts_data,
   };
 

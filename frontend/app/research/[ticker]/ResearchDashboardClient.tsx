@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { Search, Menu } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   analyseTicker,
   AnalysisError,
@@ -24,15 +24,18 @@ import { TechnicalReportView } from "@/components/research/TechnicalReportView";
 import { MarketReportView } from "@/components/research/MarketReportView";
 import { NewsReportView } from "@/components/research/NewsReportView";
 import { SectorReportView } from "@/components/research/SectorReportView";
+import { BullThesisView } from "@/components/research/BullThesisView";
+import { BearThesisView } from "@/components/research/BearThesisView";
+import { ManagerVerdictView } from "@/components/research/ManagerVerdictView";
 import { StockMetricsPanel } from "@/components/charts/StockMetricsPanel";
-import { 
+import {
   TechnicalTrendChart,
   TechnicalVolatilityChart,
   TechnicalMomentumChart
 } from "@/components/charts/TechnicalChart";
-import { 
+import {
   FundamentalGrowthChart,
-  FundamentalProfitabilityChart 
+  FundamentalProfitabilityChart
 } from "@/components/charts/FundamentalChart";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -43,6 +46,8 @@ interface ErrorInfo {
 
 export default function ResearchDashboardClient({ ticker }: { ticker: string }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const includeDebate = searchParams.get("debate") === "true";
   const isMobile = useIsMobile();
   const [data, setData] = useState<AnalyseResponse | null>(null);
   const [view, setView] = useState<ViewKey>("overview");
@@ -98,6 +103,7 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
       openrouterApiKey,
       authToken: authToken || undefined,
       signal: controller.signal,
+      include_debate: includeDebate,
     })
       .then((d) => {
         cacheResponse(ticker, d);
@@ -135,7 +141,7 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
     return () => {
       controller.abort();
     };
-  }, [ticker, retryCount, router]);
+  }, [ticker, retryCount, router, includeDebate]);
 
   if (!mounted) {
     return null;
@@ -225,7 +231,7 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
   return (
     <div className="flex h-screen flex-col print:h-auto print:block">
       {/* Navbar */}
-      <header className="print:hidden flex h-14 sm:h-16 shrink-0 items-center justify-between border-b border-black/[0.04] bg-gradient-to-r from-white/60 via-amber-50/30 to-white/60 backdrop-blur-2xl px-3 sm:px-5 transition-all">
+      <header className="print:hidden flex h-14 sm:h-16 shrink-0 items-center justify-between border-b border-black/[0.04] bg-white px-3 sm:px-5 shadow-sm transition-all">
         <div className="flex items-center gap-2">
           <Link href="/">
             <img
@@ -259,15 +265,17 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
               { key: "market", label: "Market" },
               { key: "sector", label: "Sector" },
               { key: "news", label: "News" },
+              { key: "bull", label: "Bull Thesis" },
+              { key: "bear", label: "Bear Thesis" },
+              { key: "verdict", label: "Verdict" },
             ].map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setView(tab.key as ViewKey)}
-                className={`px-3 py-1.5 text-[13px] font-medium whitespace-nowrap rounded-md transition-colors ${
-                  view === tab.key
+                className={`px-3 py-1.5 text-[13px] font-medium whitespace-nowrap rounded-md transition-colors ${view === tab.key
                     ? "bg-blue-800 text-white"
                     : "text-[var(--muted-foreground)] hover:bg-zinc-100"
-                }`}
+                  }`}
               >
                 {tab.label}
               </button>
@@ -428,5 +436,11 @@ function ViewSwitch({
           filenameBase={`${t}_sector_report`}
         />
       );
+    case "bull":
+      return <BullThesisView ticker={t} data={data.bull_thesis} />;
+    case "bear":
+      return <BearThesisView ticker={t} data={data.bear_thesis} />;
+    case "verdict":
+      return <ManagerVerdictView ticker={t} data={data.verdict} />;
   }
 }
