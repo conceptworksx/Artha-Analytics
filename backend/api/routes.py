@@ -275,7 +275,10 @@ async def analyze(
         logger.info(f"Starting graph execution | ticker={ticker}")
         graph = build_graph(openrouter_api_key=openrouter_api_key)
         final_state = await asyncio.to_thread(
-            graph.invoke, {"ticker_of_company": ticker}
+            graph.invoke, {
+                "ticker_of_company": ticker,
+                "include_debate": body.include_debate,
+            }
         )
         logger.info(f"Graph execution completed | ticker={ticker}")
 
@@ -330,6 +333,12 @@ async def analyze(
                     ),
                     "indian_news": data_bundle.get("news_data", {}).get("indian_news"),
                     "global_news": data_bundle.get("news_data", {}).get("global_news"),
+                    "verdict": final_state.get("verdict"),
+                    "bull_thesis": final_state.get("investment_debate", {}).get("bull_thesis"),
+                    "bear_thesis": final_state.get("investment_debate", {}).get("bear_thesis"),
+                    "debate_transcript": final_state.get("investment_debate", {}).get(
+                        "debate_history"
+                    ),
                 },
             )
             logger.info(f"Analysis saved | ticker={ticker} | analysis_id={analysis_id}")
@@ -350,6 +359,9 @@ async def analyze(
             company_news=data_bundle.get("news_data", {}).get("company_news"),
             indian_news=data_bundle.get("news_data", {}).get("indian_news"),
             global_news=data_bundle.get("news_data", {}).get("global_news"),
+            verdict=final_state.get("verdict"),
+            bull_thesis=final_state.get("investment_debate", {}).get("bull_thesis"),
+            bear_thesis=final_state.get("investment_debate", {}).get("bear_thesis"),
             status="success",
         )
 

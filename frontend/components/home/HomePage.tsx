@@ -111,7 +111,7 @@ export function HomePage() {
       </div>
 
       {/* ─── Navbar ─── */}
-      <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center justify-between border-b border-slate-200/50 bg-white/70 px-4 sm:px-8 backdrop-blur-md shadow-sm transition-all">
+      <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center justify-between border-b border-slate-200/50 bg-white px-4 sm:px-8 shadow-sm transition-all">
         <div className="flex items-center gap-2">
           <Link href="/">
             <img src="/navbar.png" alt="Artha Analytics" className="h-12 object-contain cursor-pointer transition-transform hover:scale-[1.02]" />
@@ -147,7 +147,7 @@ export function HomePage() {
           <button
             id="nav-auth-btn"
             onClick={() => setShowAuth(true)}
-            className="rounded-full bg-gradient-to-b from-zinc-800 to-zinc-950 shadow-inner shadow-white/10 px-6 py-2.5 font-mono text-[12px] font-semibold tracking-wider text-white transition-all hover:from-zinc-700 hover:to-zinc-950 hover:shadow-lg hover:scale-105 active:scale-95 cursor-pointer"
+            className="rounded-full bg-gradient-to-b from-zinc-800 to-zinc-950 shadow-inner shadow-white/10 px-4 py-2 sm:px-6 sm:py-2.5 font-mono text-[10px] sm:text-[12px] font-semibold tracking-wider text-white transition-all hover:from-zinc-700 hover:to-zinc-950 hover:shadow-lg hover:scale-105 active:scale-95 cursor-pointer"
           >
             LOGIN / SIGN UP
           </button>
@@ -190,7 +190,7 @@ export function HomePage() {
           {user ? (
             <button
               onClick={() => router.push("/search")}
-              className="group flex h-14 items-center gap-2 rounded-full bg-gradient-to-b from-zinc-800 to-zinc-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] px-8 py-3.5 text-[15px] font-semibold tracking-wide text-white transition-all hover:scale-[1.02] hover:from-zinc-700 hover:to-zinc-950 hover:shadow-2xl active:scale-95 cursor-pointer"
+              className="group flex h-12 sm:h-14 items-center gap-2 rounded-full bg-gradient-to-b from-zinc-800 to-zinc-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] px-6 sm:px-8 py-3 sm:py-3.5 text-[13px] sm:text-[15px] font-semibold tracking-wide text-white transition-all hover:scale-[1.02] hover:from-zinc-700 hover:to-zinc-950 hover:shadow-2xl active:scale-95 cursor-pointer"
             >
               <Search size={18} />
               Open Search Dashboard
@@ -200,14 +200,14 @@ export function HomePage() {
             <>
               <button
                 onClick={handleTrySearch}
-                className="group flex h-14 items-center gap-3 rounded-full bg-blue-700 px-8 text-[15px] font-semibold tracking-wide text-white shadow-xl shadow-blue-900/20 transition-all hover:scale-105 hover:bg-blue-800 hover:shadow-2xl active:scale-95 cursor-pointer"
+                className="group flex h-12 sm:h-14 items-center gap-2 sm:gap-3 rounded-full bg-blue-700 px-6 sm:px-8 text-[13px] sm:text-[15px] font-semibold tracking-wide text-white shadow-xl shadow-blue-900/20 transition-all hover:scale-105 hover:bg-blue-800 hover:shadow-2xl active:scale-95 cursor-pointer"
               >
                 Start Free Analysis
                 <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
               </button>
               <button
                 onClick={handleAuth}
-                className="flex h-14 items-center justify-center rounded-full border border-black/10 bg-white px-8 text-[15px] font-semibold tracking-wide text-zinc-700 shadow-sm transition-all hover:scale-105 hover:border-black/20 hover:bg-zinc-50 hover:shadow-md active:scale-95 cursor-pointer"
+                className="flex h-12 sm:h-14 items-center justify-center rounded-full border border-black/10 bg-white px-6 sm:px-8 text-[13px] sm:text-[15px] font-semibold tracking-wide text-zinc-700 shadow-sm transition-all hover:scale-105 hover:border-black/20 hover:bg-zinc-50 hover:shadow-md active:scale-95 cursor-pointer"
               >
                 Log In
               </button>

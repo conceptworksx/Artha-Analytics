@@ -27,12 +27,13 @@ graph TD
     Prefetch --> |Parallel Fan-out| Fund[Fundamental Analyst Agent]
     Prefetch --> |Parallel Fan-out| News[News Analyst Agent]
     Prefetch --> |Parallel Fan-out| Sector[Sector Analyst Agent]
-    Market --> Aggregator[Aggregator Node]
-    Tech --> Aggregator
-    Fund --> Aggregator
-    News --> Aggregator
-    Sector --> Aggregator
-    Aggregator --> END[Final Compiled Structured Analysis]
+    Market --> Debate[Debate Phase: Bull & Bear Researchers]
+    Tech --> Debate
+    Fund --> Debate
+    News --> Debate
+    Sector --> Debate
+    Debate --> Manager[Research Manager]
+    Manager --> END[Final Compiled Structured Analysis]
 ```
 
 ### The Analyst Agents
@@ -47,7 +48,8 @@ graph TD
    - Core growth metrics to evaluate financial viability.
 4. **News Analyst**: Aggregates the latest financial articles and press releases, performing sentiment analysis and outlining potential catalyst events.
 5. **Sector Analyst**: Examines sector-specific trends, regulatory headwinds/tailwinds, and benchmark comparisons with direct peers.
-6. **Aggregator Node**: Compiles and formats all analyst viewpoints into a clean, markdown-friendly response structure for the user.
+6. **Bull & Bear Researchers (Debate Phase)**: Synthesize the aggregated data into opposing theses. The Bull forms an optimistic investment case, while the Bear formulates the primary downside risks.
+7. **Research Manager (Verdict)**: Evaluates the generated debate against the quantitative facts and delivers a final executive decision (BUY, SELL, or HOLD), formulating precise entry targets and stop-loss boundaries.
 
 ---
 
@@ -59,10 +61,13 @@ graph TD
   - Secure **Email Signup/Login** using JSON Web Tokens (JWT) and integrated **Google OAuth** login.
   - Interactive profile dialogs to update passwords and manage credentials.
 * **Interactive Frontend Dashboards**:
-  - **Real-time Price Metrics Panel**: Displays 52-week ranges, trading volumes, and daily move ranges.
-  - **Dynamic Charting**: Built-in **Technical Indicators History Chart** and **Financial Metrics History Chart** powered by Recharts.
-  - Beautiful, responsive interfaces styled with custom CSS and Framer Motion micro-animations.
+  - **Trade Architecture Visualization**: Plots the Manager's Entry, Target, and Stop-Loss boundaries directly over the historical stock price Area Chart using Recharts.
+  - **Dynamic Charting**: Built-in Technical Indicators History Chart and Financial Metrics History Chart powered by Recharts.
+  - **Debate Transcript Interfaces**: Beautiful, responsive interfaces styled with custom CSS and Framer Motion micro-animations mapping the Bull/Bear debate dynamically.
   - **PDF Export & Copy Utility**: Export the full compiled agent analysis report as a PDF directly from the dashboard.
+* **Resilient Backend Agentic Architecture**:
+  - **Pydantic-enforced Structured Output**: Native `with_structured_output` integrations guarantee LLM payloads are perfectly typed and schema-compliant.
+  - **Graceful Error Recovery**: Unclassified LLM failures (e.g. empty strings, parsing errors) are safely caught and bubbled into placeholder dictionaries to prevent graph crashes and maintain pipeline continuity.
 
 ---
 

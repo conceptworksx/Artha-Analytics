@@ -43,15 +43,16 @@ class VerifyOpenRouterKeyRequest(BaseModel):
 
 class AnalyzeRequest(BaseModel):
     ticker: str
+    include_debate: bool = False
 
 
 class AnalyzeResponse(BaseModel):
     ticker: str
-    news_report: dict | str
-    technical_report: dict | str
-    fundamental_report: dict | str
-    market_report: dict | str
-    sector_report: dict | str
+    news_report: dict | str | None = None
+    technical_report: dict | str | None = None
+    fundamental_report: dict | str | None = None
+    market_report: dict | str | None = None
+    sector_report: dict | str | None = None
     status: str
     company_info: dict | None = None
     historical_prices: list | None = None
@@ -62,6 +63,9 @@ class AnalyzeResponse(BaseModel):
     company_news: dict | None = None
     indian_news: dict | None = None
     global_news: dict | None = None
+    verdict: dict | None = None
+    bull_thesis: dict | str | None = None
+    bear_thesis: dict | str | None = None
 
 
 class AnalysisSummary(BaseModel):

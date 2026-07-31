@@ -36,6 +36,7 @@ export function SearchView({
   const [highlight, setHighlight] = useState(0);
   const [selected, setSelected] = useState<Ticker | null>(null);
   const [loading, setLoading] = useState(false);
+  const [includeDebate, setIncludeDebate] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showProfile, setShowProfile] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(() => {
@@ -139,7 +140,7 @@ export function SearchView({
     setError(null);
     try {
       clearCached(target.symbol);
-      router.push(`/research/${target.symbol}`);
+      router.push(`/research/${target.symbol}${includeDebate ? "?debate=true" : ""}`);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to reach analysis service",
@@ -160,7 +161,7 @@ export function SearchView({
 
   return (
     <div className="relative min-h-screen bg-[#fafafa] text-zinc-900 selection:bg-amber-100 font-sans flex flex-col">
-      
+
       {/* Mesh Gradient Ambient Glows */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden flex justify-center">
         {/* Amber Orb */}
@@ -185,7 +186,7 @@ export function SearchView({
       </div>
 
       {/* ─── Navbar ─── */}
-      <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center justify-between border-b border-black/[0.04] bg-gradient-to-r from-white/60 via-amber-50/30 to-white/60 px-4 sm:px-8 backdrop-blur-2xl transition-all">
+      <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center justify-between border-b border-black/[0.04] bg-white px-4 sm:px-8 shadow-sm transition-all">
         <div className="flex items-center gap-2">
           <Link href="/">
             <img src="/navbar.png" alt="Artha Analytics" className="h-12 object-contain cursor-pointer transition-transform hover:scale-[1.02]" />
@@ -196,11 +197,10 @@ export function SearchView({
             <button
               type="button"
               onClick={() => setShowProfile(true)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all font-semibold tracking-wide cursor-pointer shadow-sm ${
-                hasApiKey
+              className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all font-semibold tracking-wide cursor-pointer shadow-sm ${hasApiKey
                   ? "border-black/5 hover:border-black/10 bg-white hover:bg-zinc-50 text-zinc-800 hover:shadow-md"
                   : "border-red-200 hover:border-red-300 bg-red-50 text-red-600"
-              }`}
+                }`}
             >
               {hasApiKey ? (
                 <User size={14} className="text-zinc-400" />
@@ -222,7 +222,7 @@ export function SearchView({
           <button
             id="nav-auth-btn"
             onClick={onLoginClick}
-            className="rounded-full bg-zinc-900 px-6 py-2.5 font-mono text-[12px] font-semibold tracking-wider text-white transition-all hover:bg-black hover:shadow-lg hover:scale-105 active:scale-95 cursor-pointer"
+            className="rounded-full bg-zinc-900 px-4 py-2 sm:px-6 sm:py-2.5 font-mono text-[10px] sm:text-[12px] font-semibold tracking-wider text-white transition-all hover:bg-black hover:shadow-lg hover:scale-105 active:scale-95 cursor-pointer"
           >
             LOGIN / SIGN UP
           </button>
@@ -231,7 +231,7 @@ export function SearchView({
 
       {/* Main search panel container */}
       <main className="flex flex-1 flex-col items-center justify-center px-4 sm:px-6 py-12 relative z-10 w-full mx-auto">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
@@ -256,7 +256,7 @@ export function SearchView({
               onBlur={() => setTimeout(() => setOpen(false), 120)}
               onKeyDown={handleKey}
               placeholder="e.g. RELIANCE, TCS, WIPRO..."
-              className="block h-14 w-full border border-black/[0.06] bg-zinc-50/50 px-6 text-[15px] font-medium text-zinc-900 placeholder:text-zinc-400 focus:border-amber-400 focus:outline-none focus:ring-[3px] focus:ring-amber-500/20 rounded-[1rem] shadow-inner transition-all"
+              className="block h-12 sm:h-14 w-full border border-black/[0.06] bg-zinc-50/50 px-6 text-[14px] sm:text-[15px] font-medium text-zinc-900 placeholder:text-zinc-400 focus:border-amber-400 focus:outline-none focus:ring-[3px] focus:ring-amber-500/20 rounded-[1rem] shadow-inner transition-all"
             />
 
             {open && results.length > 0 && (
@@ -276,9 +276,8 @@ export function SearchView({
                       handleSelect(t);
                     }}
                     onMouseEnter={() => setHighlight(i)}
-                    className={`flex h-12 w-full items-center justify-between px-6 text-left transition-colors duration-100 ${
-                      i === highlight ? "bg-black/[0.03]" : "bg-transparent"
-                    }`}
+                    className={`flex h-12 w-full items-center justify-between px-6 text-left transition-colors duration-100 ${i === highlight ? "bg-black/[0.03]" : "bg-transparent"
+                      }`}
                   >
                     <span className="font-mono text-[14px] font-bold text-zinc-900">
                       {t.symbol}
@@ -293,13 +292,43 @@ export function SearchView({
           </div>
 
           {selected && (
-            <button
-              onClick={() => handleAnalyse()}
-              className="group mt-6 flex h-14 w-full items-center justify-center gap-2 rounded-full bg-zinc-900 text-[15px] font-semibold tracking-wide text-white shadow-xl shadow-zinc-900/10 transition-all hover:scale-[1.02] hover:bg-black hover:shadow-2xl active:scale-95 cursor-pointer"
-            >
-              ANALYSE {selected.symbol}
-              <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-            </button>
+            <div className="mt-6 flex flex-col gap-4">
+              {user && (
+                <div className="flex flex-col gap-2 rounded-xl bg-amber-50/50 border border-amber-200/50 p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[14px] font-semibold text-zinc-900">
+                      Include Investment Debate
+                    </span>
+                    <button
+                      onClick={() => setIncludeDebate(!includeDebate)}
+                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none ${includeDebate ? "bg-amber-500" : "bg-zinc-200"
+                        }`}
+                      role="switch"
+                      aria-checked={includeDebate}
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${includeDebate ? "translate-x-2" : "-translate-x-2"
+                          }`}
+                      />
+                    </button>
+                  </div>
+                  {includeDebate && (
+                    <p className="text-[12px] leading-relaxed text-amber-700/80">
+                      <strong>Note:</strong> Including the debate phase runs two additional LLM agents and a manager, which takes significantly longer to process.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <button
+                onClick={() => handleAnalyse()}
+                className="group flex h-12 sm:h-14 w-full items-center justify-center gap-2 rounded-full bg-zinc-900 text-[14px] sm:text-[15px] font-semibold tracking-wide text-white shadow-xl shadow-zinc-900/10 transition-all hover:scale-[1.02] hover:bg-black hover:shadow-2xl active:scale-95 cursor-pointer"
+              >
+                ANALYSE {selected.symbol}
+                <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+              </button>
+            </div>
           )}
 
           {error && (
@@ -317,14 +346,14 @@ export function SearchView({
               {[
                 { symbol: "RELIANCE", name: "Reliance Industries Limited" },
                 { symbol: "TCS", name: "Tata Consultancy Services Limited" },
+                { symbol: "ADANIENT", name: "Adani Enterprises Limited" },
                 { symbol: "WIPRO", name: "Wipro Limited" },
                 { symbol: "HDFCBANK", name: "HDFC Bank Limited" },
-                { symbol: "ADANIENT", name: "Adani Enterprises Limited" },
-              ].map((t) => (
+              ].map((t, i) => (
                 <button
                   key={t.symbol}
                   onClick={() => handleSelect(t)}
-                  className="rounded-full border border-black/[0.04] bg-[#fafafa] px-4 py-2 text-[13px] font-medium text-zinc-600 shadow-sm transition-all hover:bg-white hover:text-zinc-900 hover:shadow-md cursor-pointer active:scale-95"
+                  className={`rounded-full border border-black/[0.04] bg-[#fafafa] px-4 py-2 text-[13px] font-medium text-zinc-600 shadow-sm transition-all hover:bg-white hover:text-zinc-900 hover:shadow-md cursor-pointer active:scale-95 ${i >= 3 ? "hidden sm:inline-flex" : ""}`}
                 >
                   {t.symbol}
                 </button>

@@ -4,13 +4,18 @@ from langchain_core.runnables import (
     RunnableLambda,
     RunnableBranch,
 )
-from langchain_core.output_parsers import JsonOutputParser
-from agents.base_agent import BaseAgent, AnalystOutput
+from agents.base_agent import BaseAgent
 from core.error import handle_llm_errors
 from core.logging import get_logger
+from agents.agents_models import FundamentalAnalystOutput
 
 logger = get_logger(__name__)
 
+
+def _format_output(x) -> dict:
+    if not x:
+        return {"analysis": "LLM failed to generate structured output", "summary": {}}
+    return x.dict() if hasattr(x, "dict") else x.model_dump()
 
 def _build_messages(data: dict) -> dict:
     """
@@ -79,8 +84,8 @@ class FundamentalAnalyst(BaseAgent):
         success_chain = (
             RunnableLambda(_build_messages)
             | self.prompt
-            | self.llm
-            | JsonOutputParser(pydantic_object=AnalystOutput)
+            | self.llm.with_structured_output(FundamentalAnalystOutput)
+            | RunnableLambda(_format_output)
         )
 
         error_chain = RunnableLambda(
