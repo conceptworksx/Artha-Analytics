@@ -135,13 +135,6 @@ export function HomePage() {
               <span className="truncate max-w-[100px] sm:max-w-[200px]">{user.name || user.email.split("@")[0]}</span>
               {!hasApiKey && <span className="text-[11px] font-bold text-red-500">!</span>}
             </button>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="text-zinc-400 hover:text-zinc-800 transition-colors font-semibold tracking-wider cursor-pointer text-[10px] sm:text-[12px] ml-1 sm:ml-0"
-            >
-              LOGOUT
-            </button>
           </div>
         ) : (
           <button
@@ -399,6 +392,7 @@ export function HomePage() {
           isOpen={showProfile}
           onClose={() => setShowProfile(false)}
           user={user}
+          onLogout={handleLogout}
         />
       )}
     </div>

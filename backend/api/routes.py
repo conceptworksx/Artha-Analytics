@@ -17,6 +17,7 @@ from api.models import (
     AnalyzeRequest,
     AnalyzeResponse,
     AnalysisSummary,
+    AnalysisDetail,
 )
 from api.controllers import (
     save_analysis,
@@ -393,26 +394,33 @@ async def analyze(
 @router.get("/analyses/history", response_model=list[AnalysisSummary])
 def list_analyses(user: AuthUser = Depends(get_current_user)):
     """Return last 10 analysis summaries for the logged-in user."""
-    docs = get_user_analyses(user.id, limit=10)
-    return [
-        AnalysisSummary(
-            analysis_id=doc["analysis_id"],
-            ticker=doc["ticker"],
-            company_name=(
-                doc.get("company_info", {}).get("longName")
-                or doc.get("company_info", {}).get("shortName")
-                or doc.get("company_info", {}).get("name")
-                if doc.get("company_info")
-                else None
-            ),
-            analyzed_at=doc["analyzed_at"],
-            status=doc.get("status", "success"),
+    try:
+        docs = get_user_analyses(user.id, limit=5)
+        return [
+            AnalysisSummary(
+                analysis_id=doc["analysis_id"],
+                ticker=doc["ticker"],
+                company_name=(
+                    doc.get("company_info", {}).get("longName")
+                    or doc.get("company_info", {}).get("shortName")
+                    or doc.get("company_info", {}).get("name")
+                    if doc.get("company_info")
+                    else None
+                ),
+                analyzed_at=doc["analyzed_at"],
+                status=doc.get("status", "success"),
+            )
+            for doc in docs
+        ]
+    except Exception as e:
+        logger.exception(f"Failed to fetch analysis history | user_id={user.id} | error={e}")
+        raise HTTPException(
+            status_code=500,
+            detail={"error": "history_fetch_failed", "message": "Failed to fetch analysis history."},
         )
-        for doc in docs
-    ]
 
 
-@router.get("/analyses/{analysis_id}")
+@router.get("/analyses/{analysis_id}", response_model=AnalysisDetail)
 def get_analysis(
     analysis_id: str,
     user: AuthUser = Depends(get_current_user),
@@ -424,4 +432,27 @@ def get_analysis(
             status_code=404,
             detail={"error": "not_found", "message": "Analysis not found."},
         )
-    return doc
+    return AnalysisDetail(
+        analysis_id=doc["analysis_id"],
+        user_id=doc["user_id"],
+        analyzed_at=doc["analyzed_at"],
+        ticker=doc["ticker"],
+        status=doc.get("status", "success"),
+        news_report=doc.get("news_analyst_report"),
+        technical_report=doc.get("technical_analyst_report"),
+        fundamental_report=doc.get("fundamental_analyst_report"),
+        market_report=doc.get("market_analyst_report"),
+        sector_report=doc.get("sector_analyst_report"),
+        company_info=doc.get("company_info"),
+        historical_prices=doc.get("historical_prices"),
+        charts_data=doc.get("charts_data"),
+        fundamental_data=doc.get("fundamental_data"),
+        technical_data=doc.get("technical_data"),
+        market_data=doc.get("market_data"),
+        company_news=doc.get("company_news"),
+        indian_news=doc.get("indian_news"),
+        global_news=doc.get("global_news"),
+        verdict=doc.get("verdict"),
+        bull_thesis=doc.get("bull_thesis"),
+        bear_thesis=doc.get("bear_thesis"),
+    )

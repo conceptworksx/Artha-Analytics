@@ -190,19 +190,6 @@ export function BYOKCard({
                 />
               )}
             </motion.button>
-
-            {!isModal && onLogout && (
-              <div className="flex justify-center">
-                <button
-                  type="button"
-                  onClick={onLogout}
-                  className="flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.2em] text-neutral-500 hover:text-black transition-colors cursor-pointer"
-                >
-                  <LogOut size={12} />
-                  LOG OUT
-                </button>
-              </div>
-            )}
           </div>
         </form>
       </div>

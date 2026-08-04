@@ -4,17 +4,11 @@ from langchain_core.messages import HumanMessage
 from agents.agents_models import Verdict
 from config.settings import get_openrouter_llm
 
+
 class ResearchManager:
-    """
-    Reads the completed debate and delivers a structured verdict.
-    Uses with_structured_output so the verdict maps directly to AgentState.
-    Accepts openrouter_api_key for per-request LLM instantiation.
-    """
 
     def __init__(self, openrouter_api_key: str = None):
-        self.llm = get_openrouter_llm(
-            api_key=openrouter_api_key, max_tokens=1000
-        )
+        self.llm = get_openrouter_llm(api_key=openrouter_api_key, max_tokens=1000)
         self.prompt = self._build_prompt()
         self.chain = self.prompt | self.llm.with_structured_output(Verdict)
 
@@ -55,18 +49,18 @@ class ResearchManager:
         debate = state.get("investment_debate", {})
         bull_thesis = debate.get("bull_thesis", "No bull thesis provided.")
         bear_thesis = debate.get("bear_thesis", "No bear thesis provided.")
-        
+
         def _unpack_thesis(thesis_obj) -> str:
             if not isinstance(thesis_obj, dict):
                 return str(thesis_obj)
             title = thesis_obj.get("title", "No Title")
             intro = thesis_obj.get("introduction", "")
             args = thesis_obj.get("arguments") or []
-            
+
             parts = [f"TITLE: {title}"]
             if intro:
                 parts.append(f"INTRODUCTION:\n{intro}")
-            
+
             for idx, arg in enumerate(args, 1):
                 if not isinstance(arg, dict):
                     continue
@@ -74,7 +68,7 @@ class ResearchManager:
                 details_list = arg.get("details") or []
                 details = "\n  - ".join(str(d) for d in details_list)
                 parts.append(f"ARGUMENT {idx}: {heading}\n  - {details}")
-            
+
             return "\n\n".join(parts)
 
         bull_thesis = _unpack_thesis(bull_thesis)
@@ -120,6 +114,6 @@ with clear rationale, actionable trade parameters, and risk assessment.
                 bear_strength="weak",
                 key_catalysts=[],
                 key_risks=[],
-                status="failure"
+                status="failure",
             )
         return response
