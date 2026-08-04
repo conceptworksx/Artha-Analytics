@@ -447,7 +447,7 @@ def save_analysis(user_id: str, ticker: str, result: dict) -> str:
     return analysis_id
 
 
-def get_user_analyses(user_id: str, limit: int = 10) -> list[dict]:
+def get_user_analyses(user_id: str, limit: int = 5) -> list[dict]:
     """Fetch last N analysis summaries (no full report content)."""
     cursor = analyses_collection.find(
         {"user_id": user_id},
