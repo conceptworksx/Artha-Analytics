@@ -3,6 +3,7 @@ from pathlib import Path
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from config.settings import get_llm, get_openrouter_llm
 
+
 def load_structured_prompt(file_path: str) -> str:
     path = Path(file_path)
     if not path.exists():
@@ -13,15 +14,6 @@ def load_structured_prompt(file_path: str) -> str:
 
 
 class BaseAgent:
-    """
-    Provides shared setup for all agents:
-      - LLM instance via get_llm()
-      - Prompt loading from YAML
-      - Enforces run() interface
-
-    Each child class defines its own full chain in __init__
-    and implements run() with its own input signature.
-    """
 
     prompt_path: str = ""
 
@@ -30,15 +22,15 @@ class BaseAgent:
 
         yaml_instructions = load_structured_prompt(self.prompt_path)
 
-        self.prompt = ChatPromptTemplate.from_messages([
-            ("system", yaml_instructions),
-            MessagesPlaceholder(variable_name="messages"),
-        ])
+        self.prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", yaml_instructions),
+                MessagesPlaceholder(variable_name="messages"),
+            ]
+        )
 
     def run(self, *args, **kwargs):
-        raise NotImplementedError(
-            f"{self.__class__.__name__} must implement run()"
-        )
+        raise NotImplementedError(f"{self.__class__.__name__} must implement run()")
 
     @staticmethod
     def _format_summaries(state: dict) -> str:
@@ -52,12 +44,13 @@ class BaseAgent:
             data = state.get(f"{analyst}_analyst_summary", {})
             if not data:
                 continue
-            
+
             section = f"=== {analyst.upper()} ANALYST ==="
-            
+
             # If data is a string (e.g., from an LLM parsing fallback), try to parse it or handle as raw text
             if isinstance(data, str):
                 import json
+
                 try:
                     data = json.loads(data)
                 except json.JSONDecodeError:
@@ -68,12 +61,19 @@ class BaseAgent:
             section += f"\nSentiment: {data.get('sentiment', 'N/A')}"
             section += f"\nKey Driver: {data.get('key_driver', 'N/A')}"
             section += f"\nPrimary Risk: {data.get('primary_risk', 'N/A')}"
-            for label, key in [("Bull Signals", "bull_signals"), ("Bear Signals", "bear_signals")]:
+            for label, key in [
+                ("Bull Signals", "bull_signals"),
+                ("Bear Signals", "bear_signals"),
+            ]:
                 signals = data.get(key, [])[:3]  # Top 3 only
                 if signals:
                     section += f"\n{label}:"
                     for s in signals:
-                        display = s.get('statement', str(s)) if analyst == "sector" and isinstance(s, dict) else s
+                        display = (
+                            s.get("statement", str(s))
+                            if analyst == "sector" and isinstance(s, dict)
+                            else s
+                        )
                         section += f"\n  • {display}"
             sections.append(section)
         return "\n\n".join(sections) if sections else "No analyst summaries available."

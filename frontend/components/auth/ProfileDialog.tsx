@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, User, Lock, Key, X } from "lucide-react";
+import { Eye, EyeOff, User, Lock, Key, X, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import {
   changePassword,
@@ -18,9 +18,10 @@ interface ProfileDialogProps {
   user: AuthUser;
   isOpen: boolean;
   onClose: () => void;
+  onLogout?: () => void;
 }
 
-export function ProfileDialog({ user, isOpen, onClose }: ProfileDialogProps) {
+export function ProfileDialog({ user, isOpen, onClose, onLogout }: ProfileDialogProps) {
   const [keyInput, setKeyInput] = useState("");
   const [keyVisible, setKeyVisible] = useState(false);
   const [keyLoading, setKeyLoading] = useState(false);
@@ -258,6 +259,23 @@ export function ProfileDialog({ user, isOpen, onClose }: ProfileDialogProps) {
                 {pwState.loading ? "CHANGING..." : "UPDATE PASSWORD"}
               </button>
             </form>
+
+            {onLogout && (
+              <>
+                <div className="h-px bg-black/5 mt-2" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onLogout();
+                  }}
+                  className="w-full flex items-center justify-center gap-2 rounded-lg bg-red-50 py-2.5 font-mono text-[11px] font-bold tracking-widest text-red-600 hover:bg-red-100 hover:text-red-700 transition-colors cursor-pointer mt-1"
+                >
+                  <LogOut size={14} />
+                  <span>LOG OUT</span>
+                </button>
+              </>
+            )}
           </motion.div>
         </div>
       )}

@@ -12,6 +12,7 @@ import { LoadingView } from "./LoadingView";
 import { ProfileDialog } from "@/components/auth/ProfileDialog";
 import { BYOKModal } from "./BYOKModal";
 import { Footer } from "@/components/layout/Footer";
+import { RecentAnalyses } from "./RecentAnalyses";
 
 let hasHydrated = false;
 
@@ -210,13 +211,6 @@ export function SearchView({
               <span className="truncate max-w-[100px] sm:max-w-[200px]">{user.name || user.email.split("@")[0]}</span>
               {!hasApiKey && <span className="text-[11px] font-bold text-red-500">!</span>}
             </button>
-            <button
-              type="button"
-              onClick={onLogout}
-              className="text-zinc-400 hover:text-zinc-800 transition-colors font-semibold tracking-wider cursor-pointer text-[10px] sm:text-[12px] ml-1 sm:ml-0"
-            >
-              LOGOUT
-            </button>
           </div>
         ) : (
           <button
@@ -360,6 +354,8 @@ export function SearchView({
               ))}
             </div>
           </div>
+
+          {user && <RecentAnalyses user={user} />}
         </motion.div>
       </main>
 
@@ -374,6 +370,7 @@ export function SearchView({
             setShowProfile(false);
             setHasApiKey(!!getSavedOpenRouterApiKey()?.trim());
           }}
+          onLogout={onLogout}
         />
       )}
       <BYOKModal

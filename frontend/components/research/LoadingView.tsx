@@ -68,19 +68,11 @@ export function LoadingView({
           </Link>
         </div>
 
-        {user && onLogout ? (
+        {user ? (
           <div className="flex items-center gap-2 sm:gap-4 font-mono text-[12px] text-[var(--muted-foreground)]">
             <span className="hidden sm:inline truncate max-w-[240px]">
               {user.name || user.email.split("@")[0]}
             </span>
-            <span className="h-4 w-px bg-[var(--border)] hidden sm:block" />
-            <button
-              type="button"
-              onClick={onLogout}
-              className="text-zinc-400 hover:text-zinc-800 transition-colors font-semibold tracking-wider cursor-pointer text-[10px] sm:text-[12px] ml-1 sm:ml-0"
-            >
-              LOGOUT
-            </button>
           </div>
         ) : (
           <>
