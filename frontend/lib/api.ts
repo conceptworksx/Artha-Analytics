@@ -27,6 +27,14 @@ export interface Verdict {
   status: "success" | "failure";
 }
 
+export interface AnalysisSummary {
+  analysis_id: string;
+  ticker: string;
+  company_name?: string | null;
+  analyzed_at: string;
+  status: string;
+}
+
 export interface AnalyseResponse {
   ticker: string;
   news_report: any;
@@ -272,6 +280,71 @@ export async function analyseTicker({
   // Inject fallback dummy values if they are missing from the backend response
   const data: AnalyseResponse = {
     ticker: rawData.ticker ?? cleanTicker,
+    news_report: rawData.news_report || "No news report available.",
+    technical_report: rawData.technical_report || "No technical report available.",
+    fundamental_report: rawData.fundamental_report || "No fundamental report available.",
+    market_report: rawData.market_report || "No market report available.",
+    sector_report: rawData.sector_report || "No sector report available.",
+    status: rawData.status || "success",
+    company_info: rawData.company_info || null,
+    fundamental_data: rawData.fundamental_data || null,
+    technical_data: rawData.technical_data || null,
+    market_data: rawData.market_data || null,
+    company_news: rawData.company_news || null,
+    indian_news: rawData.indian_news || null,
+    global_news: rawData.global_news || null,
+    historical_prices: rawData.historical_prices || [],
+    bull_thesis: rawData.bull_thesis || null,
+    bear_thesis: rawData.bear_thesis || null,
+    verdict: rawData.verdict || null,
+    charts_data: rawData.charts_data,
+  };
+
+  return data;
+}
+
+export async function getAnalysisHistory(authToken: string): Promise<AnalysisSummary[]> {
+  const url = `${API_BASE_URL}/analyses/history`;
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch analysis history");
+  }
+
+  return res.json();
+}
+
+export async function getAnalysisById(
+  analysisId: string,
+  authToken: string
+): Promise<AnalyseResponse> {
+  const url = `${API_BASE_URL}/analyses/${analysisId}`;
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+
+  if (!res.ok) {
+    if (res.status === 404) {
+      throw new Error("Analysis not found");
+    }
+    throw new Error("Failed to fetch analysis");
+  }
+
+  const rawData = await res.json();
+
+  // Similar mapping to analyseTicker
+  const data: AnalyseResponse = {
+    ticker: rawData.ticker,
     news_report: rawData.news_report || "No news report available.",
     technical_report: rawData.technical_report || "No technical report available.",
     fundamental_report: rawData.fundamental_report || "No fundamental report available.",

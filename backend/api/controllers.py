@@ -48,7 +48,7 @@ except Exception:
 users_collection = db["users"]
 analyses_collection = db["analyses"]
 
-MAX_ANALYSES_PER_USER = 10
+MAX_ANALYSES_PER_USER = 5
 TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7
 PBKDF2_ITERATIONS = 210_000
 
@@ -414,9 +414,13 @@ def init_auth_store() -> None:
 
 def save_analysis(user_id: str, ticker: str, result: dict) -> str:
     """
-    Save analysis for a user. Prune oldest if over MAX_ANALYSES_PER_USER.
+    Save analysis for a user. Ensure unique tickers per user by removing older
+    entries for the same ticker, then prune oldest if over MAX_ANALYSES_PER_USER.
     Returns the inserted analysis_id.
     """
+    # Delete any existing analysis for the same user and ticker to keep it unique
+    analyses_collection.delete_many({"user_id": user_id, "ticker": ticker})
+
     doc = {
         "user_id": user_id,
         "ticker": ticker,
@@ -448,13 +452,28 @@ def get_user_analyses(user_id: str, limit: int = 10) -> list[dict]:
     cursor = analyses_collection.find(
         {"user_id": user_id},
         {  # Projection: exclude heavy report fields
-            "news_report": 0,
-            "technical_report": 0,
-            "fundamental_report": 0,
-            "market_report": 0,
-            "sector_report": 0,
+            "news_analyst_report": 0,
+            "news_analyst_summary": 0,
+            "technical_analyst_report": 0,
+            "technical_analyst_summary": 0,
+            "fundamental_analyst_report": 0,
+            "fundamental_analyst_summary": 0,
+            "market_analyst_report": 0,
+            "market_analyst_summary": 0,
+            "sector_analyst_report": 0,
+            "sector_analyst_summary": 0,
             "historical_prices": 0,
             "charts_data": 0,
+            "fundamental_data": 0,
+            "technical_data": 0,
+            "market_data": 0,
+            "company_news": 0,
+            "indian_news": 0,
+            "global_news": 0,
+            "verdict": 0,
+            "bull_thesis": 0,
+            "bear_thesis": 0,
+            "debate_transcript": 0,
         },
         sort=[("analyzed_at", -1)],
         limit=limit,
@@ -462,6 +481,8 @@ def get_user_analyses(user_id: str, limit: int = 10) -> list[dict]:
     results = []
     for doc in cursor:
         doc["analysis_id"] = str(doc.pop("_id"))
+        if "analyzed_at" in doc and doc["analyzed_at"].tzinfo is None:
+            doc["analyzed_at"] = doc["analyzed_at"].replace(tzinfo=timezone.utc)
         results.append(doc)
     return results
 
@@ -480,4 +501,6 @@ def get_analysis_by_id(analysis_id: str, user_id: str) -> dict | None:
     if not doc:
         return None
     doc["analysis_id"] = str(doc.pop("_id"))
+    if "analyzed_at" in doc and doc["analyzed_at"].tzinfo is None:
+        doc["analyzed_at"] = doc["analyzed_at"].replace(tzinfo=timezone.utc)
     return doc
