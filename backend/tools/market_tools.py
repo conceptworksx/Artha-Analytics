@@ -83,16 +83,19 @@ def extract_metrics(
     if status != "success":
         metrics["status"] = "skipped"
         metrics["error"] = f"fetch_status={status}"
+        metrics["missing_fields"] = [k for k, v in metrics.items() if v is None and k not in ("error", "missing_fields")]
         return metrics
 
     if df is None or df.empty:
         metrics["status"] = "failed"
         metrics["error"] = "empty_or_missing_dataframe"
+        metrics["missing_fields"] = [k for k, v in metrics.items() if v is None and k not in ("error", "missing_fields")]
         return metrics
 
     if "Close" not in df.columns:
         metrics["status"] = "failed"
         metrics["error"] = "missing_close_column"
+        metrics["missing_fields"] = [k for k, v in metrics.items() if v is None and k not in ("error", "missing_fields")]
         return metrics
 
     try:
@@ -121,12 +124,14 @@ def extract_metrics(
         )
 
         logger.info(f"Computed metrics successfully | ticker={ticker}")
+        metrics["missing_fields"] = [k for k, v in metrics.items() if v is None and k not in ("error", "missing_fields")]
         return metrics
 
     except Exception as exc:
         logger.exception(f"Unexpected metrics failure | ticker={ticker} | {exc}")
         metrics["status"] = "failed"
         metrics["error"] = str(exc)
+        metrics["missing_fields"] = [k for k, v in metrics.items() if v is None and k not in ("error", "missing_fields")]
         return metrics
 
 

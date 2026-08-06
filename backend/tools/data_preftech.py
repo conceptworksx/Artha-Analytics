@@ -3,6 +3,7 @@ import yfinance as yf
 
 from core.yf_context import yf_call, YFinance401Error
 from tools.utils.data_prefetch_helper import (_normalize_df, _get_cached , _set_cached)
+from tools.utils.fallback_mapper import map_fallback_to_yf, fetch_indianapi_fallback_data
 from core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -256,35 +257,61 @@ def prefetch_ticker_bundle(ticker: str) -> dict:
 
         except YFinance401Error as e:
 
-            logger.error(f"[prefetch] 401 in '{e.caller}' — aborting pipeline")
-
+            logger.error(f"[prefetch] 401 in '{e.caller}' — initiating fallback to IndianAPI")
             bundle["status"] = "failed"
-            bundle["error"] = f"401 Unauthorized in '{e.caller}'"
 
-            return bundle
-
-    # ── validity check ───────────────────────────────────────────────────────
+    # ── validity and fallback check ──────────────────────────────────────────
 
     info = bundle.get("info", {})
-
     has_identity = any(info.get(k) for k in ("longName", "shortName", "symbol"))
 
-    if not has_identity:
-
+    if not has_identity or bundle.get("status") == "failed":
         logger.warning(
-            f"[prefetch] no identity fields in info — "
-            f"ticker likely invalid | ticker={ticker}"
+            f"[prefetch] missing identity or 401 error — "
+            f"falling back to IndianAPI | ticker={ticker}"
         )
 
-        bundle["status"] = "invalid_ticker"
-
-        bundle["error"] = (
-            f"Ticker '{ticker}' returned no identifiable company data. "
-            "Check the symbol and exchange suffix "
-            "(e.g. RELIANCE.NS)."
-        )
-
-        return bundle
+        try:
+            clean_ticker = ticker.split(".")[0]
+            raw_fallback = fetch_indianapi_fallback_data(clean_ticker)
+            
+            fallback_bundle = map_fallback_to_yf(raw_fallback, ticker)
+            
+            if fallback_bundle.get("status") == "success":
+                for k, v in fallback_bundle.items():
+                    if k in ("status", "error"):
+                        continue
+                        
+                    # Check if the original bundle already has valid data for this key
+                    current_val = bundle.get(k)
+                    is_current_empty = True
+                    if current_val is not None:
+                        if hasattr(current_val, "empty"):
+                            is_current_empty = current_val.empty
+                        elif current_val:
+                            is_current_empty = False
+                            
+                    # Only overwrite if the original data was empty/failed
+                    if is_current_empty:
+                        if hasattr(v, "empty"):
+                            if not v.empty:
+                                bundle[k] = v
+                        elif v:
+                            bundle[k] = v
+                        
+                bundle["status"] = "success"
+                bundle["error"] = None
+                info = bundle.get("info", {})
+            else:
+                bundle["status"] = "invalid_ticker"
+                bundle["error"] = fallback_bundle.get("error", "Fallback also failed.")
+                return bundle
+                
+        except Exception as fallback_exc:
+            logger.exception(f"[prefetch] fallback completely failed for {ticker}")
+            bundle["status"] = "invalid_ticker"
+            bundle["error"] = f"YFinance failed and fallback also failed: {fallback_exc}"
+            return bundle
 
     # ── success log ──────────────────────────────────────────────────────────
 
