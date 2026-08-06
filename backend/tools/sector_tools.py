@@ -42,9 +42,9 @@ def get_company_sector(
         "error": None,
     }
 
+    info = prefetched_info or {}
+
     try:
-        if prefetched_info:
-            info = prefetched_info
         if (
             isinstance(info, dict)
             and info

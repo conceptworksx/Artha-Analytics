@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Clock, Activity, ArrowRight, TrendingUp } from "lucide-react";
 import { getAnalysisHistory, getAuthToken, type AnalysisSummary, type AuthUser } from "@/lib/api";
 
-export function RecentAnalyses({ user }: { user: AuthUser }) {
+export function RecentAnalyses({ user, inModal = false }: { user: AuthUser, inModal?: boolean }) {
   const [history, setHistory] = useState<AnalysisSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +41,7 @@ export function RecentAnalyses({ user }: { user: AuthUser }) {
   }
 
   return (
-    <div className="mt-10 w-full animate-[fadeIn_0.5s_ease-out]">
+    <div className={`${inModal ? "mt-2" : "mt-10"} w-full animate-[fadeIn_0.5s_ease-out]`}>
       <div className="flex items-center gap-2 mb-4 pl-2">
         <Activity size={16} className="text-zinc-400" />
         <span className="text-[12px] font-semibold uppercase tracking-widest text-zinc-400">

@@ -12,7 +12,7 @@ import { LoadingView } from "./LoadingView";
 import { ProfileDialog } from "@/components/auth/ProfileDialog";
 import { BYOKModal } from "./BYOKModal";
 import { Footer } from "@/components/layout/Footer";
-import { RecentAnalyses } from "./RecentAnalyses";
+import { HistoryModal } from "./HistoryModal";
 
 let hasHydrated = false;
 
@@ -47,6 +47,7 @@ export function SearchView({
     return true;
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [tickerToAnalyse, setTickerToAnalyse] = useState<Ticker | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -355,7 +356,17 @@ export function SearchView({
             </div>
           </div>
 
-          {user && <RecentAnalyses user={user} />}
+          {user && (
+            <div className="mt-8 flex justify-center">
+              <button
+                onClick={() => setShowHistoryModal(true)}
+                className="group flex items-center gap-2 rounded-full bg-slate-900 px-6 py-2.5 text-[13px] font-semibold tracking-wide text-white shadow-md transition-all hover:scale-105 hover:bg-slate-800 hover:shadow-lg active:scale-95 cursor-pointer"
+              >
+                View Past Analysis
+                <ArrowRight size={14} className="transition-transform group-hover:translate-x-1 text-slate-400 group-hover:text-white" />
+              </button>
+            </div>
+          )}
         </motion.div>
       </main>
 
@@ -387,6 +398,13 @@ export function SearchView({
           }
         }}
       />
+      {user && (
+        <HistoryModal 
+          isOpen={showHistoryModal} 
+          onClose={() => setShowHistoryModal(false)} 
+          user={user} 
+        />
+      )}
     </div>
   );
 }

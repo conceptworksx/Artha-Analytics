@@ -119,11 +119,7 @@ export function AppGate() {
         }`}
       >
         {user ? (
-          hasSavedKey ? (
-            <SearchView user={user} onLogout={handleLogout} />
-          ) : (
-            <BYOKCard onKeySaved={() => setHasSavedKey(true)} onLogout={handleLogout} />
-          )
+          <SearchView user={user} onLogout={handleLogout} />
         ) : (
           <>
             <SearchView onLoginClick={() => setShowAuth(true)} />

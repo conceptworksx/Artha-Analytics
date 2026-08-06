@@ -125,12 +125,14 @@ def compute_moving_averages(df: pd.DataFrame) -> dict[str, Any]:
             f"alignment={result['trend_alignment']}"
         )
 
+        result["missing_fields"] = [k for k, v in result.items() if v is None and k not in ("error", "missing_fields")]
         return result
 
     except Exception as exc:
         logger.exception(f"Unexpected failure in MA computation: {exc}")
         result["error"] = str(exc)
         result["status"] = "failed"
+        result["missing_fields"] = [k for k, v in result.items() if v is None and k not in ("error", "missing_fields")]
         return result
 
 
@@ -217,12 +219,14 @@ def compute_rsi(df: pd.DataFrame, window: int = 14) -> dict[str, Any]:
             f"bull_div={bull_div} bear_div={bear_div}"
         )
 
+        result["missing_fields"] = [k for k, v in result.items() if v is None and k not in ("error", "missing_fields")]
         return result
 
     except Exception as exc:
         logger.exception(f"RSI computation failed: {exc}")
         result["error"] = str(exc)
         result["status"] = "failed"
+        result["missing_fields"] = [k for k, v in result.items() if v is None and k not in ("error", "missing_fields")]
         return result
 
 
@@ -303,12 +307,14 @@ def compute_macd(df: pd.DataFrame) -> dict[str, Any]:
             f"MACD computed | macd={cur_m:.4f} signal={cur_s:.4f} " f"hist={cur_h:.4f}"
         )
 
+        result["missing_fields"] = [k for k, v in result.items() if v is None and k not in ("error", "missing_fields")]
         return result
 
     except Exception as exc:
         logger.exception(f"MACD computation failed: {exc}")
         result["error"] = str(exc)
         result["status"] = "failed"
+        result["missing_fields"] = [k for k, v in result.items() if v is None and k not in ("error", "missing_fields")]
         return result
 
 
@@ -429,12 +435,14 @@ def compute_bollinger(df: pd.DataFrame) -> dict[str, Any]:
         if breakout_down:
             logger.info(f"Bollinger breakout DOWN | price={price}")
 
+        result["missing_fields"] = [k for k, v in result.items() if v is None and k not in ("error", "missing_fields")]
         return result
 
     except Exception as exc:
         logger.exception(f"Bollinger computation failed: {exc}")
         result["error"] = str(exc)
         result["status"] = "failed"
+        result["missing_fields"] = [k for k, v in result.items() if v is None and k not in ("error", "missing_fields")]
         return result
 
 
@@ -515,12 +523,14 @@ def compute_atr(df: pd.DataFrame, window: int = 14) -> dict[str, Any]:
         if volatility == "HIGH":
             logger.warning(f"HIGH volatility detected | ATR={atr_pct:.2f}%")
 
+        result["missing_fields"] = [k for k, v in result.items() if v is None and k not in ("error", "missing_fields")]
         return result
 
     except Exception as exc:
         logger.exception(f"ATR computation failed: {exc}")
         result["error"] = str(exc)
         result["status"] = "failed"
+        result["missing_fields"] = [k for k, v in result.items() if v is None and k not in ("error", "missing_fields")]
         return result
 
 
@@ -580,12 +590,14 @@ def compute_vwma(df: pd.DataFrame, window: int = 20) -> dict[str, Any]:
             f"VWMA computed | vwma={vwma_val:.2f} price={price:.2f} position={pos}"
         )
 
+        result["missing_fields"] = [k for k, v in result.items() if v is None and k not in ("error", "missing_fields")]
         return result
 
     except Exception as exc:
         logger.exception(f"VWMA computation failed: {exc}")
         result["error"] = str(exc)
         result["status"] = "failed"
+        result["missing_fields"] = [k for k, v in result.items() if v is None and k not in ("error", "missing_fields")]
         return result
 
 
@@ -650,12 +662,14 @@ def compute_mfi(df: pd.DataFrame, window: int = 14) -> dict[str, Any]:
 
         logger.debug(f"MFI computed | value={mfi_val:.2f} condition={condition}")
 
+        result["missing_fields"] = [k for k, v in result.items() if v is None and k not in ("error", "missing_fields")]
         return result
 
     except Exception as exc:
         logger.exception(f"MFI computation failed: {exc}")
         result["error"] = str(exc)
         result["status"] = "failed"
+        result["missing_fields"] = [k for k, v in result.items() if v is None and k not in ("error", "missing_fields")]
         return result
 
 
@@ -722,12 +736,14 @@ def compute_volume(df: pd.DataFrame) -> dict[str, Any]:
         if surge:
             logger.info(f"Volume surge detected | ratio={ratio:.2f}")
 
+        result["missing_fields"] = [k for k, v in result.items() if v is None and k not in ("error", "missing_fields")]
         return result
 
     except Exception as exc:
         logger.exception(f"Volume computation failed: {exc}")
         result["error"] = str(exc)
         result["status"] = "failed"
+        result["missing_fields"] = [k for k, v in result.items() if v is None and k not in ("error", "missing_fields")]
         return result
 
 
@@ -806,12 +822,14 @@ def compute_price_levels(df: pd.DataFrame) -> dict[str, Any]:
         if pct_from_high is not None and pct_from_high < -20:
             logger.warning(f"Significant drawdown | {pct_from_high:.2f}% from 52W high")
 
+        result["missing_fields"] = [k for k, v in result.items() if v is None and k not in ("error", "missing_fields")]
         return result
 
     except Exception as exc:
-        logger.exception(f"Price levels computation failed: {exc}")
+        logger.exception(f"Price level computation failed: {exc}")
         result["error"] = str(exc)
         result["status"] = "failed"
+        result["missing_fields"] = [k for k, v in result.items() if v is None and k not in ("error", "missing_fields")]
         return result
 
 
