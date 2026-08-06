@@ -20,6 +20,7 @@ import { getAuthUser, clearAuthSession, getSavedOpenRouterApiKey, type AuthUser 
 import { AuthCard } from "@/components/auth/AuthCard";
 import { ProfileDialog } from "@/components/auth/ProfileDialog";
 import { Footer } from "@/components/layout/Footer";
+import { HistoryModal } from "@/components/research/HistoryModal";
 
 let hasHydrated = false;
 
@@ -34,6 +35,7 @@ export function HomePage() {
   });
   const [showAuth, setShowAuth] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(() => {
     if (typeof window !== "undefined" && hasHydrated) {
       return !!getSavedOpenRouterApiKey()?.trim();
@@ -181,14 +183,23 @@ export function HomePage() {
           className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:gap-6"
         >
           {user ? (
-            <button
-              onClick={() => router.push("/search")}
-              className="group flex h-12 sm:h-14 items-center gap-2 rounded-full bg-gradient-to-b from-zinc-800 to-zinc-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] px-6 sm:px-8 py-3 sm:py-3.5 text-[13px] sm:text-[15px] font-semibold tracking-wide text-white transition-all hover:scale-[1.02] hover:from-zinc-700 hover:to-zinc-950 hover:shadow-2xl active:scale-95 cursor-pointer"
-            >
-              <Search size={18} />
-              Open Search Dashboard
-              <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-            </button>
+            <>
+              <button
+                onClick={() => router.push("/search")}
+                className="group flex h-12 sm:h-14 items-center gap-2 rounded-full bg-gradient-to-b from-zinc-800 to-zinc-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] px-6 sm:px-8 py-3 sm:py-3.5 text-[13px] sm:text-[15px] font-semibold tracking-wide text-white transition-all hover:scale-[1.02] hover:from-zinc-700 hover:to-zinc-950 hover:shadow-2xl active:scale-95 cursor-pointer"
+              >
+                <Search size={18} />
+                Open Search Dashboard
+                <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+              </button>
+              <button
+                onClick={() => setShowHistoryModal(true)}
+                className="group flex h-12 sm:h-14 items-center gap-2 rounded-full border border-black/10 bg-white px-6 sm:px-8 py-3 sm:py-3.5 text-[13px] sm:text-[15px] font-semibold tracking-wide text-zinc-700 shadow-sm transition-all hover:scale-[1.02] hover:border-black/20 hover:bg-zinc-50 hover:shadow-md active:scale-95 cursor-pointer"
+              >
+                View Past Analysis
+                <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+              </button>
+            </>
           ) : (
             <>
               <button
@@ -350,16 +361,25 @@ export function HomePage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.8, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-20 flex justify-center"
+            className="mt-20 flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6"
           >
             {user ? (
-              <button
-                onClick={() => router.push("/search")}
-                className="group mt-6 flex h-14 sm:h-14 w-full max-w-[280px] sm:max-w-none sm:w-auto items-center justify-center gap-2 rounded-full bg-gradient-to-b from-zinc-800 to-zinc-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] px-6 sm:px-8 text-[14px] sm:text-[15px] font-semibold tracking-wide text-white transition-all hover:scale-[1.02] hover:from-zinc-700 hover:to-zinc-950 hover:shadow-2xl active:scale-95 cursor-pointer"
-              >
-                Enter the Dashboard
-                <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
-              </button>
+              <>
+                <button
+                  onClick={() => router.push("/search")}
+                  className="group flex h-14 sm:h-14 w-full max-w-[280px] sm:max-w-none sm:w-auto items-center justify-center gap-2 rounded-full bg-gradient-to-b from-zinc-800 to-zinc-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] px-6 sm:px-8 text-[14px] sm:text-[15px] font-semibold tracking-wide text-white transition-all hover:scale-[1.02] hover:from-zinc-700 hover:to-zinc-950 hover:shadow-2xl active:scale-95 cursor-pointer"
+                >
+                  Enter the Dashboard
+                  <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+                </button>
+                <button
+                  onClick={() => setShowHistoryModal(true)}
+                  className="group flex h-14 sm:h-14 w-full max-w-[280px] sm:max-w-none sm:w-auto items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-6 sm:px-8 text-[14px] sm:text-[15px] font-semibold tracking-wide text-zinc-700 shadow-sm transition-all hover:scale-[1.02] hover:border-black/20 hover:bg-zinc-50 hover:shadow-md active:scale-95 cursor-pointer"
+                >
+                  View Past Analysis
+                  <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+                </button>
+              </>
             ) : (
               <button
                 onClick={handleTrySearch}
@@ -393,6 +413,14 @@ export function HomePage() {
           onClose={() => setShowProfile(false)}
           user={user}
           onLogout={handleLogout}
+        />
+      )}
+      
+      {user && (
+        <HistoryModal 
+          isOpen={showHistoryModal} 
+          onClose={() => setShowHistoryModal(false)} 
+          user={user} 
         />
       )}
     </div>
