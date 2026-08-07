@@ -8,18 +8,19 @@ from pathlib import Path
 from typing import Literal
 
 
-LOG_DIR      = Path("logs")
-LOG_LEVEL    = os.getenv("LOG_LEVEL", "INFO").upper()
-LOG_FORMAT   = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
-DATE_FORMAT  = "%Y-%m-%d %H:%M:%S"
+LOG_DIR = Path("logs")
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+LOG_FORMAT = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
+DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 LOG_FILES = {
-    "agent":   LOG_DIR / "agent.log",      # agent reasoning, LLM calls
-    "tool":    LOG_DIR / "tool.log",       # tool execution, data fetches
-    "retry":   LOG_DIR / "retry.log",      # all retry attempts
-    "error":   LOG_DIR / "error.log",      # ERROR and CRITICAL only
-    "main":    LOG_DIR / "main.log",       # full run log, all levels
+    "agent": LOG_DIR / "agent.log",  # agent reasoning, LLM calls
+    "tool": LOG_DIR / "tool.log",  # tool execution, data fetches
+    "retry": LOG_DIR / "retry.log",  # all retry attempts
+    "error": LOG_DIR / "error.log",  # ERROR and CRITICAL only
+    "main": LOG_DIR / "main.log",  # full run log, all levels
 }
+
 
 class _ScrubSecretsFilter(logging.Filter):
     """
@@ -27,9 +28,9 @@ class _ScrubSecretsFilter(logging.Filter):
     """
 
     PATTERNS = [
-        re.compile(r"sk-[A-Za-z0-9\-_]{10,}"),       # OpenAI
-        re.compile(r"gsk_[A-Za-z0-9\-_]{10,}"),      # Groq
-        re.compile(r"tvly-[A-Za-z0-9\-_]{10,}"),     # Tavily
+        re.compile(r"sk-[A-Za-z0-9\-_]{10,}"),  # OpenAI
+        re.compile(r"gsk_[A-Za-z0-9\-_]{10,}"),  # Groq
+        re.compile(r"tvly-[A-Za-z0-9\-_]{10,}"),  # Tavily
     ]
 
     def filter(self, record: logging.LogRecord) -> bool:
@@ -43,16 +44,16 @@ class _ScrubSecretsFilter(logging.Filter):
         record.args = ()
 
         return True
-    
+
 
 _MODULE_ROUTING = {
-    "agents":                    "agent",
-    "graph":                     "agent",
-    "tools":                     "tool",
-    "tools.utils.retry_utils":   "retry",
-    "core.errors":               "error",
-    "__main__":                  "main",
-    "main":                      "main",
+    "agents": "agent",
+    "graph": "agent",
+    "tools": "tool",
+    "tools.utils.retry_utils": "retry",
+    "core.errors": "error",
+    "__main__": "main",
+    "main": "main",
 }
 
 
@@ -60,34 +61,38 @@ _MODULE_ROUTING = {
 #  FORMATTERS
 # ─────────────────────────────────────────────────────────────
 
+
 class _ConsoleFormatter(logging.Formatter):
     """
     Coloured formatter for terminal output.
     Uses ANSI codes — works on Linux/Mac terminals and VS Code.
     """
+
     _COLOURS = {
-        logging.DEBUG:    "\033[37m",      # white
-        logging.INFO:     "\033[36m",      # cyan
-        logging.WARNING:  "\033[33m",      # yellow
-        logging.ERROR:    "\033[31m",      # red
-        logging.CRITICAL: "\033[1;31m",    # bold red
+        logging.DEBUG: "\033[37m",  # white
+        logging.INFO: "\033[36m",  # cyan
+        logging.WARNING: "\033[33m",  # yellow
+        logging.ERROR: "\033[31m",  # red
+        logging.CRITICAL: "\033[1;31m",  # bold red
     }
     _RESET = "\033[0m"
 
     def format(self, record: logging.LogRecord) -> str:
-        colour  = self._COLOURS.get(record.levelno, self._RESET)
+        colour = self._COLOURS.get(record.levelno, self._RESET)
         message = super().format(record)
         return f"{colour}{message}{self._RESET}"
 
 
 class _FileFormatter(logging.Formatter):
     """Plain formatter for file output — no ANSI codes."""
+
     pass
 
 
 # ─────────────────────────────────────────────────────────────
 #  HANDLER BUILDERS
 # ─────────────────────────────────────────────────────────────
+
 
 def _make_console_handler(level: int = logging.INFO) -> logging.StreamHandler:
     """Coloured console handler for stdout."""
@@ -100,7 +105,7 @@ def _make_console_handler(level: int = logging.INFO) -> logging.StreamHandler:
 
 def _make_file_handler(
     filepath: Path,
-    level:    int = logging.DEBUG,
+    level: int = logging.DEBUG,
 ) -> logging.handlers.RotatingFileHandler:
     """
     Rotating file handler.
@@ -109,10 +114,10 @@ def _make_file_handler(
     """
     filepath.parent.mkdir(parents=True, exist_ok=True)
     handler = logging.handlers.RotatingFileHandler(
-        filename    = filepath,
-        maxBytes    = 5 * 1024 * 1024,   # 5 MB
-        backupCount = 3,
-        encoding    = "utf-8",
+        filename=filepath,
+        maxBytes=5 * 1024 * 1024,  # 5 MB
+        backupCount=3,
+        encoding="utf-8",
     )
     handler.setLevel(level)
     handler.setFormatter(_FileFormatter(LOG_FORMAT, datefmt=DATE_FORMAT))
@@ -124,10 +129,10 @@ def _make_error_file_handler(filepath: Path) -> logging.handlers.RotatingFileHan
     """ERROR-only handler — writes to error.log regardless of which module logs it."""
     filepath.parent.mkdir(parents=True, exist_ok=True)
     handler = logging.handlers.RotatingFileHandler(
-        filename    = filepath,
-        maxBytes    = 5 * 1024 * 1024,
-        backupCount = 3,
-        encoding    = "utf-8",
+        filename=filepath,
+        maxBytes=5 * 1024 * 1024,
+        backupCount=3,
+        encoding="utf-8",
     )
     handler.setLevel(logging.ERROR)
     handler.setFormatter(_FileFormatter(LOG_FORMAT, datefmt=DATE_FORMAT))
@@ -139,9 +144,10 @@ def _make_error_file_handler(filepath: Path) -> logging.handlers.RotatingFileHan
 #  SETUP  —  call once at startup in main.py
 # ─────────────────────────────────────────────────────────────
 
+
 def setup_logging(
-    level:       str  = LOG_LEVEL,
-    console:     bool = True,
+    level: str = LOG_LEVEL,
+    console: bool = True,
     file_output: bool = True,
 ) -> None:
     """
@@ -173,7 +179,7 @@ def setup_logging(
 
     # ── Root logger ───────────────────────────────────────────
     root = logging.getLogger()
-    root.setLevel(logging.DEBUG)   # capture everything, handlers filter
+    root.setLevel(logging.DEBUG)  # capture everything, handlers filter
     root.handlers.clear()
 
     # ── Console handler ───────────────────────────────────────
@@ -192,18 +198,15 @@ def setup_logging(
         # so they also appear in main.log and console
         for module_prefix, file_key in _MODULE_ROUTING.items():
             if file_key in ("main", "error"):
-                continue     # already handled by root
+                continue  # already handled by root
 
             log_path = LOG_FILES[file_key]
-            logger   = logging.getLogger(module_prefix)
-            logger.addHandler(
-                _make_file_handler(log_path, level=logging.DEBUG)
-            )
-            logger.propagate = True   # still reaches root → console + main.log
+            logger = logging.getLogger(module_prefix)
+            logger.addHandler(_make_file_handler(log_path, level=logging.DEBUG))
+            logger.propagate = True  # still reaches root → console + main.log
 
     # ── Suppress noisy third-party loggers ───────────────────
-    for noisy in ["yfinance", "urllib3", "requests",
-                  "peewee", "charset_normalizer"]:
+    for noisy in ["yfinance", "urllib3", "requests", "peewee", "charset_normalizer"]:
         logging.getLogger(noisy).setLevel(logging.WARNING)
 
     # ── Startup banner ────────────────────────────────────────
@@ -219,6 +222,7 @@ def setup_logging(
 # ─────────────────────────────────────────────────────────────
 #  get_logger  —  use this everywhere instead of logging.getLogger
 # ─────────────────────────────────────────────────────────────
+
 
 def get_logger(name: str) -> logging.Logger:
     """
@@ -239,4 +243,3 @@ def get_logger(name: str) -> logging.Logger:
         logger.critical("Fatal — system cannot continue")
     """
     return logging.getLogger(name)
-
