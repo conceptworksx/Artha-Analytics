@@ -12,10 +12,12 @@ from agents.agents_models import NewsAnalystOutput
 
 logger = get_logger(__name__)
 
+
 def _format_output(x) -> dict:
     if not x:
         return {"analysis": "LLM failed to generate structured output", "summary": {}}
     return x.dict() if hasattr(x, "dict") else x.model_dump()
+
 
 def _build_messages(data: dict) -> dict:
     """
@@ -48,8 +50,10 @@ class NewsAnalyst(BaseAgent):
 
     prompt_path = "prompts/news_analyst_prompt.yaml"
 
-    def __init__(self, openrouter_api_key: str = None):
-        super().__init__(openrouter_api_key=openrouter_api_key, max_tokens=1500)
+    def __init__(self, openrouter_api_key: str = None, thinking_level: str = "low"):
+        super().__init__(
+            openrouter_api_key=openrouter_api_key, thinking_level=thinking_level
+        )
 
         # Define a parallel runnable to fetch all relevant news data simultaneously
         news_fetcher = RunnableParallel(

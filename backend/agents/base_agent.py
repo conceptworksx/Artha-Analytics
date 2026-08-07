@@ -1,7 +1,7 @@
 import yaml
 from pathlib import Path
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from config.settings import get_llm, get_openrouter_llm
+from config.settings import get_openrouter_llm
 
 
 def load_structured_prompt(file_path: str) -> str:
@@ -18,7 +18,9 @@ class BaseAgent:
     prompt_path: str = ""
 
     def __init__(self, openrouter_api_key: str = None, **llm_kwargs):
-        self.llm = get_openrouter_llm(api_key=openrouter_api_key, **llm_kwargs)
+        self.llm = get_openrouter_llm(
+            api_key=openrouter_api_key, agent_name=self.__class__.__name__, **llm_kwargs
+        )
 
         yaml_instructions = load_structured_prompt(self.prompt_path)
 

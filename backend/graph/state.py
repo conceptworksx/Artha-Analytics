@@ -21,9 +21,7 @@ class InvestmentDebateState(TypedDict):
     ]
     current_response: Annotated[str, "Current outcome of the researcher"]
     debate_rounds: Annotated[int, "Number of debate iterations conducted."]
-    last_speaker: Annotated[
-        str, "Who spoke last in the debate: 'bull' or 'bear'."
-    ]
+    last_speaker: Annotated[str, "Who spoke last in the debate: 'bull' or 'bear'."]
 
 
 class AgentState(TypedDict):
@@ -121,7 +119,3 @@ class AgentState(TypedDict):
     portfolio_action: Annotated[
         str, "The final structured instruction for portfolio allocation or execution."
     ]
-
-    # --- Conversation History ---
-    # We use add_messages to ensure new messages are appended to the history rather than overwriting it
-    # messages: Annotated[list, add_messages]

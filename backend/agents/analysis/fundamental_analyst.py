@@ -17,6 +17,7 @@ def _format_output(x) -> dict:
         return {"analysis": "LLM failed to generate structured output", "summary": {}}
     return x.dict() if hasattr(x, "dict") else x.model_dump()
 
+
 def _build_messages(data: dict) -> dict:
     """
     Format the input for the Fundamental Analyst stage.
@@ -71,12 +72,11 @@ class FundamentalAnalyst(BaseAgent):
 
     prompt_path = "prompts/fundamental_analyst_prompt.yaml"
 
-    def __init__(self, openrouter_api_key: str = None):
+    def __init__(self, openrouter_api_key: str = None, thinking_level: str = "low"):
         """Initializes the fundamental analyst with the given prompt and API keys."""
         super().__init__(
             openrouter_api_key=openrouter_api_key,
-            thinking_level="none",
-            max_tokens=2500,
+            thinking_level=thinking_level,
         )
 
         # Define the success and error chains for the Fundamental Analyst
