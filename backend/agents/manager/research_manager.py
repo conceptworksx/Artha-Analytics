@@ -7,8 +7,12 @@ from config.settings import get_openrouter_llm
 
 class ResearchManager:
 
-    def __init__(self, openrouter_api_key: str = None):
-        self.llm = get_openrouter_llm(api_key=openrouter_api_key, max_tokens=1000)
+    def __init__(self, openrouter_api_key: str = None, thinking_level: str = "low"):
+        self.llm = get_openrouter_llm(
+            api_key=openrouter_api_key,
+            thinking_level=thinking_level,
+            agent_name=self.__class__.__name__,
+        )
         self.prompt = self._build_prompt()
         self.chain = self.prompt | self.llm.with_structured_output(Verdict)
 

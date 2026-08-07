@@ -7,8 +7,12 @@ from agents.agents_models import ThesisOutput
 
 class BearResearcher:
 
-    def __init__(self, openrouter_api_key: str = None):
-        self.llm = get_openrouter_llm(api_key=openrouter_api_key, max_tokens=1000)
+    def __init__(self, openrouter_api_key: str = None, thinking_level: str = "low"):
+        self.llm = get_openrouter_llm(
+            api_key=openrouter_api_key,
+            thinking_level=thinking_level,
+            agent_name=self.__class__.__name__,
+        )
         self.prompt = self._build_prompt()
         self.chain = self.prompt | self.llm.with_structured_output(ThesisOutput)
 
@@ -51,11 +55,11 @@ class BearResearcher:
                 title = bull_thesis.get("title", "No Title")
                 intro = bull_thesis.get("introduction", "")
                 args = bull_thesis.get("arguments") or []
-                
+
                 parts = [f"TITLE: {title}"]
                 if intro:
                     parts.append(f"INTRODUCTION:\n{intro}")
-                
+
                 for idx, arg in enumerate(args, 1):
                     if not isinstance(arg, dict):
                         continue
@@ -63,7 +67,7 @@ class BearResearcher:
                     details_list = arg.get("details") or []
                     details = "\n  - ".join(str(d) for d in details_list)
                     parts.append(f"ARGUMENT {idx}: {heading}\n  - {details}")
-                
+
                 bull_thesis_str = "\n\n".join(parts)
             else:
                 bull_thesis_str = str(bull_thesis)
@@ -90,6 +94,6 @@ Directly rebut the bull argument above using the analyst evidence.
                 "title": "Parsing Error",
                 "introduction": "Debate failed due to internal reasons",
                 "arguments": [],
-                "status": "failure"
+                "status": "failure",
             }
         return response.model_dump()

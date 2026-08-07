@@ -7,13 +7,13 @@ from graph.nodes import make_nodes
 logger = get_logger(__name__)
 
 
-def build_graph(openrouter_api_key: str = None):
+def build_graph(openrouter_api_key: str = None, thinking_level: str = "low"):
     """
     Built per request with openrouter_api_key baked into node closures.
     Key never enters AgentState — not visible in LangSmith traces.
     """
 
-    nodes = make_nodes(openrouter_api_key)
+    nodes = make_nodes(openrouter_api_key, thinking_level)
 
     work_flow = StateGraph(AgentState)
 

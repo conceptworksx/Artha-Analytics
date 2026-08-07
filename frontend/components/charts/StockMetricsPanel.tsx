@@ -33,22 +33,27 @@ export function StockMetricsPanel({ data }: StockMetricsPanelProps) {
   const companyName = info.longName || info.shortName || tickerSymbol;
   const currency = info.currency || "INR";
 
-  // Base metrics
-  const prevClose = parseFloat(info.previousClose || info.regularMarketPreviousClose || "0");
-  const openPrice = parseFloat(info.open || info.regularMarketOpen || "0");
-  const dayHigh = parseFloat(info.dayHigh || info.regularMarketDayHigh || "0");
-  const dayLow = parseFloat(info.dayLow || info.regularMarketDayLow || "0");
+  const techData = data.technical_data || {};
+  const priceLevels = techData.price_levels || {};
+  const techVolume = techData.volume || {};
+
+  // Base metrics with robust fallbacks to technical_data and history
+  const prevClose = parseFloat(info.previousClose || info.regularMarketPreviousClose || (history.length > 1 ? history[history.length - 2].close : "0"));
+  const openPrice = parseFloat(info.open || info.regularMarketOpen || (history.length > 0 ? history[history.length - 1].open : "0"));
+  const dayHigh = parseFloat(info.dayHigh || info.regularMarketDayHigh || (history.length > 0 ? history[history.length - 1].high : "0"));
+  const dayLow = parseFloat(info.dayLow || info.regularMarketDayLow || (history.length > 0 ? history[history.length - 1].low : "0"));
   const currentPrice = parseFloat(
     info.currentPrice ||
       info.regularMarketPrice ||
+      priceLevels.current ||
       (history.length > 0 ? history[history.length - 1].close : "0")
   );
 
   const mktCap = info.marketCap;
   const peRatio = info.trailingPE || info.forwardPE;
-  const volume = info.volume || info.regularMarketVolume;
-  const fiftyTwoWeekHigh = info.fiftyTwoWeekHigh;
-  const fiftyTwoWeekLow = info.fiftyTwoWeekLow;
+  const volume = info.volume || info.regularMarketVolume || techVolume.latest || (history.length > 0 ? history[history.length - 1].volume : null);
+  const fiftyTwoWeekHigh = info.fiftyTwoWeekHigh || priceLevels.high_52w;
+  const fiftyTwoWeekLow = info.fiftyTwoWeekLow || priceLevels.low_52w;
 
   const sector = info.sector || "N/A";
   const industry = info.industry || "N/A";

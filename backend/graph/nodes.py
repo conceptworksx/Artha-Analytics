@@ -23,24 +23,40 @@ def _extract_report(result: any, report_key: str = "analysis") -> tuple:
     return result, {}
 
 
-def make_nodes(openrouter_api_key: str = None) -> dict:
+def make_nodes(openrouter_api_key: str = None, thinking_level: str = "low") -> dict:
     """
-    Instantiates all agents with the user's OpenRouter key.
+    Instantiates all agents with the user's OpenRouter key and chosen thinking level.
     Returns dict of node functions with agents baked in via closures.
     Key never touches AgentState.
     """
 
     # Agents instantiated here with key — not at module level
-    market_agent = MarketAnalyst(openrouter_api_key=openrouter_api_key)
-    fundamental_agent = FundamentalAnalyst(openrouter_api_key=openrouter_api_key)
-    technical_agent = TechnicalAnalyst(openrouter_api_key=openrouter_api_key)
-    news_agent = NewsAnalyst(openrouter_api_key=openrouter_api_key)
-    sector_agent = SectorAnalyst(openrouter_api_key=openrouter_api_key)
+    market_agent = MarketAnalyst(
+        openrouter_api_key=openrouter_api_key, thinking_level=thinking_level
+    )
+    fundamental_agent = FundamentalAnalyst(
+        openrouter_api_key=openrouter_api_key, thinking_level=thinking_level
+    )
+    technical_agent = TechnicalAnalyst(
+        openrouter_api_key=openrouter_api_key, thinking_level=thinking_level
+    )
+    news_agent = NewsAnalyst(
+        openrouter_api_key=openrouter_api_key, thinking_level=thinking_level
+    )
+    sector_agent = SectorAnalyst(
+        openrouter_api_key=openrouter_api_key, thinking_level=thinking_level
+    )
 
     # Debate agents
-    bull_agent = BullResearcher(openrouter_api_key=openrouter_api_key)
-    bear_agent = BearResearcher(openrouter_api_key=openrouter_api_key)
-    manager_agent = ResearchManager(openrouter_api_key=openrouter_api_key)
+    bull_agent = BullResearcher(
+        openrouter_api_key=openrouter_api_key, thinking_level=thinking_level
+    )
+    bear_agent = BearResearcher(
+        openrouter_api_key=openrouter_api_key, thinking_level=thinking_level
+    )
+    manager_agent = ResearchManager(
+        openrouter_api_key=openrouter_api_key, thinking_level=thinking_level
+    )
 
     # ── Node functions ────────────────────────────────────────────────────
 
@@ -56,8 +72,8 @@ def make_nodes(openrouter_api_key: str = None) -> dict:
         result = market_agent.run(state)
         report, summary = _extract_report(result)
         return {
-            "market_analyst_report": report or "Market analysis unavailable.",
-            "market_analyst_summary": summary or {},
+            "market_analyst_report": report,
+            "market_analyst_summary": summary,
         }
 
     @handle_node_errors("fundamental_analyst")
@@ -65,8 +81,8 @@ def make_nodes(openrouter_api_key: str = None) -> dict:
         result = fundamental_agent.run(state)
         report, summary = _extract_report(result)
         return {
-            "fundamental_analyst_report": report or "Fundamental analysis unavailable.",
-            "fundamental_analyst_summary": summary or {},
+            "fundamental_analyst_report": report,
+            "fundamental_analyst_summary": summary,
         }
 
     @handle_node_errors("technical_analyst")
@@ -74,8 +90,8 @@ def make_nodes(openrouter_api_key: str = None) -> dict:
         result = technical_agent.run(state)
         report, summary = _extract_report(result)
         return {
-            "technical_analyst_report": report or "Technical analysis unavailable.",
-            "technical_analyst_summary": summary or {},
+            "technical_analyst_report": report,
+            "technical_analyst_summary": summary,
         }
 
     @handle_node_errors("news_analyst")
@@ -83,8 +99,8 @@ def make_nodes(openrouter_api_key: str = None) -> dict:
         result = news_agent.run(state)
         report, summary = _extract_report(result)
         return {
-            "news_analyst_report": report or "News analysis unavailable.",
-            "news_analyst_summary": summary or {},
+            "news_analyst_report": report,
+            "news_analyst_summary": summary,
         }
 
     @handle_node_errors("sector_analyst")
@@ -92,8 +108,8 @@ def make_nodes(openrouter_api_key: str = None) -> dict:
         result = sector_agent.run(state)
         report, summary = _extract_report(result, "report")
         return {
-            "sector_analyst_report": report or "Sector analysis unavailable. Sector data might be missing for this ticker.",
-            "sector_analyst_summary": summary or {},
+            "sector_analyst_report": report,
+            "sector_analyst_summary": summary,
         }
 
     # ── Debate nodes ──────────────────────────────────────────────────────
@@ -107,11 +123,16 @@ def make_nodes(openrouter_api_key: str = None) -> dict:
         debate = state.get("investment_debate", {})
         history = debate.get("debate_history", "")
         rounds = debate.get("debate_rounds", 0)
-        
+
         import json
-        formatted_response = json.dumps(response, indent=2) if isinstance(response, dict) else str(response)
+
+        formatted_response = (
+            json.dumps(response, indent=2)
+            if isinstance(response, dict)
+            else str(response)
+        )
         new_history = history + f"\n\n--- BULL ---\n{formatted_response}"
-        
+
         return {
             "investment_debate": {
                 **debate,
@@ -131,11 +152,16 @@ def make_nodes(openrouter_api_key: str = None) -> dict:
         debate = state.get("investment_debate", {})
         history = debate.get("debate_history", "")
         rounds = debate.get("debate_rounds", 0)
-        
+
         import json
-        formatted_response = json.dumps(response, indent=2) if isinstance(response, dict) else str(response)
+
+        formatted_response = (
+            json.dumps(response, indent=2)
+            if isinstance(response, dict)
+            else str(response)
+        )
         new_history = history + f"\n\n--- BEAR ---\n{formatted_response}"
-        
+
         return {
             "investment_debate": {
                 **debate,

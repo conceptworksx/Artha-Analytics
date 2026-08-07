@@ -231,12 +231,14 @@ export async function analyseTicker({
   authToken,
   signal,
   include_debate = false,
+  thinking_mode = "low",
 }: {
   ticker: string;
   openrouterApiKey: string;
   authToken?: string;
   signal?: AbortSignal;
   include_debate?: boolean;
+  thinking_mode?: "low" | "medium" | "high";
 }): Promise<AnalyseResponse> {
   const cleanTicker = normalizeTicker(ticker);
   const url = `${API_BASE_URL}/analyze`;
@@ -258,7 +260,7 @@ export async function analyseTicker({
     res = await fetch(url, {
       method: "POST",
       headers,
-      body: JSON.stringify({ ticker: cleanTicker, include_debate }),
+      body: JSON.stringify({ ticker: cleanTicker, include_debate, thinking_mode }),
       signal,
     });
   } catch (fetchErr) {
