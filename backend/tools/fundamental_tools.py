@@ -108,9 +108,13 @@ def fetch_income_stmt(df: pd.DataFrame) -> dict[str, Any]:
             "eps_diluted": _df_row(df, "Diluted EPS"),
         }
 
-        result["missing_fields"] = [k for k, v in result["income_statement"].items() if not v]
+        result["missing_fields"] = [
+            k for k, v in result["income_statement"].items() if not v
+        ]
         if result["missing_fields"]:
-            logger.warning(f"Missing income statement fields: {result['missing_fields']}")
+            logger.warning(
+                f"Missing income statement fields: {result['missing_fields']}"
+            )
 
         logger.info("Income statement processed successfully")
         return result
@@ -143,7 +147,12 @@ def fetch_balance_sheet(df: pd.DataFrame, info: dict) -> dict[str, Any]:
         logger.warning("Balance Sheet is empty.")
         result["status"] = "no_data"
         result["error"] = "Balance sheet data is empty"
-        result["missing_fields"] = ["cash", "total_liabilities", "total_debt", "shareholders_equity"]
+        result["missing_fields"] = [
+            "cash",
+            "total_liabilities",
+            "total_debt",
+            "shareholders_equity",
+        ]
         return result
 
     try:
@@ -172,7 +181,9 @@ def fetch_balance_sheet(df: pd.DataFrame, info: dict) -> dict[str, Any]:
             },
         }
 
-        result["missing_fields"] = [k for k, v in result["balance_sheet"].items() if not v]
+        result["missing_fields"] = [
+            k for k, v in result["balance_sheet"].items() if not v
+        ]
         if result["missing_fields"]:
             logger.warning(f"Missing balance sheet fields: {result['missing_fields']}")
 
@@ -270,14 +281,26 @@ def fetch_fundamentals(inc: pd.DataFrame, bal: pd.DataFrame) -> dict[str, Any]:
         logger.warning("Income data missing for fundamentals")
         result["status"] = "no_data"
         result["error"] = "Income statement data missing"
-        result["missing_fields"] = ["net_margin_pct", "roe_pct", "roce_pct", "debt_to_equity", "interest_coverage"]
+        result["missing_fields"] = [
+            "net_margin_pct",
+            "roe_pct",
+            "roce_pct",
+            "debt_to_equity",
+            "interest_coverage",
+        ]
         return result
 
     if bal is None or bal.empty:
         logger.warning("Balance sheet data missing for fundamentals")
         result["status"] = "no_data"
         result["error"] = "Balance sheet data missing"
-        result["missing_fields"] = ["net_margin_pct", "roe_pct", "roce_pct", "debt_to_equity", "interest_coverage"]
+        result["missing_fields"] = [
+            "net_margin_pct",
+            "roe_pct",
+            "roce_pct",
+            "debt_to_equity",
+            "interest_coverage",
+        ]
         return result
 
     try:
@@ -326,7 +349,9 @@ def fetch_fundamentals(inc: pd.DataFrame, bal: pd.DataFrame) -> dict[str, Any]:
             "interest_coverage": int_coverage,
         }
 
-        result["missing_fields"] = [k for k, v in result["fundamentals"].items() if not v]
+        result["missing_fields"] = [
+            k for k, v in result["fundamentals"].items() if not v
+        ]
         if result["missing_fields"]:
             logger.warning(f"Missing fundamental ratios: {result['missing_fields']}")
 
@@ -430,7 +455,9 @@ def fetch_valuation(info: dict, major_holders: pd.DataFrame | None) -> dict[str,
             "promoter_holding_pct": promoter_pct,
         }
 
-        result["missing_fields"] = [k for k, v in result["valuation"].items() if v is None]
+        result["missing_fields"] = [
+            k for k, v in result["valuation"].items() if v is None
+        ]
         if result["missing_fields"]:
             logger.warning(f"Missing valuation fields: {result['missing_fields']}")
 
@@ -463,7 +490,11 @@ def fetch_growth(inc: pd.DataFrame) -> dict[str, Any]:
         logger.warning("Income data missing for growth computation")
         result["status"] = "no_data"
         result["error"] = "Income statement data missing"
-        result["missing_fields"] = ["revenue_yoy_pct", "revenue_cagr_pct", "net_income_cagr_pct"]
+        result["missing_fields"] = [
+            "revenue_yoy_pct",
+            "revenue_cagr_pct",
+            "net_income_cagr_pct",
+        ]
         return result
 
     try:

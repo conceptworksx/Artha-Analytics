@@ -274,12 +274,15 @@ async def analyze(
     # Run LangGraph workflow
     try:
         logger.info(f"Starting graph execution | ticker={ticker}")
-        graph = build_graph(openrouter_api_key=openrouter_api_key)
+        graph = build_graph(
+            openrouter_api_key=openrouter_api_key, thinking_level=body.thinking_mode
+        )
         final_state = await asyncio.to_thread(
-            graph.invoke, {
+            graph.invoke,
+            {
                 "ticker_of_company": ticker,
                 "include_debate": body.include_debate,
-            }
+            },
         )
         logger.info(f"Graph execution completed | ticker={ticker}")
 
@@ -335,8 +338,12 @@ async def analyze(
                     "indian_news": data_bundle.get("news_data", {}).get("indian_news"),
                     "global_news": data_bundle.get("news_data", {}).get("global_news"),
                     "verdict": final_state.get("verdict"),
-                    "bull_thesis": final_state.get("investment_debate", {}).get("bull_thesis"),
-                    "bear_thesis": final_state.get("investment_debate", {}).get("bear_thesis"),
+                    "bull_thesis": final_state.get("investment_debate", {}).get(
+                        "bull_thesis"
+                    ),
+                    "bear_thesis": final_state.get("investment_debate", {}).get(
+                        "bear_thesis"
+                    ),
                     "debate_transcript": final_state.get("investment_debate", {}).get(
                         "debate_history"
                     ),
@@ -413,10 +420,15 @@ def list_analyses(user: AuthUser = Depends(get_current_user)):
             for doc in docs
         ]
     except Exception as e:
-        logger.exception(f"Failed to fetch analysis history | user_id={user.id} | error={e}")
+        logger.exception(
+            f"Failed to fetch analysis history | user_id={user.id} | error={e}"
+        )
         raise HTTPException(
             status_code=500,
-            detail={"error": "history_fetch_failed", "message": "Failed to fetch analysis history."},
+            detail={
+                "error": "history_fetch_failed",
+                "message": "Failed to fetch analysis history.",
+            },
         )
 
 

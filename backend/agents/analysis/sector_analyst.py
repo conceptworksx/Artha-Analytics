@@ -11,11 +11,15 @@ from agents.agents_models import SectorResolverOutput
 logger = get_logger(__name__)
 
 
-
 def _format_output(x) -> dict:
     if not x:
-        return {"sector_name": None, "confidence": 0.0, "reason": "LLM failed to generate structured output"}
+        return {
+            "sector_name": None,
+            "confidence": 0.0,
+            "reason": "LLM failed to generate structured output",
+        }
     return x.dict() if hasattr(x, "dict") else x.model_dump()
+
 
 def _build_sector_resolver_message(data: dict) -> dict:
     content = f"""
@@ -34,8 +38,10 @@ Supported Sector Catalog
 class SectorAnalyst(BaseAgent):
     prompt_path = "prompts/sector_resolver_prompt.yaml"
 
-    def __init__(self, openrouter_api_key: str = None):
-        super().__init__(openrouter_api_key=openrouter_api_key, max_tokens=200)
+    def __init__(self, openrouter_api_key: str = None, thinking_level: str = "low"):
+        super().__init__(
+            openrouter_api_key=openrouter_api_key, thinking_level=thinking_level
+        )
 
         resolver_yaml = load_structured_prompt("prompts/sector_resolver_prompt.yaml")
         self.prompt = ChatPromptTemplate.from_messages(

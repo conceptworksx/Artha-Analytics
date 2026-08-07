@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Literal
 from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 
@@ -44,6 +44,7 @@ class VerifyOpenRouterKeyRequest(BaseModel):
 class AnalyzeRequest(BaseModel):
     ticker: str
     include_debate: bool = False
+    thinking_mode: Literal["low", "medium", "high"] = "low"
 
 
 class AnalyzeResponse(BaseModel):

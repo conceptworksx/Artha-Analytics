@@ -23,24 +23,40 @@ def _extract_report(result: any, report_key: str = "analysis") -> tuple:
     return result, {}
 
 
-def make_nodes(openrouter_api_key: str = None) -> dict:
+def make_nodes(openrouter_api_key: str = None, thinking_level: str = "low") -> dict:
     """
-    Instantiates all agents with the user's OpenRouter key.
+    Instantiates all agents with the user's OpenRouter key and chosen thinking level.
     Returns dict of node functions with agents baked in via closures.
     Key never touches AgentState.
     """
 
     # Agents instantiated here with key — not at module level
-    market_agent = MarketAnalyst(openrouter_api_key=openrouter_api_key)
-    fundamental_agent = FundamentalAnalyst(openrouter_api_key=openrouter_api_key)
-    technical_agent = TechnicalAnalyst(openrouter_api_key=openrouter_api_key)
-    news_agent = NewsAnalyst(openrouter_api_key=openrouter_api_key)
-    sector_agent = SectorAnalyst(openrouter_api_key=openrouter_api_key)
+    market_agent = MarketAnalyst(
+        openrouter_api_key=openrouter_api_key, thinking_level=thinking_level
+    )
+    fundamental_agent = FundamentalAnalyst(
+        openrouter_api_key=openrouter_api_key, thinking_level=thinking_level
+    )
+    technical_agent = TechnicalAnalyst(
+        openrouter_api_key=openrouter_api_key, thinking_level=thinking_level
+    )
+    news_agent = NewsAnalyst(
+        openrouter_api_key=openrouter_api_key, thinking_level=thinking_level
+    )
+    sector_agent = SectorAnalyst(
+        openrouter_api_key=openrouter_api_key, thinking_level=thinking_level
+    )
 
     # Debate agents
-    bull_agent = BullResearcher(openrouter_api_key=openrouter_api_key)
-    bear_agent = BearResearcher(openrouter_api_key=openrouter_api_key)
-    manager_agent = ResearchManager(openrouter_api_key=openrouter_api_key)
+    bull_agent = BullResearcher(
+        openrouter_api_key=openrouter_api_key, thinking_level=thinking_level
+    )
+    bear_agent = BearResearcher(
+        openrouter_api_key=openrouter_api_key, thinking_level=thinking_level
+    )
+    manager_agent = ResearchManager(
+        openrouter_api_key=openrouter_api_key, thinking_level=thinking_level
+    )
 
     # ── Node functions ────────────────────────────────────────────────────
 
@@ -107,11 +123,16 @@ def make_nodes(openrouter_api_key: str = None) -> dict:
         debate = state.get("investment_debate", {})
         history = debate.get("debate_history", "")
         rounds = debate.get("debate_rounds", 0)
-        
+
         import json
-        formatted_response = json.dumps(response, indent=2) if isinstance(response, dict) else str(response)
+
+        formatted_response = (
+            json.dumps(response, indent=2)
+            if isinstance(response, dict)
+            else str(response)
+        )
         new_history = history + f"\n\n--- BULL ---\n{formatted_response}"
-        
+
         return {
             "investment_debate": {
                 **debate,
@@ -131,11 +152,16 @@ def make_nodes(openrouter_api_key: str = None) -> dict:
         debate = state.get("investment_debate", {})
         history = debate.get("debate_history", "")
         rounds = debate.get("debate_rounds", 0)
-        
+
         import json
-        formatted_response = json.dumps(response, indent=2) if isinstance(response, dict) else str(response)
+
+        formatted_response = (
+            json.dumps(response, indent=2)
+            if isinstance(response, dict)
+            else str(response)
+        )
         new_history = history + f"\n\n--- BEAR ---\n{formatted_response}"
-        
+
         return {
             "investment_debate": {
                 **debate,

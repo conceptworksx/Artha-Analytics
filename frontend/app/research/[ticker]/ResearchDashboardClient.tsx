@@ -48,6 +48,8 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
   const router = useRouter();
   const searchParams = useSearchParams();
   const includeDebate = searchParams.get("debate") === "true";
+  const rawMode = searchParams.get("mode");
+  const thinkingMode = (["low", "medium", "high"].includes(rawMode as string) ? rawMode : "low") as "low" | "medium" | "high";
   const isMobile = useIsMobile();
   const [data, setData] = useState<AnalyseResponse | null>(null);
   const [view, setView] = useState<ViewKey>("overview");
@@ -104,6 +106,7 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
       authToken: authToken || undefined,
       signal: controller.signal,
       include_debate: includeDebate,
+      thinking_mode: thinkingMode,
     })
       .then((d) => {
         cacheResponse(ticker, d);
@@ -141,7 +144,7 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
     return () => {
       controller.abort();
     };
-  }, [ticker, retryCount, router, includeDebate]);
+  }, [ticker, retryCount, router, includeDebate, thinkingMode]);
 
   if (!mounted) {
     return null;

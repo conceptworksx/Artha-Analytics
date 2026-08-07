@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langchain_openrouter import ChatOpenRouter
+from config.agent_config import AGENT_TOKEN_CONFIG
 
 load_dotenv()
 
@@ -26,19 +27,15 @@ def get_llm(api_key: str = None):
 
 def get_openrouter_llm(
     api_key: str = None,
-    thinking_level: str = "none",  # "none", "low", "medium", "high"
+    thinking_level: str = "low",  # "low", "medium", "high"
     temperature: float = 0.2,
     max_tokens: int = 2500,
     top_p: float = 0.9,
+    agent_name: str = None,
 ):
-    """
-    Get OpenRouter LLM instance.
-    `thinking_level` controls the reasoning effort (e.g. for o1/o3 models).
-    """
 
-    # Adjust default max_tokens if thinking is enabled and not explicitly overridden
-    if thinking_level != "none" and max_tokens == 2500:
-        max_tokens = 4000
+    if agent_name and agent_name in AGENT_TOKEN_CONFIG:
+        max_tokens = AGENT_TOKEN_CONFIG[agent_name].get(thinking_level, max_tokens)
 
     kwargs = {
         "model": OPEN_ROUTER_MODEL,
@@ -49,7 +46,7 @@ def get_openrouter_llm(
         "presence_penalty": 0.1,
         "max_completion_tokens": max_tokens,
         "reasoning": {
-            "effort": thinking_level,
+            "effort": "none",
         },
     }
 

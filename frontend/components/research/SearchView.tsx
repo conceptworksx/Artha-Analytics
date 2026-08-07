@@ -38,6 +38,7 @@ export function SearchView({
   const [selected, setSelected] = useState<Ticker | null>(null);
   const [loading, setLoading] = useState(false);
   const [includeDebate, setIncludeDebate] = useState(false);
+  const [thinkingMode, setThinkingMode] = useState<"low" | "medium" | "high">("low");
   const [error, setError] = useState<string | null>(null);
   const [showProfile, setShowProfile] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(() => {
@@ -142,7 +143,7 @@ export function SearchView({
     setError(null);
     try {
       clearCached(target.symbol);
-      router.push(`/research/${target.symbol}${includeDebate ? "?debate=true" : ""}`);
+      router.push(`/research/${target.symbol}?debate=${includeDebate}&mode=${thinkingMode}`);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to reach analysis service",
@@ -289,31 +290,55 @@ export function SearchView({
           {selected && (
             <div className="mt-6 flex flex-col gap-4">
               {user && (
-                <div className="flex flex-col gap-2 rounded-xl bg-amber-50/50 border border-amber-200/50 p-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[14px] font-semibold text-zinc-900">
-                      Include Investment Debate
-                    </span>
-                    <button
-                      onClick={() => setIncludeDebate(!includeDebate)}
-                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none ${includeDebate ? "bg-amber-500" : "bg-zinc-200"
-                        }`}
-                      role="switch"
-                      aria-checked={includeDebate}
-                    >
-                      <span
-                        aria-hidden="true"
-                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${includeDebate ? "translate-x-2" : "-translate-x-2"
+                <>
+                  <div className="flex flex-col gap-2 rounded-xl bg-amber-50/50 border border-amber-200/50 p-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[14px] font-semibold text-zinc-900">
+                        Include Investment Debate
+                      </span>
+                      <button
+                        onClick={() => setIncludeDebate(!includeDebate)}
+                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none ${includeDebate ? "bg-amber-500" : "bg-zinc-200"
                           }`}
-                      />
-                    </button>
+                        role="switch"
+                        aria-checked={includeDebate}
+                      >
+                        <span
+                          aria-hidden="true"
+                          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${includeDebate ? "translate-x-2" : "-translate-x-2"
+                            }`}
+                        />
+                      </button>
+                    </div>
                   </div>
-                  {includeDebate && (
-                    <p className="text-[12px] leading-relaxed text-amber-700/80">
-                      <strong>Note:</strong> Including the debate phase runs two additional LLM agents and a manager, which takes significantly longer to process.
-                    </p>
-                  )}
-                </div>
+                  
+                  {/* Thinking Level Slider */}
+                  <div className="flex flex-col gap-3 rounded-xl bg-zinc-50/50 border border-black/[0.06] p-4 mt-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[14px] font-semibold text-zinc-900">Agent Intelligence Level</span>
+                      <span className="text-[12px] font-bold text-amber-600 uppercase tracking-widest">{thinkingMode}</span>
+                    </div>
+                    <div className="mt-1 relative px-1">
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="2" 
+                        step="1" 
+                        value={thinkingMode === "low" ? 0 : thinkingMode === "medium" ? 1 : 2}
+                        onChange={(e) => {
+                          const v = parseInt(e.target.value);
+                          setThinkingMode(v === 0 ? "low" : v === 1 ? "medium" : "high");
+                        }}
+                        className="w-full h-1.5 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                      />
+                      <div className="flex justify-between text-[11px] font-medium text-zinc-400 mt-2">
+                        <span className={thinkingMode === "low" ? "text-zinc-700 font-bold" : ""}>Low</span>
+                        <span className={thinkingMode === "medium" ? "text-zinc-700 font-bold" : ""}>Medium</span>
+                        <span className={thinkingMode === "high" ? "text-zinc-700 font-bold" : ""}>High</span>
+                      </div>
+                    </div>
+                  </div>
+                </>
               )}
 
               <button
