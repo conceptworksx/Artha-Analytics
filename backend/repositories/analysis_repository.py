@@ -60,7 +60,9 @@ class AnalysisRepository:
             if self.cache.is_enabled:
                 cache_key = f"user:analyses:{user_id}"
                 await self.cache.delete(cache_key)
-                logger.info(f"[AnalysisRepository] Invalidated user analyses cache | user={user_id}")
+                logger.info(
+                    f"[AnalysisRepository] Invalidated user analyses cache | user={user_id}"
+                )
 
             return analysis_id
         except Exception as e:
@@ -74,7 +76,9 @@ class AnalysisRepository:
             if self.cache.is_enabled:
                 cached_list = await self.cache.get_json(cache_key)
                 if cached_list:
-                    logger.info(f"[AnalysisRepository] Past analyses cache HIT | user={user_id}")
+                    logger.info(
+                        f"[AnalysisRepository] Past analyses cache HIT | user={user_id}"
+                    )
                     return cached_list
 
             # 2. On Cache MISS: Query MongoDB for metadata only
@@ -114,14 +118,17 @@ class AnalysisRepository:
             for doc in raw_list:
                 doc_copy = dict(doc)
                 if "_id" in doc_copy:
-                    doc_copy["id"] = str(doc_copy["_id"])
-                    del doc_copy["_id"]
+                    id_str = str(doc_copy["_id"])
+                    doc_copy["id"] = id_str
+                    doc_copy["_id"] = id_str
                 formatted_list.append(doc_copy)
 
             # 3. Store formatted metadata list in Upstash Redis (1 hour TTL)
             if self.cache.is_enabled:
                 await self.cache.set_json(cache_key, formatted_list, ttl_seconds=3600)
-                logger.info(f"[AnalysisRepository] Cached user analyses metadata in Redis | user={user_id}")
+                logger.info(
+                    f"[AnalysisRepository] Cached user analyses metadata in Redis | user={user_id}"
+                )
 
             return formatted_list
         except Exception as e:

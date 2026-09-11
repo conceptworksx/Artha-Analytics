@@ -88,7 +88,6 @@ _ERROR_MAP: dict[type, tuple[int, str]] = {
 }
 
 
-
 def get_client_ip(request: Request) -> str:
     x_forwarded_for = request.headers.get("x-forwarded-for")
     if x_forwarded_for:
@@ -227,7 +226,9 @@ async def google_auth(
     auth_service: AuthService = Depends(get_auth_service),
 ):
     try:
-        token, user_doc = await auth_service.authenticate_google_user(body.credential_token)
+        token, user_doc = await auth_service.authenticate_google_user(
+            body.credential_token
+        )
         user = AuthUser(
             id=user_doc["id"], email=user_doc["email"], name=user_doc.get("name")
         )
@@ -248,11 +249,9 @@ async def logout():
     return {"status": "success", "message": "Logged out successfully."}
 
 
-
 @router.get("/auth/me", response_model=AuthUser)
 def me(user: AuthUser = Depends(get_current_user)):
     return user
-
 
 
 @router.post("/auth/change-password")
@@ -283,7 +282,6 @@ async def get_tickers(
     analysis_service: AnalysisService = Depends(get_analysis_service),
 ):
     return await analysis_service.get_nse_tickers()
-
 
 
 @router.post("/analyze", response_model=AnalyzeResponse)
@@ -350,7 +348,9 @@ async def analyze(
     # 2. Check Concurrent Lock if another request is running the same analysis (10-minute TTL for long-running graphs)
     lock_acquired = await cache_service.acquire_lock(lock_key, ttl_seconds=600)
     if not lock_acquired:
-        logger.info(f"Concurrent lock active for ticker={ticker}. Polling cache every 2 mins (max 10 mins)...")
+        logger.info(
+            f"Concurrent lock active for ticker={ticker}. Polling cache every 2 mins (max 10 mins)..."
+        )
         # Poll every 2 minutes (120s) for up to 5 iterations (10 minutes total) to minimize Upstash HTTP API calls
         for _ in range(5):
             await asyncio.sleep(120)
@@ -430,7 +430,12 @@ async def analyze(
             f"Unexpected error occurred in /analyze endpoint | ticker={ticker} | error={e}"
         )
         err_str = str(e).lower()
-        if "401" in err_str or "unauthorized" in err_str or "api_key" in err_str or "authentication" in err_str:
+        if (
+            "401" in err_str
+            or "unauthorized" in err_str
+            or "api_key" in err_str
+            or "authentication" in err_str
+        ):
             raise HTTPException(
                 status_code=401,
                 detail={
@@ -438,7 +443,12 @@ async def analyze(
                     "message": "We couldn't authenticate with OpenRouter. Please verify your OpenRouter API Key.",
                 },
             )
-        elif "429" in err_str or "rate limit" in err_str or "quota" in err_str or "too many" in err_str:
+        elif (
+            "429" in err_str
+            or "rate limit" in err_str
+            or "quota" in err_str
+            or "too many" in err_str
+        ):
             raise HTTPException(
                 status_code=429,
                 detail={
@@ -529,7 +539,7 @@ async def list_analyses(
 
         result.append(
             AnalysisSummary(
-                analysis_id=str(doc["_id"]),
+                analysis_id=str(doc.get("id") or doc.get("_id") or ""),
                 ticker=doc.get("ticker", ""),
                 company_name=(
                     doc.get("company_info", {}).get("longName")
@@ -567,7 +577,7 @@ async def get_analysis(
         analyzed_at = analyzed_at.replace(tzinfo=timezone.utc)
 
     return AnalysisDetail(
-        analysis_id=str(doc["_id"]),
+        analysis_id=str(doc.get("_id") or doc.get("id") or ""),
         user_id=doc["user_id"],
         analyzed_at=analyzed_at,
         ticker=doc["ticker"],

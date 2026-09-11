@@ -1,31 +1,57 @@
 import os
 
 # ---------------------------------------------------------
-# Agent Model Priority Pools
+# Agent Model Priority Pools (1 Primary + 2 Fallbacks)
 # ---------------------------------------------------------
 
-# 1. Debate and Research Manager Agents
-DEBATE_MANAGER_MODELS = [
-    "nvidia/nemotron-3-super-120b-a12b:free",
-    "nvidia/nemotron-3-ultra-550b-a55b:free",
-    "nvidia/nemotron-3.5-lightning:free",
+# 1. Parallel Analysts (5 concurrent agents with 5 unique primary models)
+FUNDAMENTAL_ANALYST_MODELS = [
     "inclusionai/ling-3.0-flash-fin:free",
+    "nvidia/nemotron-3-super-120b-a12b:free",
+    "nex-agi/nex-n2.5-pro:free",
 ]
 
-# 2. Sector Analyst
+MARKET_ANALYST_MODELS = [
+    "nvidia/nemotron-3-super-120b-a12b:free",
+    "nex-agi/nex-n2.5-pro:free",
+    "nvidia/nemotron-3-ultra-550b-a55b:free",
+]
+
+NEWS_ANALYST_MODELS = [
+    "nex-agi/nex-n2.5-mini:free",
+    "inclusionai/ling-3.0-flash-sante:free",
+    "inclusionai/ling-3.0-flash-vl:free",
+]
+
+TECHNICAL_ANALYST_MODELS = [
+    "nvidia/nemotron-3.5-lightning:free",
+    "nex-agi/nex-n2.5-pro:free",
+    "nvidia/nemotron-3-super-120b-a12b:free",
+]
+
 SECTOR_ANALYST_MODELS = [
     "dots-studio/dots-3-note-preview:free",
     "thinking-machines/inkling-small:free",
-    "nvidia/nemotron-3.5-lightning:free",
+    "inclusionai/ling-3.0-flash-sante:free",
 ]
 
-# 3. Other 4 Analysts (Fundamental, Market, News, Technical)
-OTHER_ANALYST_MODELS = [
-    "nex-agi/nex-n2.5-mini:free",
+# 2. Debate and Manager Agents
+BULL_RESEARCHER_MODELS = [
+    "nvidia/nemotron-3-ultra-550b-a55b:free",
+    "nex-agi/nex-n2.5-pro:free",
+    "nvidia/nemotron-3-super-120b-a12b:free",
+]
+
+BEAR_RESEARCHER_MODELS = [
+    "nex-agi/nex-n2.5-pro:free",
     "nvidia/nemotron-3-super-120b-a12b:free",
     "nvidia/nemotron-3-ultra-550b-a55b:free",
-    "nvidia/nemotron-3.5-lightning:free",
+]
+
+RESEARCH_MANAGER_MODELS = [
     "inclusionai/ling-3.0-flash-fin:free",
+    "nvidia/nemotron-3-ultra-550b-a55b:free",
+    "nex-agi/nex-n2.5-pro:free",
 ]
 
 
@@ -40,18 +66,22 @@ def _parse_model_env(env_var: str, default_models: list) -> list:
 
 AGENT_MODEL_CONFIG = {
     # Debate and Manager agents
-    "ResearchManager": _parse_model_env("RESEARCH_MANAGER_MODEL", DEBATE_MANAGER_MODELS),
-    "BullResearcher": _parse_model_env("BULL_RESEARCHER_MODEL", DEBATE_MANAGER_MODELS),
-    "BearResearcher": _parse_model_env("BEAR_RESEARCHER_MODEL", DEBATE_MANAGER_MODELS),
-
+    "ResearchManager": _parse_model_env(
+        "RESEARCH_MANAGER_MODEL", RESEARCH_MANAGER_MODELS
+    ),
+    "BullResearcher": _parse_model_env("BULL_RESEARCHER_MODEL", BULL_RESEARCHER_MODELS),
+    "BearResearcher": _parse_model_env("BEAR_RESEARCHER_MODEL", BEAR_RESEARCHER_MODELS),
     # Sector analyst
     "SectorAnalyst": _parse_model_env("SECTOR_ANALYST_MODEL", SECTOR_ANALYST_MODELS),
-
     # Other 4 analysts
-    "FundamentalAnalyst": _parse_model_env("FUNDAMENTAL_ANALYST_MODEL", OTHER_ANALYST_MODELS),
-    "MarketAnalyst": _parse_model_env("MARKET_ANALYST_MODEL", OTHER_ANALYST_MODELS),
-    "NewsAnalyst": _parse_model_env("NEWS_ANALYST_MODEL", OTHER_ANALYST_MODELS),
-    "TechnicalAnalyst": _parse_model_env("TECHNICAL_ANALYST_MODEL", OTHER_ANALYST_MODELS),
+    "FundamentalAnalyst": _parse_model_env(
+        "FUNDAMENTAL_ANALYST_MODEL", FUNDAMENTAL_ANALYST_MODELS
+    ),
+    "MarketAnalyst": _parse_model_env("MARKET_ANALYST_MODEL", MARKET_ANALYST_MODELS),
+    "NewsAnalyst": _parse_model_env("NEWS_ANALYST_MODEL", NEWS_ANALYST_MODELS),
+    "TechnicalAnalyst": _parse_model_env(
+        "TECHNICAL_ANALYST_MODEL", TECHNICAL_ANALYST_MODELS
+    ),
 }
 
 
@@ -97,4 +127,3 @@ AGENT_TOKEN_CONFIG = {
         "high": 2500,
     },
 }
-

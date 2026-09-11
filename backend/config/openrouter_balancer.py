@@ -11,22 +11,16 @@ logger = get_logger(__name__)
 
 # ── Available OpenRouter Model Pool ──────────────────────────────────────────
 DEFAULT_FREE_MODELS: List[str] = [
-
     "nvidia/nemotron-3-super-120b-a12b:free",
     "nvidia/nemotron-3-ultra-550b-a55b:free",
     "nvidia/nemotron-3.5-lightning:free",
-
     "inclusionai/ling-3.0-flash-fin:free",
-
-    # "google/gemma-4-26b-a4b-it:free",
-    # "google/gemma-4-31b-it:free",
-
-    "dots-studio/dots-3-note-preview:free",
-
-    "thinking-machines/inkling-small:free",
-
+    "inclusionai/ling-3.0-flash-sante:free",
+    "inclusionai/ling-3.0-flash-vl:free",
+    "nex-agi/nex-n2.5-pro:free",
     "nex-agi/nex-n2.5-mini:free",
-    
+    "dots-studio/dots-3-note-preview:free",
+    "thinking-machines/inkling-small:free",
 ]
 
 
@@ -39,7 +33,7 @@ class ModelHealthTracker:
     """
 
     _degraded: Dict[str, float] = {}  # model_name -> degraded_timestamp
-    _in_flight: Dict[str, int] = {}    # model_name -> active_request_count
+    _in_flight: Dict[str, int] = {}  # model_name -> active_request_count
     _lock = threading.Lock()
     DEGRADED_COOLDOWN_SECONDS = 180  # 3 minutes
 
@@ -87,7 +81,9 @@ class ModelHealthTracker:
             yield
         finally:
             with cls._lock:
-                cls._in_flight[model_name] = max(0, cls._in_flight.get(model_name, 1) - 1)
+                cls._in_flight[model_name] = max(
+                    0, cls._in_flight.get(model_name, 1) - 1
+                )
 
 
 class OpenRouterLoadBalancer:
@@ -109,7 +105,7 @@ class OpenRouterLoadBalancer:
         preferred_models: List[str] | str | None = None,
         **kwargs,
     ):
-        self.api_key = api_key 
+        self.api_key = api_key
         kwargs.pop("preferred_models", None)
         kwargs.pop("preferred_model", None)
         self.kwargs = kwargs
@@ -119,7 +115,7 @@ class OpenRouterLoadBalancer:
             if isinstance(preferred_models, str):
                 preferred_models = [preferred_models]
             raw_pool = list(preferred_models)
-            for m in (base_models or DEFAULT_FREE_MODELS):
+            for m in base_models or DEFAULT_FREE_MODELS:
                 if m not in raw_pool:
                     raw_pool.append(m)
         else:
@@ -153,7 +149,9 @@ class OpenRouterLoadBalancer:
         healthy.sort(key=lambda m: ModelHealthTracker.get_in_flight(m))
 
         # Sort degraded models by degraded age descending (least-recently-degraded / oldest degraded first)
-        degraded.sort(key=lambda m: ModelHealthTracker.get_degraded_age(m), reverse=True)
+        degraded.sort(
+            key=lambda m: ModelHealthTracker.get_degraded_age(m), reverse=True
+        )
 
         ordered = healthy + degraded if healthy else degraded if degraded else rotated
 
@@ -176,7 +174,6 @@ class OpenRouterLoadBalancer:
             llm_kwargs["model"] = model_name
             if self.api_key:
                 llm_kwargs["openrouter_api_key"] = self.api_key
-
 
             llm_inst = ChatOpenRouter(**llm_kwargs)
             base_runnable = (
