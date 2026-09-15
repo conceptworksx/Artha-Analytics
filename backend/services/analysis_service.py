@@ -12,6 +12,8 @@ from core.exceptions import (
     TickerNotFoundError,
     InvalidAPIKeyError,
 )
+import json
+from pathlib import Path
 from repositories.analysis_repository import AnalysisRepository
 
 logger = get_logger(__name__)
@@ -33,29 +35,77 @@ class AnalysisService:
     def __init__(self, analysis_repository: AnalysisRepository):
         self.analysis_repository = analysis_repository
 
+    def _load_bundled_nse_symbols(self) -> tuple[set[str], list[dict[str, str]]]:
+        """Load tickers from bundled local JSON file when live exchange URL is unreachable."""
+        candidates = [
+            Path(__file__).resolve().parent.parent / "data" / "nse_tickers.json",
+            Path("/app/data/nse_tickers.json"),
+            Path("data/nse_tickers.json"),
+            Path(__file__).resolve().parent.parent.parent
+            / "frontend"
+            / "public"
+            / "nse-tickers.json",
+        ]
+        for path in candidates:
+            if path.is_file():
+                try:
+                    with open(path, "r", encoding="utf-8") as f:
+                        tickers = json.load(f)
+                    symbols = {
+                        t["symbol"].strip().upper() for t in tickers if t.get("symbol")
+                    }
+                    tickers.sort(key=lambda x: x["symbol"])
+                    logger.info(
+                        f"Loaded {len(symbols)} NSE symbols from bundled file: {path.name}"
+                    )
+                    return symbols, tickers
+                except Exception as e:
+                    logger.warning(f"Failed to read bundled tickers from {path}: {e}")
+
+        logger.error("No bundled NSE tickers file found")
+        return set(), []
+
     def _load_nse_symbols(self) -> tuple[set[str], list[dict[str, str]]]:
+        # 1. Attempt live fetch from NSE with full browser headers
         try:
-            headers = {"User-Agent": "Mozilla/5.0"}
-            resp = requests.get(self.NSE_LIST_URL, headers=headers, timeout=15)
-            resp.raise_for_status()
-            df = pd.read_csv(StringIO(resp.text))
-            df.columns = df.columns.str.strip()
+            headers = {
+                "User-Agent": (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/124.0.0.0 Safari/537.36"
+                ),
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Referer": "https://www.nseindia.com/",
+            }
+            resp = requests.get(self.NSE_LIST_URL, headers=headers, timeout=10)
+            if resp.status_code == 200:
+                df = pd.read_csv(StringIO(resp.text))
+                df.columns = df.columns.str.strip()
 
-            symbols = set()
-            tickers = []
-            for _, row in df.iterrows():
-                sym = str(row["SYMBOL"]).strip().upper()
-                name = str(row.get("NAME OF COMPANY", sym)).strip()
-                if sym:
-                    symbols.add(sym)
-                    tickers.append({"symbol": sym, "name": name})
+                symbols = set()
+                tickers = []
+                for _, row in df.iterrows():
+                    sym = str(row["SYMBOL"]).strip().upper()
+                    name = str(row.get("NAME OF COMPANY", sym)).strip()
+                    if sym:
+                        symbols.add(sym)
+                        tickers.append({"symbol": sym, "name": name})
 
-            tickers.sort(key=lambda x: x["symbol"])
-            logger.info(f"NSE symbols loaded: {len(symbols)}")
-            return symbols, tickers
+                tickers.sort(key=lambda x: x["symbol"])
+                logger.info(f"NSE symbols loaded from live feed: {len(symbols)}")
+                return symbols, tickers
+            else:
+                logger.warning(
+                    f"NSE remote feed returned HTTP {resp.status_code}; falling back to bundled dataset"
+                )
         except Exception as exc:
-            logger.exception(f"NSE symbol fetch failed: {exc}")
-            return set(), []
+            logger.warning(
+                f"NSE live fetch unavailable ({exc}); falling back to bundled dataset"
+            )
+
+        # 2. Fall back to bundled local dataset
+        return self._load_bundled_nse_symbols()
 
     def _refresh_cache_if_stale(self) -> None:
         with self._cache_lock:

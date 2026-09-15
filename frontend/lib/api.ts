@@ -111,13 +111,14 @@ export interface AnalyseResponse {
   };
 }
 
-// Prioritize the environment variable for production deployments (e.g., Vercel + Heroku).
-// Fall back to dynamic hostname for local network development across devices, or localhost.
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || (
-  typeof window !== "undefined"
+// Prioritize NEXT_PUBLIC_API_URL from .env.
+// Fall back to dynamic hostname for local network development across devices, or localhost:8000.
+const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== "undefined"
     ? `http://${window.location.hostname}:8000`
-    : "http://localhost:8000"
-);
+    : "http://localhost:8000")
+).replace(/\/+$/, "");
 
 const AUTH_TOKEN_KEY = "artha_auth_token";
 const AUTH_USER_KEY = "artha_auth_user";

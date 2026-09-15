@@ -4,7 +4,9 @@ FROM python:3.11-slim
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app \
-    PORT=8000
+    PORT=8000 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_ROOT_USER_ACTION=ignore
 
 WORKDIR /app
 
@@ -15,7 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv via pip for ultra-fast, standalone package resolution
-RUN pip install --no-cache-dir uv
+RUN pip install --no-cache-dir --root-user-action=ignore uv
 
 # Copy dependency specifications first to leverage Docker layer caching
 COPY requirements.txt pyproject.toml ./
