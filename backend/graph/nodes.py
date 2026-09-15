@@ -1,5 +1,5 @@
 import time
-
+import json
 from graph.state import AgentState
 from tools.data_preftech import prefetch_ticker_bundle
 from tools.data_processor import process_prefetch_result
@@ -11,6 +11,11 @@ from agents.analysis.fundamental_analyst import FundamentalAnalyst
 from agents.researcher.bull_researcher import BullResearcher
 from agents.researcher.bear_researcher import BearResearcher
 from agents.manager.research_manager import ResearchManager
+from graph.validators import (
+    validate_thesis_output,
+    validate_thesis_output,
+    validate_analyst_schemas,
+)
 from core.error import handle_node_errors
 from core.logging import get_logger
 
@@ -133,7 +138,8 @@ def make_nodes(openrouter_api_key: str = None, thinking_level: str = "low") -> d
         )
         new_history = history + f"\n\n--- BULL ---\n{formatted_response}"
 
-        return {
+        is_valid, err = validate_thesis_output(response, role="Bull")
+        result = {
             "investment_debate": {
                 **debate,
                 "bull_thesis": response,
@@ -142,6 +148,11 @@ def make_nodes(openrouter_api_key: str = None, thinking_level: str = "low") -> d
                 "last_speaker": "bull",
             }
         }
+        if not is_valid:
+            result["debate_skip_reason"] = (
+                f"Bull researcher failed schema validation: {err}"
+            )
+        return result
 
     @handle_node_errors("bear_researcher")
     def run_bear_researcher(state: AgentState) -> dict:
@@ -153,8 +164,6 @@ def make_nodes(openrouter_api_key: str = None, thinking_level: str = "low") -> d
         history = debate.get("debate_history", "")
         rounds = debate.get("debate_rounds", 0)
 
-        import json
-
         formatted_response = (
             json.dumps(response, indent=2)
             if isinstance(response, dict)
@@ -162,7 +171,8 @@ def make_nodes(openrouter_api_key: str = None, thinking_level: str = "low") -> d
         )
         new_history = history + f"\n\n--- BEAR ---\n{formatted_response}"
 
-        return {
+        is_valid, err = validate_thesis_output(response, role="Bear")
+        result = {
             "investment_debate": {
                 **debate,
                 "bear_thesis": response,
@@ -171,6 +181,11 @@ def make_nodes(openrouter_api_key: str = None, thinking_level: str = "low") -> d
                 "last_speaker": "bear",
             }
         }
+        if not is_valid:
+            result["debate_skip_reason"] = (
+                f"Bear researcher failed schema validation: {err}"
+            )
+        return result
 
     @handle_node_errors("research_manager")
     def run_research_manager(state: AgentState) -> dict:
@@ -191,6 +206,18 @@ def make_nodes(openrouter_api_key: str = None, thinking_level: str = "low") -> d
             f"Running aggregator | ticker={state.get('ticker_of_company')} | "
             f"include_debate={state.get('include_debate', False)}"
         )
+        if state.get("include_debate", False):
+
+            is_valid, errors = validate_analyst_schemas(state)
+            if not is_valid:
+                error_msg = "; ".join(errors)
+                logger.warning(
+                    f"Gate 1 Failed: Analyst schema validation failed in aggregator | "
+                    f"ticker={state.get('ticker_of_company')} | errors={error_msg}"
+                )
+                return {
+                    "debate_skip_reason": f"Analyst schema validation failed: {error_msg}"
+                }
         return {}
 
     return {
@@ -201,6 +228,111 @@ def make_nodes(openrouter_api_key: str = None, thinking_level: str = "low") -> d
         "news_analyst": run_news_analyst,
         "sector_analyst": run_sector_analyst,
         "aggregator": run_aggregator,
+        "bull_researcher": run_bull_researcher,
+        "bear_researcher": run_bear_researcher,
+        "research_manager": run_research_manager,
+    }
+
+
+def make_debate_nodes(
+    openrouter_api_key: str = None, thinking_level: str = "low"
+) -> dict:
+    """
+    Instantiates ONLY the debate and manager agents with the user's OpenRouter key.
+    Bypasses instantiating the 5 specialist analysts for decoupled debate workflows.
+    """
+    bull_agent = BullResearcher(
+        openrouter_api_key=openrouter_api_key, thinking_level=thinking_level
+    )
+    bear_agent = BearResearcher(
+        openrouter_api_key=openrouter_api_key, thinking_level=thinking_level
+    )
+    manager_agent = ResearchManager(
+        openrouter_api_key=openrouter_api_key, thinking_level=thinking_level
+    )
+
+    @handle_node_errors("bull_researcher")
+    def run_bull_researcher(state: AgentState) -> dict:
+        logger.info(
+            f"Running bull researcher | ticker={state.get('ticker_of_company')}"
+        )
+        response = bull_agent.run(state)
+        debate = state.get("investment_debate", {})
+        history = debate.get("debate_history", "")
+        rounds = debate.get("debate_rounds", 0)
+
+        import json
+
+        formatted_response = (
+            json.dumps(response, indent=2)
+            if isinstance(response, dict)
+            else str(response)
+        )
+        new_history = history + f"\n\n--- BULL ---\n{formatted_response}"
+
+        is_valid, err = validate_thesis_output(response, role="Bull")
+        result = {
+            "investment_debate": {
+                **debate,
+                "bull_thesis": response,
+                "debate_history": new_history,
+                "debate_rounds": rounds + 1,
+                "last_speaker": "bull",
+            }
+        }
+        if not is_valid:
+            result["debate_skip_reason"] = (
+                f"Bull researcher failed schema validation: {err}"
+            )
+        return result
+
+    @handle_node_errors("bear_researcher")
+    def run_bear_researcher(state: AgentState) -> dict:
+        logger.info(
+            f"Running bear researcher | ticker={state.get('ticker_of_company')}"
+        )
+        response = bear_agent.run(state)
+        debate = state.get("investment_debate", {})
+        history = debate.get("debate_history", "")
+        rounds = debate.get("debate_rounds", 0)
+
+        formatted_response = (
+            json.dumps(response, indent=2)
+            if isinstance(response, dict)
+            else str(response)
+        )
+        new_history = history + f"\n\n--- BEAR ---\n{formatted_response}"
+
+        is_valid, err = validate_thesis_output(response, role="Bear")
+        result = {
+            "investment_debate": {
+                **debate,
+                "bear_thesis": response,
+                "debate_history": new_history,
+                "debate_rounds": rounds + 1,
+                "last_speaker": "bear",
+            }
+        }
+        if not is_valid:
+            result["debate_skip_reason"] = (
+                f"Bear researcher failed schema validation: {err}"
+            )
+        return result
+
+    @handle_node_errors("research_manager")
+    def run_research_manager(state: AgentState) -> dict:
+        logger.info(
+            f"Running research manager | ticker={state.get('ticker_of_company')}"
+        )
+        verdict = manager_agent.run(state)
+        return {
+            "verdict": verdict.model_dump(),
+            "trade_signal": verdict.decision,
+            "research_verdict": verdict.rationale,
+            "investment_strategy": verdict.strategy,
+        }
+
+    return {
         "bull_researcher": run_bull_researcher,
         "bear_researcher": run_bear_researcher,
         "research_manager": run_research_manager,

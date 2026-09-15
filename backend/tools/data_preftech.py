@@ -9,7 +9,10 @@ from tools.utils.data_prefetch_helper import (
     _get_cached_index,
     _set_cached_index,
 )
-from tools.utils.fallback_mapper import map_fallback_to_yf, fetch_indianapi_fallback_data
+from tools.utils.fallback_mapper import (
+    map_fallback_to_yf,
+    fetch_indianapi_fallback_data,
+)
 from core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -90,7 +93,7 @@ def prefetch_ticker_bundle(ticker: str) -> dict:
     if cached:
         logger.info("Returning cached data")
         return cached
-    
+
     bundle: dict = {
         "ticker": ticker,
         "status": "success",
@@ -266,7 +269,9 @@ def prefetch_ticker_bundle(ticker: str) -> dict:
 
         except YFinance401Error as e:
 
-            logger.error(f"[prefetch] 401 in '{e.caller}' — initiating fallback to IndianAPI")
+            logger.error(
+                f"[prefetch] 401 in '{e.caller}' — initiating fallback to IndianAPI"
+            )
             bundle["status"] = "failed"
 
     # ── validity and fallback check ──────────────────────────────────────────
@@ -283,14 +288,14 @@ def prefetch_ticker_bundle(ticker: str) -> dict:
         try:
             clean_ticker = ticker.split(".")[0]
             raw_fallback = fetch_indianapi_fallback_data(clean_ticker)
-            
+
             fallback_bundle = map_fallback_to_yf(raw_fallback, ticker)
-            
+
             if fallback_bundle.get("status") == "success":
                 for k, v in fallback_bundle.items():
                     if k in ("status", "error"):
                         continue
-                        
+
                     # Check if the original bundle already has valid data for this key
                     current_val = bundle.get(k)
                     is_current_empty = True
@@ -299,7 +304,7 @@ def prefetch_ticker_bundle(ticker: str) -> dict:
                             is_current_empty = current_val.empty
                         elif current_val:
                             is_current_empty = False
-                            
+
                     # Only overwrite if the original data was empty/failed
                     if is_current_empty:
                         if hasattr(v, "empty"):
@@ -307,7 +312,7 @@ def prefetch_ticker_bundle(ticker: str) -> dict:
                                 bundle[k] = v
                         elif v:
                             bundle[k] = v
-                        
+
                 bundle["status"] = "success"
                 bundle["error"] = None
                 info = bundle.get("info", {})
@@ -315,11 +320,13 @@ def prefetch_ticker_bundle(ticker: str) -> dict:
                 bundle["status"] = "invalid_ticker"
                 bundle["error"] = fallback_bundle.get("error", "Fallback also failed.")
                 return bundle
-                
+
         except Exception as fallback_exc:
             logger.exception(f"[prefetch] fallback completely failed for {ticker}")
             bundle["status"] = "invalid_ticker"
-            bundle["error"] = f"YFinance failed and fallback also failed: {fallback_exc}"
+            bundle["error"] = (
+                f"YFinance failed and fallback also failed: {fallback_exc}"
+            )
             return bundle
 
     # ── success log ──────────────────────────────────────────────────────────

@@ -7,23 +7,53 @@ import type { ThesisOutput } from "@/lib/api";
 export function BearThesisView({
   ticker,
   data,
+  onTriggerDebate,
+  debateLoading = false,
+  debateError,
 }: {
   ticker: string;
   data?: ThesisOutput | null;
+  onTriggerDebate?: () => void;
+  debateLoading?: boolean;
+  debateError?: string | null;
 }) {
   if (!data) {
     return (
       <div className="flex min-h-[400px] items-center justify-center rounded-2xl border border-[var(--border)] bg-white p-8 text-center shadow-sm">
         <div className="flex max-w-md flex-col items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100">
-            <Zap className="h-8 w-8 text-zinc-400" />
+          <div className="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-rose-50 text-rose-600 border border-rose-200">
+            <TrendingDown className="h-6 w-6 sm:h-8 sm:w-8" />
           </div>
-          <h3 className="font-mono text-[13px] font-bold tracking-widest text-zinc-900">
-            DEBATE SKIPPED
+          <h3 className="font-mono text-[13px] font-bold tracking-widest text-zinc-900 uppercase">
+            Bear Thesis Not Yet Generated
           </h3>
           <p className="text-[14px] leading-relaxed text-zinc-500">
-            The investment debate phase was skipped for this analysis. To view the Bull/Bear debate, ensure you toggle "Include Investment Debate" when searching.
+            The 5 specialist analysts have finished their research. You can now synthesize their findings into an institutional Bull vs. Bear debate to stress-test risks.
           </p>
+          {debateError && (
+            <p className="text-[12px] text-red-600 bg-red-50 px-3 py-1.5 rounded-lg border border-red-200">
+              {debateError}
+            </p>
+          )}
+          {onTriggerDebate && (
+            <button
+              onClick={onTriggerDebate}
+              disabled={debateLoading}
+              className="mt-2 flex items-center gap-2 rounded-full bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 text-[13px] font-semibold transition-all shadow-md hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {debateLoading ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  <span>Synthesizing Bear Thesis (~10s)...</span>
+                </>
+              ) : (
+                <>
+                  <TrendingDown size={16} />
+                  <span>Generate Bull vs. Bear Debate</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
     );
@@ -48,13 +78,7 @@ export function BearThesisView({
   }
 
   return (
-    <div className="mx-auto max-w-[920px] min-h-full rounded-[2rem] bg-white/40 p-4 sm:p-8 text-zinc-900 shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden relative backdrop-blur-xl border border-black/[0.04]">
-      {/* Ambient background glow */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]">
-        <div className="absolute -top-40 -right-40 h-[500px] w-[500px] rounded-full bg-rose-400/10 blur-[100px]" />
-        <div className="absolute -bottom-40 -left-40 h-[500px] w-[500px] rounded-full bg-rose-300/10 blur-[100px]" />
-      </div>
-
+    <div className="mx-auto max-w-[920px] min-h-full rounded-[2rem] bg-white p-4 sm:p-8 text-zinc-900 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-black/[0.04]">
       <div className="relative z-10 mx-auto max-w-4xl">
         <header className="mb-10 flex flex-col items-center text-center">
           <motion.div
@@ -104,7 +128,7 @@ export function BearThesisView({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 + idx * 0.1 }}
-              className="group relative flex flex-col rounded-2xl border border-black/[0.04] bg-white/70 p-6 backdrop-blur-xl transition-all duration-300 hover:border-rose-500/30 hover:shadow-[0_8px_30px_rgba(225,29,72,0.05)] hover:bg-white/90"
+              className="group relative flex flex-col rounded-2xl border border-black/[0.06] bg-white p-6 shadow-sm transition-all duration-300 hover:border-rose-500/30 hover:shadow-md"
             >
               <div className="mb-4 flex items-center gap-3">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-rose-50 text-rose-600 border border-rose-100">

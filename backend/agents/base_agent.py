@@ -6,6 +6,11 @@ from config.settings import get_openrouter_llm
 
 def load_structured_prompt(file_path: str) -> str:
     path = Path(file_path)
+    if not path.is_absolute() and not path.exists():
+        backend_dir = Path(__file__).resolve().parent.parent
+        candidate = backend_dir / file_path
+        if candidate.exists():
+            path = candidate
     if not path.exists():
         raise FileNotFoundError(f"Prompt file missing at {file_path}")
     with open(path, "r") as f:
@@ -43,7 +48,11 @@ class BaseAgent:
         analysts = ["market", "fundamental", "technical", "news", "sector"]
         sections = []
         for analyst in analysts:
-            data = state.get(f"{analyst}_analyst_summary", {})
+            data = (
+                state.get(f"{analyst}_analyst_summary")
+                or state.get(f"{analyst}_analyst_report")
+                or {}
+            )
             if not data:
                 continue
 

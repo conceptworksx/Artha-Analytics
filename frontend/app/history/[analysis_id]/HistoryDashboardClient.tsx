@@ -148,13 +148,13 @@ export default function HistoryDashboardClient({ analysisId }: { analysisId: str
   return (
     <div className="flex h-screen flex-col print:h-auto print:block">
       {/* Navbar */}
-      <header className="print:hidden flex h-14 sm:h-16 shrink-0 items-center justify-between border-b border-black/[0.04] bg-white px-3 sm:px-5 shadow-sm transition-all">
-        <div className="flex items-center gap-2">
+      <header className="print:hidden flex h-16 shrink-0 items-center justify-between border-b border-black/[0.04] bg-white px-3 sm:px-5 shadow-sm transition-all">
+        <div className="flex items-center gap-2 shrink-0">
           <Link href="/">
             <img
               src="/navbar.png"
               alt="Artha Analytics"
-              className="h-10 sm:h-14 object-contain cursor-pointer"
+              className="h-12 object-contain cursor-pointer transition-transform hover:scale-[1.02]"
             />
           </Link>
         </div>

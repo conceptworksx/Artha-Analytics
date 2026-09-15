@@ -98,10 +98,14 @@ class AuthService:
         email = email.lower().strip()
         existing_user = await self.user_repository.get_by_email(email)
         if existing_user:
-            raise UserAlreadyExistsError("An account already exists with this email address.")
+            raise UserAlreadyExistsError(
+                "An account already exists with this email address."
+            )
 
         if await self.otp_repository.is_cooldown_active(email):
-            raise TooManyOTPAttemptsError("Please wait 30 seconds before requesting another verification code.")
+            raise TooManyOTPAttemptsError(
+                "Please wait 30 seconds before requesting another verification code."
+            )
 
         password_hash = await asyncio.to_thread(self._hash_password, password)
         otp_code = f"{secrets.randbelow(900000) + 100000}"
@@ -129,7 +133,9 @@ class AuthService:
         otp_record = await self.otp_repository.get_otp_by_email(email)
 
         if not otp_record:
-            raise OTPExpiredError("Verification code has expired or does not exist. Please request a new code.")
+            raise OTPExpiredError(
+                "Verification code has expired or does not exist. Please request a new code."
+            )
 
         expires_at = otp_record.get("expires_at")
         if expires_at:
@@ -137,12 +143,16 @@ class AuthService:
                 expires_at = expires_at.replace(tzinfo=timezone.utc)
             if expires_at < datetime.now(timezone.utc):
                 await self.otp_repository.delete_otp(email)
-                raise OTPExpiredError("Verification code has expired. Please request a new code.")
+                raise OTPExpiredError(
+                    "Verification code has expired. Please request a new code."
+                )
 
         attempts = otp_record.get("attempts", 0)
         if attempts >= 5:
             await self.otp_repository.delete_otp(email)
-            raise TooManyOTPAttemptsError("Too many failed attempts. Please request a new verification code.")
+            raise TooManyOTPAttemptsError(
+                "Too many failed attempts. Please request a new verification code."
+            )
 
         expected_hash = otp_record.get("otp_hash", "")
         actual_hash = self._hash_otp(otp_code.strip())
@@ -152,13 +162,19 @@ class AuthService:
             remaining = 5 - new_attempts
             if remaining <= 0:
                 await self.otp_repository.delete_otp(email)
-                raise TooManyOTPAttemptsError("Too many failed attempts. Please request a new verification code.")
-            raise InvalidOTPError(f"Invalid verification code. {remaining} attempt(s) remaining.")
+                raise TooManyOTPAttemptsError(
+                    "Too many failed attempts. Please request a new verification code."
+                )
+            raise InvalidOTPError(
+                f"Invalid verification code. {remaining} attempt(s) remaining."
+            )
 
         existing_user = await self.user_repository.get_by_email(email)
         if existing_user:
             await self.otp_repository.delete_otp(email)
-            raise UserAlreadyExistsError("An account already exists with this email address.")
+            raise UserAlreadyExistsError(
+                "An account already exists with this email address."
+            )
 
         user_doc = {
             "email": email,
@@ -249,5 +265,3 @@ class AuthService:
 
         token = self.create_token(user_id, email)
         return token, user_doc
-
-

@@ -18,7 +18,16 @@ const getLocalIPs = (): string[] => {
 
 const nextConfig: NextConfig = {
   /* config options here */
+  compress: true,
   allowedDevOrigins: getLocalIPs(),
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "recharts",
+      "framer-motion",
+      "react-icons",
+    ],
+  },
 };
 
 export default nextConfig;

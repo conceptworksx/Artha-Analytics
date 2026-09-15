@@ -94,6 +94,9 @@ class AgentState(TypedDict):
     investment_strategy: Annotated[
         str, "Final synthesized investment strategy derived from the debate."
     ]
+    debate_skip_reason: Annotated[
+        str, "Reason why debate or verdict was skipped or aborted."
+    ]
 
     # --- Verdict (from Research Manager) ---
     verdict: Annotated[

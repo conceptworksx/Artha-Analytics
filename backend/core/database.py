@@ -27,7 +27,9 @@ async def connect_to_mongo():
         # Create indexes asynchronously
         await db_instance.db["users"].create_index("email", unique=True)
         await db_instance.db["otp_verifications"].create_index("email", unique=True)
-        await db_instance.db["otp_verifications"].create_index("expires_at", expireAfterSeconds=0)
+        await db_instance.db["otp_verifications"].create_index(
+            "expires_at", expireAfterSeconds=0
+        )
         await db_instance.db["ip_searches"].create_index("ip", unique=True)
         await db_instance.db["analyses"].create_index(
             [("user_id", 1), ("analyzed_at", -1)]

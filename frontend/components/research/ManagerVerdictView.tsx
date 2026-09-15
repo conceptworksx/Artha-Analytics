@@ -1,23 +1,22 @@
-"use client";
-
+import React, { memo, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Scale, AlertCircle, Zap, Target, ArrowUpRight, ArrowDownRight, Clock, ShieldAlert, Rocket } from "lucide-react";
 import type { Verdict } from "@/lib/api";
 import { ResponsiveContainer, ComposedChart, Area, XAxis, YAxis, Tooltip, ReferenceLine, ReferenceArea } from "recharts";
 
-const StockChart = ({ 
+const StockChart = memo(function StockChart({ 
   entry, 
   exit, 
   stop, 
   decision, 
   chartsData 
 }: { 
-  entry: string, 
-  exit: string, 
-  stop: string, 
-  decision: string,
-  chartsData: any 
-}) => {
+  entry: string; 
+  exit: string; 
+  stop: string; 
+  decision: string;
+  chartsData: any; 
+}) {
   const parsePrice = (str: string) => {
     if (!str) return null;
     const match = str.replace(/,/g, '').match(/\d+(\.\d+)?/);
@@ -30,18 +29,24 @@ const StockChart = ({
   
   const history = chartsData?.technical_history || [];
   
-  if (!entryVal || !targetVal || !stopVal || history.length === 0) {
-     return <div className="p-4 text-center text-zinc-500 text-sm">Insufficient chart data available</div>;
-  }
-  
   const isBuy = decision === 'BUY';
   const targetColor = isBuy ? '#10b981' : '#f43f5e';
   const stopColor = isBuy ? '#f43f5e' : '#10b981';
 
-  const prices = history.map((d: any) => d.close).filter(Boolean);
-  const minPrice = Math.min(...prices, entryVal, targetVal, stopVal);
-  const maxPrice = Math.max(...prices, entryVal, targetVal, stopVal);
-  const padding = (maxPrice - minPrice) * 0.1;
+  const chartBounds = useMemo(() => {
+    if (!entryVal || !targetVal || !stopVal || history.length === 0) return null;
+    const prices = history.map((d: any) => d.close).filter(Boolean);
+    const minPrice = Math.min(...prices, entryVal, targetVal, stopVal);
+    const maxPrice = Math.max(...prices, entryVal, targetVal, stopVal);
+    const padding = (maxPrice - minPrice) * 0.1;
+    return { minPrice, maxPrice, padding };
+  }, [history, entryVal, targetVal, stopVal]);
+
+  if (!entryVal || !targetVal || !stopVal || history.length === 0 || !chartBounds) {
+     return <div className="p-4 text-center text-zinc-500 text-sm">Insufficient chart data available</div>;
+  }
+  
+  const { minPrice, maxPrice, padding } = chartBounds;
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '';
@@ -123,30 +128,60 @@ const StockChart = ({
       </ResponsiveContainer>
     </div>
   );
-};
+});
 
 export function ManagerVerdictView({
   ticker,
   data,
-  chartsData
+  chartsData,
+  onTriggerDebate,
+  debateLoading = false,
+  debateError,
 }: {
   ticker: string;
   data?: Verdict | null;
   chartsData?: any;
+  onTriggerDebate?: () => void;
+  debateLoading?: boolean;
+  debateError?: string | null;
 }) {
   if (!data) {
     return (
       <div className="flex min-h-[400px] items-center justify-center rounded-2xl border border-[var(--border)] bg-white p-8 text-center shadow-sm">
         <div className="flex max-w-md flex-col items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100">
-            <Zap className="h-8 w-8 text-zinc-400" />
+          <div className="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 border border-indigo-200">
+            <Scale className="h-6 w-6 sm:h-8 sm:w-8" />
           </div>
-          <h3 className="font-mono text-[13px] font-bold tracking-widest text-zinc-900">
-            DEBATE SKIPPED
+          <h3 className="font-mono text-[13px] font-bold tracking-widest text-zinc-900 uppercase">
+            Manager Verdict Not Formulated
           </h3>
           <p className="text-[14px] leading-relaxed text-zinc-500">
-            The investment debate phase was skipped for this analysis. To view the Manager Verdict, ensure you toggle "Include Investment Debate" when searching.
+            The Research Manager synthesizes findings from the 5 specialist analysts and the Bull vs. Bear debate to deliver actionable Buy/Sell/Hold verdicts with entry prices and price targets.
           </p>
+          {debateError && (
+            <p className="text-[12px] text-red-600 bg-red-50 px-3 py-1.5 rounded-lg border border-red-200">
+              {debateError}
+            </p>
+          )}
+          {onTriggerDebate && (
+            <button
+              onClick={onTriggerDebate}
+              disabled={debateLoading}
+              className="mt-2 flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white px-5 py-2.5 text-[13px] font-semibold transition-all shadow-md hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {debateLoading ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  <span>Synthesizing Final Verdict (~10s)...</span>
+                </>
+              ) : (
+                <>
+                  <Scale size={16} />
+                  <span>Generate Debate & Final Verdict</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
     );
@@ -186,12 +221,7 @@ export function ManagerVerdictView({
       : "from-amber-50 to-amber-100/50 border-amber-200";
 
   return (
-    <div className="mx-auto max-w-[920px] min-h-full rounded-[2rem] bg-white/40 p-4 sm:p-8 text-zinc-900 shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden relative backdrop-blur-xl border border-black/[0.04]">
-      {/* Ambient background glow */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]">
-        <div className="absolute top-[-20%] left-[50%] -translate-x-1/2 h-[600px] w-[800px] rounded-full bg-amber-300/10 blur-[120px]" />
-      </div>
-
+    <div className="mx-auto max-w-[920px] min-h-full rounded-[2rem] bg-white p-4 sm:p-8 text-zinc-900 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-black/[0.04]">
       <div className="relative z-10 mx-auto max-w-4xl">
         <header className="mb-10 flex flex-col items-center text-center">
           <motion.div
@@ -209,13 +239,13 @@ export function ManagerVerdictView({
             transition={{ delay: 0.1 }}
             className="flex flex-col items-center"
           >
-            <div className="mb-3 flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-50 px-4 py-1.5 backdrop-blur-md">
+            <div className="mb-3 flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-50 px-4 py-1.5">
               <span className="font-mono text-[12px] font-medium text-amber-700 tracking-wider">
                 {ticker.split(".")[0]} · MANAGER VERDICT
               </span>
             </div>
 
-            <div className={`mt-4 rounded-3xl border bg-gradient-to-b ${decisionBg} px-10 py-6 backdrop-blur-md`}>
+            <div className={`mt-4 rounded-3xl border bg-gradient-to-b ${decisionBg} px-10 py-6`}>
               <h1 className={`text-5xl font-black tracking-tight ${decisionColor} drop-shadow-md`}>
                 {data.decision}
               </h1>
@@ -239,7 +269,7 @@ export function ManagerVerdictView({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="mb-8 overflow-hidden rounded-2xl border border-black/[0.04] bg-white/70 p-6 sm:p-8 backdrop-blur-xl shadow-sm"
+          className="mb-8 overflow-hidden rounded-2xl border border-black/[0.06] bg-white p-6 sm:p-8 shadow-sm"
         >
           <div className="mb-6 flex items-center justify-between">
             <h3 className="font-mono text-[12px] font-bold tracking-widest text-zinc-500">TRADE ARCHITECTURE</h3>
@@ -282,7 +312,7 @@ export function ManagerVerdictView({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="mb-8 rounded-2xl border border-amber-200 bg-amber-50/50 p-6 sm:p-8 backdrop-blur-xl shadow-sm"
+          className="mb-8 rounded-2xl border border-amber-200 bg-amber-50/60 p-6 sm:p-8 shadow-sm"
         >
           <h3 className="mb-4 font-mono text-[12px] font-bold tracking-widest text-amber-600">RATIONALE</h3>
           <p className="mb-6 text-[16px] leading-relaxed text-zinc-700">
@@ -310,7 +340,7 @@ export function ManagerVerdictView({
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.6 }}
-            className="rounded-2xl border border-black/[0.04] bg-white/70 p-6 backdrop-blur-xl shadow-sm"
+            className="rounded-2xl border border-black/[0.06] bg-white p-6 shadow-sm"
           >
             <div className="mb-5 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -337,7 +367,7 @@ export function ManagerVerdictView({
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.7 }}
-            className="rounded-2xl border border-black/[0.04] bg-white/70 p-6 backdrop-blur-xl shadow-sm"
+            className="rounded-2xl border border-black/[0.06] bg-white p-6 shadow-sm"
           >
             <div className="mb-5 flex items-center justify-between">
               <div className="flex items-center gap-2">

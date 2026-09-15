@@ -12,7 +12,7 @@ from tools.utils.news_tool_helper import (
     _score_indian,
     _safe_tavily_search,
     _get_news_cached,
-    _set_news_cached
+    _set_news_cached,
 )
 from dotenv import load_dotenv
 from tools.utils.retry_utils import retry_fetch
@@ -118,14 +118,14 @@ def get_indian_market_news() -> dict:
     Returns:
         dict with status, ai_summary, articles, and error (if any).
     """
-    
+
     cache_key = "indian_market_news"
     cached = _get_news_cached(cache_key)
 
     if cached is not None:
         logger.info("Returning cached Indian market news")
         return cached
-    
+
     logger.info("Fetching Indian market news")
     result = {"status": "", "ai_summary": "", "articles": [], "error": None}
 
@@ -186,14 +186,14 @@ def get_global_market_news() -> dict:
     Returns:
         dict with status, ai_summary, articles, and error (if any).
     """
-    
-    cache_key = "global_market_news"    # fixed key — same news for all users
+
+    cache_key = "global_market_news"  # fixed key — same news for all users
 
     cached = _get_news_cached(cache_key)
     if cached is not None:
         logger.info("Returning cached global market news")
         return cached
-    
+
     logger.info("Fetching global market news")
     result = {"status": "", "ai_summary": "", "articles": [], "error": None}
 

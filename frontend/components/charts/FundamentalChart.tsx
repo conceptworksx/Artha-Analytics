@@ -127,8 +127,8 @@ export function FundamentalGrowthChart({ data }: { data?: FinancialsHistory }) {
             iconSize={10}
             wrapperStyle={{ fontFamily: "monospace", fontSize: "11px" }}
           />
-          <Bar name="Revenue" dataKey="revenue" fill="#4f46e5" radius={[4, 4, 0, 0]} maxBarSize={45} />
-          <Bar name="Net Income" dataKey="netIncome" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={45} />
+          <Bar name="Revenue" dataKey="revenue" fill="#4f46e5" radius={[4, 4, 0, 0]} maxBarSize={45} isAnimationActive={false} />
+          <Bar name="Net Income" dataKey="netIncome" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={45} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -191,9 +191,9 @@ export function FundamentalProfitabilityChart({ data }: { data?: FinancialsHisto
             iconSize={10}
             wrapperStyle={{ fontFamily: "monospace", fontSize: "11px" }}
           />
-          <Line yAxisId="left" name="Net Margin %" type="monotone" dataKey="plotNetMargin" stroke="#ef4444" strokeWidth={2} dot={{ r: 4 }} />
-          <Line yAxisId="left" name="ROE %" type="monotone" dataKey="plotRoe" stroke="#d97706" strokeWidth={2} dot={{ r: 4 }} />
-          <Line yAxisId="right" name="Debt-to-Equity" type="monotone" dataKey="debtToEquity" stroke="#4f46e5" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 4 }} />
+          <Line yAxisId="left" name="Net Margin %" type="monotone" dataKey="plotNetMargin" stroke="#ef4444" strokeWidth={2} dot={{ r: 4 }} isAnimationActive={false} />
+          <Line yAxisId="left" name="ROE %" type="monotone" dataKey="plotRoe" stroke="#d97706" strokeWidth={2} dot={{ r: 4 }} isAnimationActive={false} />
+          <Line yAxisId="right" name="Debt-to-Equity" type="monotone" dataKey="debtToEquity" stroke="#4f46e5" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 4 }} isAnimationActive={false} />
         </LineChart>
       </ResponsiveContainer>
     </div>

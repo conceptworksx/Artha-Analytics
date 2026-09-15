@@ -78,7 +78,6 @@ class AnalysisService:
         await asyncio.to_thread(self._refresh_cache_if_stale)
         return self._cache.get("nse_tickers", [])
 
-
     def validate_ticker_format(self, ticker: str) -> None:
         if not ticker or not ticker.strip():
             raise InvalidTickerFormatError("Ticker cannot be empty.")

@@ -9,7 +9,7 @@ from core.logging import get_logger
 
 logger = get_logger(__name__)
 
-# ── Available OpenRouter Model Pool ──────────────────────────────────────────
+
 DEFAULT_FREE_MODELS: List[str] = [
     "nvidia/nemotron-3-super-120b-a12b:free",
     "nvidia/nemotron-3-ultra-550b-a55b:free",

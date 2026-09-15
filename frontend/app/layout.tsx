@@ -5,8 +5,8 @@ import {
 } from "next/font/google";
 import "./globals.css";
 
-const sans = Inter({ variable: "--font-active-sans", subsets: ["latin"] });
-const mono = Fira_Code({ variable: "--font-active-mono", weight: ["400", "500", "600", "700"], subsets: ["latin"] });
+const sans = Inter({ variable: "--font-active-sans", subsets: ["latin"], display: "swap" });
+const mono = Fira_Code({ variable: "--font-active-mono", weight: ["400", "500", "600", "700"], subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
   title: "Artha Analytics",

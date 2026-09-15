@@ -1,6 +1,4 @@
-"use client";
-
-import { useState, useMemo } from "react";
+import { useState, useMemo, memo } from "react";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -22,7 +20,7 @@ interface StockMetricsPanelProps {
   data: any;
 }
 
-export function StockMetricsPanel({ data }: StockMetricsPanelProps) {
+export const StockMetricsPanel = memo(function StockMetricsPanel({ data }: StockMetricsPanelProps) {
   const [timeframe, setTimeframe] = useState<"1M" | "3M" | "6M" | "1Y">("1M");
   const [showFullSummary, setShowFullSummary] = useState(false);
 
@@ -327,6 +325,7 @@ export function StockMetricsPanel({ data }: StockMetricsPanelProps) {
                 strokeWidth={2}
                 fillOpacity={1}
                 fill="url(#colorPrice)"
+                isAnimationActive={false}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -414,4 +413,4 @@ export function StockMetricsPanel({ data }: StockMetricsPanelProps) {
 
     </div>
   );
-}
+});

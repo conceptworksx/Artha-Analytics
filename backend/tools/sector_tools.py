@@ -17,8 +17,15 @@ MONGODB_URI = os.getenv("MONGODB_URI")
 DB_NAME = "artha_analytics"
 COLLECTION_NAME = "sector_data"
 
-# Module-level singleton — created once, reused across calls
-_client = MongoClient(MONGODB_URI)
+# Module-level client — lazily initialized on first call
+_client = None
+
+
+def _get_mongo_client():
+    global _client
+    if _client is None:
+        _client = MongoClient(MONGODB_URI)
+    return _client
 
 
 def get_company_sector(
@@ -99,7 +106,7 @@ def get_sector_content(sector_name: str) -> dict:
         }
     """
     try:
-        collection = _client[DB_NAME][COLLECTION_NAME]
+        collection = _get_mongo_client()[DB_NAME][COLLECTION_NAME]
 
         document = collection.find_one({"sector_name": sector_name}, {"_id": 0})
 

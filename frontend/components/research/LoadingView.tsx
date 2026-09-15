@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { RiRobot3Line } from "react-icons/ri";
 import { BiMessageRoundedDots } from "react-icons/bi";
 import type { AuthUser } from "@/lib/api";
@@ -33,26 +32,11 @@ export function LoadingView({
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#fafafa] text-zinc-900 font-sans">
-      {/* Mesh Gradient Ambient Glows */}
+      {/* Mesh Gradient Ambient Glows (Hardware-Accelerated) */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden flex justify-center">
-        {/* Amber Orb */}
-        <motion.div
-          className="absolute -top-[10%] -left-[10%] w-[600px] h-[600px] rounded-[100%] bg-amber-400/15 blur-[120px]"
-          animate={{ x: [0, 50, 0], y: [0, 30, 0], scale: [1, 1.1, 1] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        />
-        {/* Peach/Rose Orb */}
-        <motion.div
-          className="absolute top-[20%] -right-[10%] w-[500px] h-[500px] rounded-[100%] bg-rose-400/10 blur-[120px]"
-          animate={{ x: [0, -40, 0], y: [0, 50, 0], scale: [1, 1.2, 1] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        />
-        {/* Soft Violet Orb */}
-        <motion.div
-          className="absolute -bottom-[20%] left-[20%] w-[700px] h-[500px] rounded-[100%] bg-violet-400/10 blur-[120px]"
-          animate={{ x: [0, 60, 0], y: [0, -40, 0], scale: [1, 1.05, 1] }}
-          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        />
+        <div className="absolute -top-[10%] -left-[10%] w-[500px] h-[500px] rounded-full bg-amber-400/10 blur-[90px] transform-gpu" />
+        <div className="absolute top-[20%] -right-[10%] w-[450px] h-[450px] rounded-full bg-rose-400/10 blur-[90px] transform-gpu" />
+        <div className="absolute -bottom-[20%] left-[20%] w-[500px] h-[400px] rounded-full bg-violet-400/10 blur-[90px] transform-gpu" />
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
       </div>
 
@@ -63,7 +47,7 @@ export function LoadingView({
             <img
               src="/navbar.png"
               alt="Artha Analytics"
-              className="h-10 sm:h-14 object-contain cursor-pointer"
+              className="h-12 object-contain cursor-pointer transition-transform hover:scale-[1.02]"
             />
           </Link>
         </div>

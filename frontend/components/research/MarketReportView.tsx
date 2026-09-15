@@ -2,6 +2,34 @@ import React, { useRef } from "react";
 
 import { FormattedText } from "@/components/ui/FormattedText";
 
+const MetricTable = React.memo(function MetricTable({
+  rows,
+}: {
+  rows: { label: string; value: any }[];
+  title?: string;
+}) {
+  return (
+    <div className="overflow-x-auto my-4 border border-[var(--border)] rounded-lg">
+      <table className="w-full text-left text-sm whitespace-nowrap">
+        <tbody className="divide-y divide-[var(--border)]">
+          {rows.map((row, i) => (
+            <tr key={i} className="even:bg-slate-50 hover:bg-slate-100 transition-colors">
+              <td className="px-4 py-2 font-medium text-zinc-800 w-1/3">{row.label}</td>
+              <td className="px-4 py-2 text-zinc-600">
+                {row.value !== null && row.value !== undefined ? (
+                  <FormattedText text={String(row.value)} />
+                ) : (
+                  "-"
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+});
+
 export function MarketReportView({
   title,
   ticker,
@@ -30,21 +58,6 @@ export function MarketReportView({
 
   const analysis = reportData?.analysis || reportData || {};
   const data = marketData?.data || {};
-
-  const MetricTable = ({ rows, title }: { rows: { label: string, value: any }[], title?: string }) => (
-    <div className="overflow-x-auto my-4 border border-[var(--border)] rounded-lg">
-      <table className="w-full text-left text-sm whitespace-nowrap">
-        <tbody className="divide-y divide-[var(--border)]">
-          {rows.map((row, i) => (
-            <tr key={i} className="even:bg-slate-50 hover:bg-slate-100 transition-colors">
-              <td className="px-4 py-2 font-medium text-zinc-800 w-1/3">{row.label}</td>
-              <td className="px-4 py-2 text-zinc-600">{row.value !== null && row.value !== undefined ? <FormattedText text={String(row.value)} /> : '-'}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
 
   const getMetric = (index: string, key: string) => {
     const val = data[index]?.data?.[key];
@@ -76,10 +89,7 @@ export function MarketReportView({
         </div>
       </div>
 
-      <div className="rounded-[2rem] bg-white/40 p-5 sm:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)] backdrop-blur-xl border border-black/[0.04] mb-6 relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]">
-          <div className="absolute -top-40 -right-40 h-[400px] w-[400px] rounded-full bg-slate-200/30 blur-[80px]" />
-        </div>
+      <div className="rounded-[2rem] bg-white p-5 sm:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-black/[0.04] mb-6 relative overflow-hidden">
         <div className="relative z-10 space-y-6">
         
         <section>

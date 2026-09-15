@@ -55,5 +55,3 @@ def get_openrouter_llm(
     return OpenRouterLoadBalancer(
         api_key=api_key, preferred_models=preferred_models, **kwargs
     )
-
-

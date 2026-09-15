@@ -27,9 +27,19 @@
   --font-mono: var(--font-active-mono);
 }
 
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
+  -webkit-overflow-scrolling: touch;
+}
+
+main {
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Candlestick Animation Overlay */

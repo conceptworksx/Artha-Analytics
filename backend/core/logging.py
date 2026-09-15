@@ -7,7 +7,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Literal
 
-
 LOG_DIR = Path("logs")
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 LOG_FORMAT = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"

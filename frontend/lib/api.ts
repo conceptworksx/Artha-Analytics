@@ -27,6 +27,14 @@ export interface Verdict {
   status: "success" | "failure";
 }
 
+export interface DebateResponse {
+  ticker: string;
+  bull_thesis?: ThesisOutput | null;
+  bear_thesis?: ThesisOutput | null;
+  verdict?: Verdict | null;
+  status: string;
+}
+
 export interface AnalysisSummary {
   analysis_id: string;
   ticker: string;
@@ -61,6 +69,7 @@ export interface AnalyseResponse {
   bull_thesis?: ThesisOutput | null;
   bear_thesis?: ThesisOutput | null;
   verdict?: Verdict | null;
+  analyst_summaries?: any;
 
   charts_data?: {
     technical_history: Array<{
@@ -158,6 +167,32 @@ export class AnalysisError extends Error {
  *   404 → { error: "ticker_not_found" }
  *   Everything else → 500 internal server error
  */
+function sanitizeUserErrorMessage(msg: string, fallback: string): string {
+  if (!msg || typeof msg !== "string") return fallback;
+  const lower = msg.toLowerCase();
+  if (
+    lower.includes("traceback") ||
+    lower.includes("exception") ||
+    lower.includes("error:") ||
+    lower.includes("keyerror") ||
+    lower.includes("typeerror") ||
+    lower.includes("valueerror") ||
+    lower.includes("attributeerror") ||
+    lower.includes("pydantic") ||
+    lower.includes("schema") ||
+    lower.includes("validation error") ||
+    lower.includes("yfinance") ||
+    lower.includes("connectionpool") ||
+    lower.includes("max retries") ||
+    lower.includes("errno") ||
+    lower.includes("object at 0x") ||
+    lower.includes("missing required")
+  ) {
+    return fallback;
+  }
+  return msg;
+}
+
 function buildErrorMessage(
   status: number,
   detail: BackendErrorDetail,
@@ -165,20 +200,19 @@ function buildErrorMessage(
   const errorCode = detail?.error ?? "";
   const serverMsg = detail?.message ?? "";
 
-  // 401 — Invalid API key
+  // 401 — Invalid API key / Auth
   if (status === 401 && errorCode !== "invalid_api_key") {
     return {
       title: "SIGN IN REQUIRED",
-      message: "Your session has expired. Please sign in again.",
+      message: "Your session has expired. Please sign in again to continue.",
     };
   }
 
-  // 401 — Invalid API key
   if (status === 401 || errorCode === "invalid_api_key") {
     return {
       title: "INVALID API KEY",
       message:
-        "We couldn't authenticate your request. The OpenRouter API key provided appears to be invalid, expired, or improperly formatted.",
+        "We couldn't authenticate your request. The OpenRouter API key provided appears to be invalid or expired. Please check your key in settings.",
     };
   }
 
@@ -188,20 +222,20 @@ function buildErrorMessage(
       return {
         title: "TOO MANY REQUESTS",
         message:
-          "You've exceeded the maximum number of analysis requests allowed per minute.",
+          "You've exceeded the request limit. Please wait a minute before making another request.",
       };
     }
     if (errorCode === "llm_rate_limit") {
       return {
-        title: "LLM RATE LIMIT HIT",
+        title: "AI SERVICE BUSY",
         message:
-          "The OpenRouter API has temporarily throttled your requests. Free-tier or low-balance API keys have a limited number of requests per minute.",
+          "The AI analysis engine is currently experiencing high traffic. Please wait a minute before retrying.",
       };
     }
     return {
       title: "RATE LIMIT REACHED",
       message:
-        "Too many requests in a short period. The service needs a moment to recover.",
+        "Too many requests in a short period. Please give the service a moment to recover before trying again.",
     };
   }
 
@@ -209,7 +243,8 @@ function buildErrorMessage(
   if (status === 403 || errorCode === "limit_reached") {
     return {
       title: "GUEST LIMIT REACHED",
-      message: "You have reached the limit of 3 free guest searches. Please sign up or log in to search more.",
+      message:
+        "You have reached the limit of 3 free guest searches. Please sign in or create a free account to continue researching.",
     };
   }
 
@@ -218,15 +253,82 @@ function buildErrorMessage(
     return {
       title: "TICKER NOT FOUND",
       message:
-        "The ticker symbol you entered wasn't found on the National Stock Exchange (NSE). It may be delisted, misspelled, or not yet listed.",
+        "The stock symbol you entered was not found on the National Stock Exchange (NSE). It may be delisted, misspelled, or not yet listed.",
+    };
+  }
+
+  // 400 — Validation & prerequisite errors
+  if (status === 400) {
+    if (errorCode === "missing_api_key") {
+      return {
+        title: "API KEY REQUIRED",
+        message:
+          "An OpenRouter API key is required to perform AI analysis. Please configure your key in settings.",
+      };
+    }
+    if (errorCode === "missing_analysis") {
+      return {
+        title: "ANALYSIS REQUIRED",
+        message:
+          "No prior analyst reports were found for this stock. Please run the 5-analyst analysis first before triggering the debate.",
+      };
+    }
+    if (errorCode === "invalid_analysts") {
+      return {
+        title: "ANALYST DATA INCOMPLETE",
+        message:
+          "Some analyst reports are missing or incomplete. Please re-run the 5-analyst analysis for this stock to generate complete data before starting the debate.",
+      };
+    }
+    return {
+      title: "INVALID REQUEST",
+      message: sanitizeUserErrorMessage(
+        serverMsg,
+        "The requested operation could not be processed. Please try again.",
+      ),
+    };
+  }
+
+  // 422 — Data fetch or processing limits
+  if (status === 422) {
+    if (errorCode === "data_fetch_failed") {
+      return {
+        title: "MARKET DATA UNAVAILABLE",
+        message:
+          "Real-time market data for this stock could not be retrieved from the exchange right now. Please verify that the stock is actively traded or try again in a few moments.",
+      };
+    }
+    if (errorCode === "token_limit_exceeded") {
+      return {
+        title: "REPORT TOO EXTENSIVE",
+        message:
+          "The data volume for this stock exceeded the AI model capacity. Please try re-running with Low thinking mode.",
+      };
+    }
+  }
+
+  // 502 / 503 / 504 — Service availability
+  if (
+    status === 502 ||
+    status === 503 ||
+    status === 504 ||
+    errorCode === "llm_unavailable" ||
+    errorCode === "max_retries_exceeded"
+  ) {
+    return {
+      title: "AI SERVICE TEMPORARILY OVERLOADED",
+      message:
+        "The AI model servers are currently busy or taking longer than usual to respond. Please click Retry in a few moments.",
     };
   }
 
   // Everything else → internal server error / analysis failure
   return {
     title: "ANALYSIS TEMPORARILY UNAVAILABLE",
-    message:
+    message: sanitizeUserErrorMessage(
+      serverMsg,
       "Our AI analysis engine encountered a temporary issue while compiling report data. Please click Retry or try again in a moment.",
+    ),
   };
 }
 
@@ -277,7 +379,7 @@ export async function analyseTicker({
     throw new AnalysisError({
       title: "CONNECTION FAILED",
       message:
-        "Unable to reach the authentication server.",
+        "Unable to reach the analysis server. Please check your internet connection and verify that the backend server is running.",
     });
   }
 
@@ -309,10 +411,91 @@ export async function analyseTicker({
     bull_thesis: rawData.bull_thesis || null,
     bear_thesis: rawData.bear_thesis || null,
     verdict: rawData.verdict || null,
+    analyst_summaries: rawData.analyst_summaries || null,
     charts_data: rawData.charts_data,
   };
 
   return data;
+}
+
+export async function runDebate({
+  ticker,
+  openrouterApiKey,
+  authToken,
+  signal,
+  thinking_mode = "low",
+  analysisData,
+}: {
+  ticker: string;
+  openrouterApiKey?: string;
+  authToken?: string;
+  signal?: AbortSignal;
+  thinking_mode?: "low" | "medium" | "high";
+  analysisData?: Partial<AnalyseResponse>;
+}): Promise<DebateResponse> {
+  const cleanTicker = normalizeTicker(ticker);
+  const url = `${API_BASE_URL}/debate`;
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  const key = openrouterApiKey || getSavedOpenRouterApiKey();
+  if (key) {
+    headers["OpenRouter-API-Key"] = key.trim();
+    headers["X-Openrouter-Api-Key"] = key.trim();
+  }
+
+  const token = authToken || getAuthToken();
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const body: Record<string, any> = {
+    ticker: cleanTicker,
+    thinking_mode,
+  };
+
+  if (analysisData) {
+    if (analysisData.analyst_summaries) {
+      body.analyst_summaries = analysisData.analyst_summaries;
+    }
+    if (analysisData.news_report) body.news_report = analysisData.news_report;
+    if (analysisData.technical_report) body.technical_report = analysisData.technical_report;
+    if (analysisData.fundamental_report) body.fundamental_report = analysisData.fundamental_report;
+    if (analysisData.market_report) body.market_report = analysisData.market_report;
+    if (analysisData.sector_report) body.sector_report = analysisData.sector_report;
+  }
+
+  let res: Response;
+  try {
+    res = await fetchWithAuth(url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+      signal,
+    });
+  } catch (fetchErr) {
+    if (signal?.aborted) throw fetchErr;
+    throw new AnalysisError({
+      title: "CONNECTION FAILED",
+      message: "Unable to reach the debate server. Please check your connection.",
+    });
+  }
+
+  const rawData = await res.json();
+  if (!res.ok) {
+    const detail = rawData?.detail ?? rawData ?? {};
+    throw new AnalysisError(buildErrorMessage(res.status, detail));
+  }
+
+  return {
+    ticker: rawData.ticker ?? cleanTicker,
+    bull_thesis: rawData.bull_thesis || null,
+    bear_thesis: rawData.bear_thesis || null,
+    verdict: rawData.verdict || null,
+    status: rawData.status || "success",
+  };
 }
 
 const HISTORY_CACHE_KEY = "arbor:past_analysis_history";
@@ -682,18 +865,26 @@ function formatAuthErrorMessage(res: Response, errorBody: any, defaultMsg: strin
   }
 
   if (res.status === 503 || errorCode === "email_delivery_failed") {
-    return rawMsg || "Unable to send verification email right now. Please verify your email address or try again in a few moments.";
+    return "Unable to send verification email right now. Please verify your email address or try again in a few moments.";
   }
 
   if (res.status === 401 || errorCode === "invalid_credentials") {
-    return rawMsg || "Incorrect email or password. Please check your credentials and try again.";
+    return "Incorrect email or password. Please check your credentials and try again.";
+  }
+
+  if (errorCode === "invalid_otp") {
+    return "Invalid verification code. Please check the 6-digit code and try again.";
+  }
+
+  if (errorCode === "otp_expired") {
+    return "This verification code has expired. Please request a new code.";
   }
 
   if (res.status === 500) {
-    return "Server is temporarily busy. Please try again in a moment.";
+    return "Authentication server is temporarily busy. Please try again in a moment.";
   }
 
-  return rawMsg || defaultMsg;
+  return sanitizeUserErrorMessage(rawMsg, defaultMsg);
 }
 
 export async function requestRegistrationOTP({

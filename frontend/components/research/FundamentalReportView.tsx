@@ -7,6 +7,59 @@ import {
   type FinancialsHistory
 } from "@/components/charts/FundamentalChart";
 
+const MetricTable = React.memo(function MetricTable({
+  headers,
+  rows,
+}: {
+  headers: string[];
+  rows: {
+    label: string;
+    values: (string | number | null)[];
+    trend?: string | number | null;
+  }[];
+}) {
+  return (
+    <div className="overflow-x-auto my-4 border border-[var(--border)] rounded-lg">
+      <table className="w-full text-left text-sm whitespace-nowrap">
+        <thead className="bg-zinc-50/50 border-b border-[var(--border)]">
+          <tr>
+            <th className="px-4 py-2 font-medium text-zinc-600">Metric</th>
+            {headers.map((h) => (
+              <th key={h} className="px-4 py-2 font-medium text-zinc-600">
+                {h.split(" ")[0]}
+              </th>
+            ))}
+            <th className="px-4 py-2 font-medium text-zinc-600">CAGR / Trend</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-[var(--border)]">
+          {rows.map((row, i) => (
+            <tr key={i} className="even:bg-slate-50 hover:bg-slate-100 transition-colors">
+              <td className="px-4 py-2 font-medium text-zinc-800">{row.label}</td>
+              {row.values.map((v, j) => (
+                <td key={j} className="px-4 py-2 text-zinc-600">
+                  {v !== null && v !== undefined ? (
+                    <FormattedText text={String(v)} />
+                  ) : (
+                    "-"
+                  )}
+                </td>
+              ))}
+              <td className="px-4 py-2 font-semibold text-zinc-700">
+                {row.trend !== null && row.trend !== undefined ? (
+                  <FormattedText text={String(row.trend)} />
+                ) : (
+                  "-"
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+});
+
 export function FundamentalReportView({
   title,
   ticker,
@@ -52,9 +105,9 @@ export function FundamentalReportView({
   const getDates = (...dicts: any[]) => {
     const dates = new Set<string>();
     for (const dict of dicts) {
-        if (dict) {
-            Object.keys(dict).forEach(k => dates.add(k));
-        }
+      if (dict) {
+        Object.keys(dict).forEach((k) => dates.add(k));
+      }
     }
     return Array.from(dates).sort();
   };
@@ -64,32 +117,6 @@ export function FundamentalReportView({
   const capDates = getDates(bal.total_debt, fund.debt_to_equity, fund.interest_coverage);
   const cfDates = getDates(cf.operating_cash_flow, cf.free_cash_flow, bal.cash);
   const returnDates = getDates(fund.roe_pct, fund.roce_pct);
-
-  // Reusable Table Component
-  const MetricTable = ({ headers, rows }: { headers: string[], rows: { label: string, values: (string | number | null)[], trend?: string | number | null }[] }) => (
-    <div className="overflow-x-auto my-4 border border-[var(--border)] rounded-lg">
-      <table className="w-full text-left text-sm whitespace-nowrap">
-        <thead className="bg-zinc-50/50 border-b border-[var(--border)]">
-          <tr>
-            <th className="px-4 py-2 font-medium text-zinc-600">Metric</th>
-            {headers.map(h => <th key={h} className="px-4 py-2 font-medium text-zinc-600">{h.split(' ')[0]}</th>)}
-            <th className="px-4 py-2 font-medium text-zinc-600">CAGR / Trend</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-[var(--border)]">
-          {rows.map((row, i) => (
-            <tr key={i} className="even:bg-slate-50 hover:bg-slate-100 transition-colors">
-              <td className="px-4 py-2 font-medium text-zinc-800">{row.label}</td>
-              {row.values.map((v, j) => (
-                <td key={j} className="px-4 py-2 text-zinc-600">{v !== null && v !== undefined ? <FormattedText text={String(v)} /> : '-'}</td>
-              ))}
-              <td className="px-4 py-2 font-semibold text-zinc-700">{row.trend !== null && row.trend !== undefined ? <FormattedText text={String(row.trend)} /> : '-'}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
 
   return (
     <div ref={containerRef} className="mx-auto max-w-[920px]">
@@ -116,10 +143,7 @@ export function FundamentalReportView({
         </div>
       </div>
 
-      <div className="rounded-[2rem] bg-white/40 p-5 sm:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)] backdrop-blur-xl border border-black/[0.04] mb-6 relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]">
-          <div className="absolute -top-40 -right-40 h-[400px] w-[400px] rounded-full bg-slate-200/30 blur-[80px]" />
-        </div>
+      <div className="rounded-[2rem] bg-white p-5 sm:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-black/[0.04] mb-6 relative overflow-hidden">
         <div className="relative z-10 space-y-8">
         
         {/* REVENUE & GROWTH */}

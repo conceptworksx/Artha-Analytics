@@ -10,6 +10,7 @@ import {
   TrendingUp,
   TrendingDown,
   Scale,
+  Loader2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -50,12 +51,14 @@ export function AppSidebar({
   isMobile = false,
   isOpen = true,
   onClose,
+  debateLoading = false,
 }: {
   active: ViewKey;
   onSelect: (k: ViewKey) => void;
   isMobile?: boolean;
   isOpen?: boolean;
   onClose?: () => void;
+  debateLoading?: boolean;
 }) {
   // Lock body scroll when mobile sidebar is open
   useEffect(() => {
@@ -88,7 +91,15 @@ export function AppSidebar({
           <Row key={it.key} item={it} active={active === it.key} onSelect={handleSelect} />
         ))}
 
-        <SectionLabel>INVESTMENT DEBATE</SectionLabel>
+        <div className="flex items-center justify-between px-3 pb-2 pt-6 font-mono text-[11px] font-bold tracking-widest text-zinc-500">
+          <span>INVESTMENT DEBATE</span>
+          {debateLoading && (
+            <span className="flex items-center gap-1 text-[10px] text-amber-600 font-sans font-medium normal-case tracking-normal">
+              <Loader2 size={11} className="animate-spin text-amber-600" />
+              <span>Analyzing</span>
+            </span>
+          )}
+        </div>
         {DEBATE.map((it) => (
           <Row key={it.key} item={it} active={active === it.key} onSelect={handleSelect} />
         ))}

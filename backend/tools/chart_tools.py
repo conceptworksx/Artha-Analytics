@@ -7,6 +7,7 @@ from tools.utils.fundamental_tool_helper import _df_row
 
 logger = get_logger(__name__)
 
+
 def extract_charts_data(raw_data: dict, fundamental_data: dict) -> Optional[dict]:
     """
     Extract and format chart-friendly data for the UI components.
@@ -52,7 +53,11 @@ def extract_charts_data(raw_data: dict, fundamental_data: dict) -> Optional[dict
             start_idx = len(df) - limit
             for i in range(start_idx, len(df)):
                 row = {
-                    "date": str(df.index[i].date()) if hasattr(df.index[i], "date") else str(df.index[i]),
+                    "date": (
+                        str(df.index[i].date())
+                        if hasattr(df.index[i], "date")
+                        else str(df.index[i])
+                    ),
                     "close": _safe(close.iloc[i]),
                     "ma50": _safe(ma50.iloc[i]),
                     "ma200": _safe(ma200.iloc[i]),
@@ -73,14 +78,16 @@ def extract_charts_data(raw_data: dict, fundamental_data: dict) -> Optional[dict
         financials_df = raw_data.get("financials")
         balance_sheet_df = raw_data.get("balance_sheet")
         cash_flow_df = raw_data.get("cash_flow")
-        
+
         financials_history = {}
 
         if financials_df is not None and not financials_df.empty:
             financials_history["income_stmt"] = {
                 "revenue": _df_row(financials_df, "Total Revenue"),
                 "ebitda": _df_row(financials_df, "EBITDA", "Normalized EBITDA"),
-                "net_income": _df_row(financials_df, "Net Income", "Net Income Common Stockholders"),
+                "net_income": _df_row(
+                    financials_df, "Net Income", "Net Income Common Stockholders"
+                ),
                 "eps_diluted": _df_row(financials_df, "Diluted EPS"),
             }
         else:
@@ -88,19 +95,37 @@ def extract_charts_data(raw_data: dict, fundamental_data: dict) -> Optional[dict
 
         if balance_sheet_df is not None and not balance_sheet_df.empty:
             financials_history["balance_sheet"] = {
-                "cash": _df_row(balance_sheet_df, "Cash And Cash Equivalents", "Cash Cash Equivalents And Short Term Investments"),
-                "total_liabilities": _df_row(balance_sheet_df, "Total Liabilities Net Minority Interest", "Total Liabilities"),
+                "cash": _df_row(
+                    balance_sheet_df,
+                    "Cash And Cash Equivalents",
+                    "Cash Cash Equivalents And Short Term Investments",
+                ),
+                "total_liabilities": _df_row(
+                    balance_sheet_df,
+                    "Total Liabilities Net Minority Interest",
+                    "Total Liabilities",
+                ),
                 "total_debt": _df_row(balance_sheet_df, "Total Debt"),
-                "shareholders_equity": _df_row(balance_sheet_df, "Stockholders Equity", "Common Stock Equity"),
+                "shareholders_equity": _df_row(
+                    balance_sheet_df, "Stockholders Equity", "Common Stock Equity"
+                ),
             }
         else:
             financials_history["balance_sheet"] = {}
 
         if cash_flow_df is not None and not cash_flow_df.empty:
-            ocf = _df_row(cash_flow_df, "Operating Cash Flow", "Cash Flow From Continuing Operating Activities")
+            ocf = _df_row(
+                cash_flow_df,
+                "Operating Cash Flow",
+                "Cash Flow From Continuing Operating Activities",
+            )
             capex = _df_row(cash_flow_df, "Capital Expenditure", "Purchase Of PPE")
             free_cash_flow = {
-                date: (round(ocf[date] - abs(capex[date]), 2) if ocf.get(date) is not None and capex.get(date) is not None else None)
+                date: (
+                    round(ocf[date] - abs(capex[date]), 2)
+                    if ocf.get(date) is not None and capex.get(date) is not None
+                    else None
+                )
                 for date in ocf
             }
             financials_history["cash_flow"] = {

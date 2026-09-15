@@ -35,10 +35,14 @@ class CacheService:
             try:
                 self._client = Redis(url=self.url, token=self.token)
             except Exception as e:
-                logger.warning(f"[CacheService] Failed to initialize upstash-redis client: {e}")
+                logger.warning(
+                    f"[CacheService] Failed to initialize upstash-redis client: {e}"
+                )
                 self.is_enabled = False
         else:
-            logger.info("[CacheService] Operating in Bypass / Local Dev Mode (No Upstash Redis configured)")
+            logger.info(
+                "[CacheService] Operating in Bypass / Local Dev Mode (No Upstash Redis configured)"
+            )
 
     async def get_json(self, key: str) -> Optional[Any]:
         if not self.is_enabled or not self._client:
@@ -55,14 +59,15 @@ class CacheService:
             logger.warning(f"[CacheService] [READ] get_json failed for key={key}: {e}")
             return None
 
-    async def set_json(
-        self, key: str, value: Any, ttl_seconds: int = 1200
-    ) -> bool:
+    async def set_json(self, key: str, value: Any, ttl_seconds: int = 1200) -> bool:
         if not self.is_enabled or not self._client:
             return False
         try:
-            logger.info(f"[CacheService] [WRITE] Storing key={key} | ttl={ttl_seconds}s")
+            logger.info(
+                f"[CacheService] [WRITE] Storing key={key} | ttl={ttl_seconds}s"
+            )
             serialized = json.dumps(value)
+            serialized = json.dumps(value, default=str)
             res = await self._client.set(key, serialized, ex=ttl_seconds)
             logger.info(f"[CacheService] [WRITE] [STORED] key={key}")
             return bool(res)
@@ -86,16 +91,22 @@ class CacheService:
         if not self.is_enabled or not self._client:
             return True
         try:
-            logger.info(f"[CacheService] [WRITE] Attempting acquire_lock key={lock_key} | ttl={ttl_seconds}s")
+            logger.info(
+                f"[CacheService] [WRITE] Attempting acquire_lock key={lock_key} | ttl={ttl_seconds}s"
+            )
             res = await self._client.set(lock_key, "1", nx=True, ex=ttl_seconds)
             acquired = bool(res)
             if acquired:
                 logger.info(f"[CacheService] [WRITE] [LOCK ACQUIRED] key={lock_key}")
             else:
-                logger.info(f"[CacheService] [WRITE] [LOCK HELD BY OTHER PROCESS] key={lock_key}")
+                logger.info(
+                    f"[CacheService] [WRITE] [LOCK HELD BY OTHER PROCESS] key={lock_key}"
+                )
             return acquired
         except Exception as e:
-            logger.warning(f"[CacheService] [WRITE] acquire_lock failed for key={lock_key}: {e}")
+            logger.warning(
+                f"[CacheService] [WRITE] acquire_lock failed for key={lock_key}: {e}"
+            )
             return True
 
     async def release_lock(self, lock_key: str) -> bool:
@@ -106,16 +117,22 @@ class CacheService:
         if not self.is_enabled or not self._client:
             return 1
         try:
-            logger.info(f"[CacheService] [WRITE] Incrementing counter key={key} | ttl={ttl_seconds}s")
+            logger.info(
+                f"[CacheService] [WRITE] Incrementing counter key={key} | ttl={ttl_seconds}s"
+            )
             pipeline = self._client.pipeline()
             pipeline.incr(key)
             pipeline.expire(key, ttl_seconds)
             results = await pipeline.exec()
             if results and len(results) > 0 and isinstance(results[0], int):
                 count = results[0]
-                logger.info(f"[CacheService] [WRITE] [COUNTER INCR] key={key} | count={count}")
+                logger.info(
+                    f"[CacheService] [WRITE] [COUNTER INCR] key={key} | count={count}"
+                )
                 return count
             return 1
         except Exception as e:
-            logger.warning(f"[CacheService] [WRITE] incr_counter failed for key={key}: {e}")
+            logger.warning(
+                f"[CacheService] [WRITE] incr_counter failed for key={key}: {e}"
+            )
             return 1

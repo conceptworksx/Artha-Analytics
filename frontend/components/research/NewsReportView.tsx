@@ -2,6 +2,48 @@ import React, { useRef } from "react";
 
 import { FormattedText } from "@/components/ui/FormattedText";
 
+const NewsTable = React.memo(function NewsTable({
+  articles,
+}: {
+  articles: any[];
+}) {
+  if (!articles || articles.length === 0) {
+    return <p className="text-sm text-zinc-500 italic my-2">No news available.</p>;
+  }
+  return (
+    <div className="overflow-x-auto my-4 border border-[var(--border)] rounded-lg">
+      <table className="w-full text-left text-sm whitespace-nowrap">
+        <thead className="bg-zinc-50/50">
+          <tr>
+            <th className="px-4 py-2 font-medium text-zinc-800">Date</th>
+            <th className="px-4 py-2 font-medium text-zinc-800">Priority</th>
+            <th className="px-4 py-2 font-medium text-zinc-800">Title</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-[var(--border)]">
+          {articles.map((a, i) => (
+            <tr key={i} className="hover:bg-zinc-50/30 transition-colors">
+              <td className="px-4 py-2 text-zinc-600">
+                {a.published_at ? (
+                  <FormattedText text={new Date(a.published_at).toLocaleDateString()} />
+                ) : (
+                  "-"
+                )}
+              </td>
+              <td className="px-4 py-2 text-zinc-600">
+                {a.priority ? <FormattedText text={String(a.priority)} /> : "-"}
+              </td>
+              <td className="px-4 py-2 text-zinc-800 max-w-[300px] truncate" title={a.title}>
+                <FormattedText text={a.title} />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+});
+
 export function NewsReportView({
   title,
   ticker,
@@ -18,7 +60,7 @@ export function NewsReportView({
   ticker: string;
   status: string;
   reportData: any; // news_report JSON object
-  companyNews?: any; 
+  companyNews?: any;
   indianNews?: any;
   globalNews?: any;
   accent?: string;
@@ -33,32 +75,6 @@ export function NewsReportView({
   };
 
   const analysis = reportData?.analysis || reportData || {};
-
-  const NewsTable = ({ articles }: { articles: any[] }) => {
-    if (!articles || articles.length === 0) return <p className="text-sm text-zinc-500 italic my-2">No news available.</p>;
-    return (
-      <div className="overflow-x-auto my-4 border border-[var(--border)] rounded-lg">
-        <table className="w-full text-left text-sm whitespace-nowrap">
-          <thead className="bg-zinc-50/50">
-            <tr>
-              <th className="px-4 py-2 font-medium text-zinc-800">Date</th>
-              <th className="px-4 py-2 font-medium text-zinc-800">Priority</th>
-              <th className="px-4 py-2 font-medium text-zinc-800">Title</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[var(--border)]">
-            {articles.map((a, i) => (
-              <tr key={i} className="hover:bg-zinc-50/30 transition-colors">
-                <td className="px-4 py-2 text-zinc-600">{a.published_at ? <FormattedText text={new Date(a.published_at).toLocaleDateString()} /> : '-'}</td>
-                <td className="px-4 py-2 text-zinc-600">{a.priority ? <FormattedText text={String(a.priority)} /> : '-'}</td>
-                <td className="px-4 py-2 text-zinc-800 max-w-[300px] truncate" title={a.title}><FormattedText text={a.title} /></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  };
 
   return (
     <div ref={containerRef} className="mx-auto max-w-[920px]">
@@ -85,10 +101,7 @@ export function NewsReportView({
         </div>
       </div>
 
-      <div className="rounded-[2rem] bg-white/40 p-5 sm:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)] backdrop-blur-xl border border-black/[0.04] mb-6 relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]">
-          <div className="absolute -top-40 -right-40 h-[400px] w-[400px] rounded-full bg-slate-200/30 blur-[80px]" />
-        </div>
+      <div className="rounded-[2rem] bg-white p-5 sm:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-black/[0.04] mb-6 relative overflow-hidden">
         <div className="relative z-10 space-y-6">
         
         <section>

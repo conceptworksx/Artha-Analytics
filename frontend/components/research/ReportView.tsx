@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, memo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -51,10 +51,7 @@ export function ReportView({
         </div>
       </div>
 
-      <div className="rounded-[2rem] bg-white/40 p-5 sm:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)] backdrop-blur-xl border border-black/[0.04] mb-6 relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]">
-          <div className="absolute -top-40 -right-40 h-[400px] w-[400px] rounded-full bg-slate-200/30 blur-[80px]" />
-        </div>
+      <div className="rounded-[2rem] bg-white p-5 sm:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-black/[0.04] mb-6 relative overflow-hidden">
         <div className="relative z-10 space-y-6">
           {content.trim() ? <Markdown content={content} /> : <ReportSkeleton />}
         </div>
@@ -65,24 +62,27 @@ export function ReportView({
   );
 }
 
-export function Markdown({ content }: { content: string }) {
+const remarkPlugins = [remarkGfm];
+const markdownComponents = {
+  table: ({ ...props }: any) => (
+    <div className="table-wrapper">
+      <table {...props} />
+    </div>
+  ),
+};
+
+export const Markdown = memo(function Markdown({ content }: { content: string }) {
   return (
     <div className="prose prose-zinc max-w-none prose-headings:font-medium prose-h3:text-[16px] prose-p:text-[14.5px] prose-p:leading-relaxed prose-a:text-blue-600 prose-li:text-[14.5px]">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        components={{
-          table: ({ ...props }) => (
-            <div className="table-wrapper">
-              <table {...props} />
-            </div>
-          ),
-        }}
+        remarkPlugins={remarkPlugins}
+        components={markdownComponents}
       >
         {content}
       </ReactMarkdown>
     </div>
   );
-}
+});
 
 function DownloadBtn({
   onClick,

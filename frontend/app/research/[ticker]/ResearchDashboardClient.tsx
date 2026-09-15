@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
-import { Search, Menu, Bookmark, Check, X } from "lucide-react";
+import { Search, Menu, Bookmark, Check, X, Scale, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   analyseTicker,
+  runDebate,
   AnalysisError,
   cacheResponse,
   clearAuthSession,
@@ -20,17 +21,9 @@ import {
   type AnalyseResponse,
 } from "@/lib/api";
 
+import dynamic from "next/dynamic";
 import { LoadingView } from "@/components/research/LoadingView";
 import { AppSidebar, type ViewKey } from "@/components/layout/AppSidebar";
-import { ReportView } from "@/components/research/ReportView";
-import { FundamentalReportView } from "@/components/research/FundamentalReportView";
-import { TechnicalReportView } from "@/components/research/TechnicalReportView";
-import { MarketReportView } from "@/components/research/MarketReportView";
-import { NewsReportView } from "@/components/research/NewsReportView";
-import { SectorReportView } from "@/components/research/SectorReportView";
-import { BullThesisView } from "@/components/research/BullThesisView";
-import { BearThesisView } from "@/components/research/BearThesisView";
-import { ManagerVerdictView } from "@/components/research/ManagerVerdictView";
 import { StockMetricsPanel } from "@/components/charts/StockMetricsPanel";
 import {
   TechnicalTrendChart,
@@ -42,6 +35,43 @@ import {
   FundamentalProfitabilityChart
 } from "@/components/charts/FundamentalChart";
 import { useIsMobile } from "@/hooks/use-mobile";
+
+const ViewLoadingSkeleton = () => (
+  <div className="mx-auto max-w-[920px] animate-pulse space-y-4 rounded-2xl border border-zinc-200 bg-white p-6">
+    <div className="h-6 w-48 rounded bg-zinc-100" />
+    <div className="h-4 w-full rounded bg-zinc-100" />
+    <div className="h-4 w-5/6 rounded bg-zinc-100" />
+    <div className="h-32 w-full rounded bg-zinc-50" />
+  </div>
+);
+
+const ReportView = dynamic(() => import("@/components/research/ReportView").then((m) => m.ReportView), {
+  loading: ViewLoadingSkeleton,
+});
+const FundamentalReportView = dynamic(() => import("@/components/research/FundamentalReportView").then((m) => m.FundamentalReportView), {
+  loading: ViewLoadingSkeleton,
+});
+const TechnicalReportView = dynamic(() => import("@/components/research/TechnicalReportView").then((m) => m.TechnicalReportView), {
+  loading: ViewLoadingSkeleton,
+});
+const MarketReportView = dynamic(() => import("@/components/research/MarketReportView").then((m) => m.MarketReportView), {
+  loading: ViewLoadingSkeleton,
+});
+const NewsReportView = dynamic(() => import("@/components/research/NewsReportView").then((m) => m.NewsReportView), {
+  loading: ViewLoadingSkeleton,
+});
+const SectorReportView = dynamic(() => import("@/components/research/SectorReportView").then((m) => m.SectorReportView), {
+  loading: ViewLoadingSkeleton,
+});
+const BullThesisView = dynamic(() => import("@/components/research/BullThesisView").then((m) => m.BullThesisView), {
+  loading: ViewLoadingSkeleton,
+});
+const BearThesisView = dynamic(() => import("@/components/research/BearThesisView").then((m) => m.BearThesisView), {
+  loading: ViewLoadingSkeleton,
+});
+const ManagerVerdictView = dynamic(() => import("@/components/research/ManagerVerdictView").then((m) => m.ManagerVerdictView), {
+  loading: ViewLoadingSkeleton,
+});
 
 interface ErrorInfo {
   title: string;
@@ -64,6 +94,8 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
   const [isSaved, setIsSaved] = useState(() => isAnalysisSaved(ticker));
   const [saving, setSaving] = useState(false);
   const [showSavePrompt, setShowSavePrompt] = useState(false);
+  const [debateLoading, setDebateLoading] = useState(false);
+  const [debateError, setDebateError] = useState<string | null>(null);
 
   const mainRef = useRef<HTMLDivElement>(null);
 
@@ -84,8 +116,7 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
     }
   }, [showSavePrompt]);
 
-
-  const handleSaveResearch = async () => {
+  const handleSaveResearch = useCallback(async () => {
     if (!data || isSaved || saving) return;
     const token = getAuthToken();
     if (!token) {
@@ -102,7 +133,38 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
     } finally {
       setSaving(false);
     }
-  };
+  }, [data, isSaved, saving, router]);
+
+  const handleTriggerDebate = useCallback(async (existingData?: AnalyseResponse) => {
+    const current = existingData || data;
+    if (!current || debateLoading) return;
+    setDebateLoading(true);
+    setDebateError(null);
+    const openrouterApiKey = getSavedOpenRouterApiKey();
+    const token = getAuthToken();
+    try {
+      const debateRes = await runDebate({
+        ticker,
+        openrouterApiKey: openrouterApiKey || undefined,
+        authToken: token || undefined,
+        thinking_mode: thinkingMode,
+        analysisData: current,
+      });
+      const updatedData: AnalyseResponse = {
+        ...current,
+        bull_thesis: debateRes.bull_thesis || current.bull_thesis,
+        bear_thesis: debateRes.bear_thesis || current.bear_thesis,
+        verdict: debateRes.verdict || current.verdict,
+      };
+      setData(updatedData);
+      cacheResponse(ticker, updatedData);
+    } catch (err: any) {
+      console.error("Failed to run debate", err);
+      setDebateError(err?.message || "Failed to generate debate and verdict.");
+    } finally {
+      setDebateLoading(false);
+    }
+  }, [data, debateLoading, ticker, thinkingMode]);
 
 
   useEffect(() => {
@@ -132,6 +194,9 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
     if (cached && retryCount === 0) {
       setData(cached);
       setLoading(false);
+      if (includeDebate && !cached.verdict) {
+        handleTriggerDebate(cached);
+      }
       return;
     }
 
@@ -150,13 +215,16 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
       openrouterApiKey,
       authToken: authToken || undefined,
       signal: controller.signal,
-      include_debate: includeDebate,
+      include_debate: false,
       thinking_mode: thinkingMode,
     })
       .then((d) => {
         cacheResponse(ticker, d);
         setData(d);
         setLoading(false);
+        if (includeDebate && !d.verdict) {
+          handleTriggerDebate(d);
+        }
       })
       .catch((e) => {
         if (controller.signal.aborted) return;
@@ -279,25 +347,39 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
   return (
     <div className="flex h-screen flex-col print:h-auto print:block">
       {/* Navbar */}
-      <header className="print:hidden flex h-14 sm:h-16 shrink-0 items-center justify-between border-b border-black/[0.04] bg-white px-3 sm:px-5 shadow-sm transition-all">
-        <div className="flex items-center gap-2">
+      <header className="print:hidden flex h-16 shrink-0 items-center justify-between border-b border-black/[0.04] bg-white px-3 sm:px-5 shadow-sm transition-all">
+        <div className="flex items-center gap-2 shrink-0">
           <Link href="/">
             <img
               src="/navbar.png"
               alt="Artha Analytics"
-              className="h-10 sm:h-14 object-contain cursor-pointer"
+              className="h-12 object-contain cursor-pointer transition-transform hover:scale-[1.02]"
             />
           </Link>
         </div>
         <div className="hidden sm:block font-mono text-[13px] text-[var(--muted-foreground)]">
           {data.ticker.split(".")[0].toUpperCase()}.NS · NSE
         </div>
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+          {data && !data.verdict && (
+            <button
+              type="button"
+              onClick={() => handleTriggerDebate()}
+              disabled={debateLoading}
+              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3.5 py-1 sm:py-1.5 rounded-full border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-900 transition-all text-[10px] sm:text-[13px] font-semibold cursor-pointer shadow-sm hover:shadow-md hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap"
+              title="Run Bull vs Bear Debate & Manager Verdict"
+            >
+              <Scale className={`w-3 h-3 sm:w-3.5 sm:h-3.5 text-purple-700 shrink-0 ${debateLoading ? "animate-spin" : ""}`} />
+              <span className="sm:hidden">{debateLoading ? "Debating..." : "Debate"}</span>
+              <span className="hidden sm:inline">{debateLoading ? "Running Debate..." : "Run Debate & Verdict"}</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={handleSaveResearch}
             disabled={isSaved || saving}
-            className={`flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full border transition-all text-[11px] sm:text-[13px] font-semibold cursor-pointer shadow-sm ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3.5 py-1 sm:py-1.5 rounded-full border transition-all text-[10px] sm:text-[13px] font-semibold cursor-pointer shadow-sm whitespace-nowrap ${
               isSaved
                 ? "border-emerald-200 bg-emerald-50 text-emerald-700 cursor-default"
                 : "border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 hover:shadow-md hover:scale-105 active:scale-95"
@@ -306,23 +388,25 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
           >
             {isSaved ? (
               <>
-                <Check size={14} className="text-emerald-600 shrink-0" />
+                <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 shrink-0" />
                 <span>Saved</span>
               </>
             ) : (
               <>
-                <Bookmark size={14} className="text-amber-700 shrink-0" />
-                <span>{saving ? "Saving..." : "Save Research"}</span>
+                <Bookmark className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-700 shrink-0" />
+                <span className="sm:hidden">{saving ? "Saving..." : "Save"}</span>
+                <span className="hidden sm:inline">{saving ? "Saving..." : "Save Research"}</span>
               </>
             )}
           </button>
 
           <Link
             href="/search"
-            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-gradient-to-b from-zinc-800 to-zinc-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] font-sans text-[11px] sm:text-[13px] font-medium text-white transition-all hover:scale-105 hover:from-zinc-700 hover:to-zinc-950 hover:shadow-md active:scale-95 cursor-pointer"
+            className="flex items-center justify-center p-1.5 sm:px-3.5 sm:py-1.5 rounded-full bg-gradient-to-b from-zinc-800 to-zinc-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] font-sans text-[10px] sm:text-[13px] font-medium text-white transition-all hover:scale-105 hover:from-zinc-700 hover:to-zinc-950 hover:shadow-md active:scale-95 cursor-pointer whitespace-nowrap"
+            title="New Analysis"
           >
-            <Search size={14} />
-            <span className="hidden sm:inline">New Analysis</span>
+            <Search className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+            <span className="hidden sm:inline sm:ml-1.5">New Analysis</span>
           </Link>
         </div>
       </header>
@@ -412,24 +496,39 @@ export default function ResearchDashboardClient({ ticker }: { ticker: string }) 
               active={view}
               onSelect={setView}
               isMobile={false}
+              debateLoading={debateLoading}
             />
           </div>
         )}
 
-        <main ref={mainRef} className="flex-1 min-w-0 overflow-y-auto bg-gradient-to-b from-[#fafafa] to-white p-3 sm:p-4 md:p-6 print:overflow-visible print:h-auto print:block print:w-full print:m-0 print:p-0">
-          <ViewSwitch view={view} data={data} />
+        <main ref={mainRef} className="flex-1 min-w-0 overflow-y-auto overscroll-contain bg-[#fafafa] p-3 sm:p-4 md:p-6 print:overflow-visible print:h-auto print:block print:w-full print:m-0 print:p-0">
+          <ViewSwitch
+            view={view}
+            data={data}
+            onTriggerDebate={handleTriggerDebate}
+            debateLoading={debateLoading}
+            debateError={debateError}
+          />
         </main>
       </div>
     </div>
   );
 }
 
-function ViewSwitch({
+import { memo } from "react";
+
+const ViewSwitch = memo(function ViewSwitch({
   view,
   data,
+  onTriggerDebate,
+  debateLoading,
+  debateError,
 }: {
   view: ViewKey;
   data: AnalyseResponse;
+  onTriggerDebate?: () => void;
+  debateLoading?: boolean;
+  debateError?: string | null;
 }) {
   const t = data.ticker;
 
@@ -557,10 +656,35 @@ function ViewSwitch({
         />
       );
     case "bull":
-      return <BullThesisView ticker={t} data={data.bull_thesis} />;
+      return (
+        <BullThesisView
+          ticker={t}
+          data={data.bull_thesis}
+          onTriggerDebate={onTriggerDebate}
+          debateLoading={debateLoading}
+          debateError={debateError}
+        />
+      );
     case "bear":
-      return <BearThesisView ticker={t} data={data.bear_thesis} />;
+      return (
+        <BearThesisView
+          ticker={t}
+          data={data.bear_thesis}
+          onTriggerDebate={onTriggerDebate}
+          debateLoading={debateLoading}
+          debateError={debateError}
+        />
+      );
     case "verdict":
-      return <ManagerVerdictView ticker={t} data={data.verdict} chartsData={data.charts_data} />;
+      return (
+        <ManagerVerdictView
+          ticker={t}
+          data={data.verdict}
+          chartsData={data.charts_data}
+          onTriggerDebate={onTriggerDebate}
+          debateLoading={debateLoading}
+          debateError={debateError}
+        />
+      );
   }
-}
+});

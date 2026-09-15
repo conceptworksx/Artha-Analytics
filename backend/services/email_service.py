@@ -95,11 +95,7 @@ class EmailService:
                 "name": self.sender_name,
                 "email": sender_addr,
             },
-            "to": [
-                {
-                    "email": recipient_email
-                }
-            ],
+            "to": [{"email": recipient_email}],
             "subject": f"{otp_code} is your Artha Analytics Verification Code",
             "htmlContent": html_body,
         }
@@ -108,13 +104,21 @@ class EmailService:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 resp = await client.post(url, json=payload, headers=headers)
                 if resp.status_code not in (200, 201):
-                    logger.error(f"[EmailService] Brevo API error ({resp.status_code}): {resp.text}")
+                    logger.error(
+                        f"[EmailService] Brevo API error ({resp.status_code}): {resp.text}"
+                    )
                     raise EmailDeliveryError(
                         f"Failed to deliver verification email via Brevo API ({resp.status_code}). Please ensure '{sender_addr}' is verified in Brevo Dashboard -> Senders."
                     )
-                logger.info(f"[EmailService] Sent OTP verification email via Brevo REST API (HTTPS :443) to {recipient_email}")
+                logger.info(
+                    f"[EmailService] Sent OTP verification email via Brevo REST API (HTTPS :443) to {recipient_email}"
+                )
         except EmailDeliveryError:
             raise
         except Exception as e:
-            logger.error(f"[EmailService] Unexpected error connecting to Brevo API: {e}")
-            raise EmailDeliveryError("Unable to reach verification email provider. Please try again in a few moments.")
+            logger.error(
+                f"[EmailService] Unexpected error connecting to Brevo API: {e}"
+            )
+            raise EmailDeliveryError(
+                "Unable to reach verification email provider. Please try again in a few moments."
+            )

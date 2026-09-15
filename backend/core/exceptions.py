@@ -66,4 +66,3 @@ class TooManyOTPAttemptsError(DomainError):
 
 class EmailDeliveryError(DomainError):
     pass
-

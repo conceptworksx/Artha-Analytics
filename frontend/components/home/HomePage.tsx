@@ -103,26 +103,9 @@ export function HomePage() {
   return (
     <div className="relative min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-100 font-sans">
 
-      {/* Mesh Gradient Ambient Glows */}
+      {/* Mesh Gradient Ambient Glows (Optimized static radial gradients) */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden flex justify-center">
-        {/* Blue Orb */}
-        <motion.div
-          className="absolute -top-[10%] -left-[10%] w-[600px] h-[600px] rounded-[100%] bg-blue-400/20 blur-[120px]"
-          animate={{ x: [0, 50, 0], y: [0, 30, 0], scale: [1, 1.1, 1] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        />
-        {/* Amber Orb */}
-        <motion.div
-          className="absolute top-[20%] -right-[10%] w-[500px] h-[500px] rounded-[100%] bg-amber-400/15 blur-[120px]"
-          animate={{ x: [0, -40, 0], y: [0, 50, 0], scale: [1, 1.2, 1] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        />
-        {/* Indigo Orb */}
-        <motion.div
-          className="absolute -bottom-[20%] left-[20%] w-[700px] h-[500px] rounded-[100%] bg-indigo-400/10 blur-[120px]"
-          animate={{ x: [0, 60, 0], y: [0, -40, 0], scale: [1, 1.05, 1] }}
-          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_10%_0%,rgba(59,130,246,0.12),transparent_50%),radial-gradient(ellipse_70%_70%_at_90%_20%,rgba(245,158,11,0.08),transparent_50%),radial-gradient(ellipse_80%_70%_at_30%_90%,rgba(99,102,241,0.06),transparent_50%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
       </div>
 

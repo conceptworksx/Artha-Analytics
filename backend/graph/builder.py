@@ -1,8 +1,13 @@
 from langgraph.graph import END, START, StateGraph
 from graph.state import AgentState
-from graph.conditional_edges import should_continue_debate, should_run_debate
+from graph.conditional_edges import (
+    should_continue_debate,
+    should_run_debate,
+    should_run_bear_researcher,
+)
 from core.logging import get_logger
 from graph.nodes import make_nodes
+from graph.debate_builder import build_debate_graph
 
 logger = get_logger(__name__)
 
@@ -45,7 +50,7 @@ def build_graph(openrouter_api_key: str = None, thinking_level: str = "low"):
     work_flow.add_edge("technical_analyst", "aggregator")
     work_flow.add_edge("fundamental_analyst", "aggregator")
 
-    # If debate is enabled, aggregator goes to bull_researcher, otherwise END
+    # Gate 1: If debate is enabled and all 5 analyst schemas valid, aggregator goes to bull_researcher, otherwise END
     work_flow.add_conditional_edges(
         "aggregator",
         should_run_debate,
@@ -55,14 +60,24 @@ def build_graph(openrouter_api_key: str = None, thinking_level: str = "low"):
         },
     )
 
-    # Debate: bull → bear → (loop or manager) → END
-    work_flow.add_edge("bull_researcher", "bear_researcher")
+    # Gate 2a: If bull researcher succeeds and matches schema, proceed to bear, otherwise END
+    work_flow.add_conditional_edges(
+        "bull_researcher",
+        should_run_bear_researcher,
+        {
+            "bear_researcher": "bear_researcher",
+            END: END,
+        },
+    )
+
+    # Gate 2b: If both bull and bear succeed and match schema, proceed to manager, otherwise END
     work_flow.add_conditional_edges(
         "bear_researcher",
         should_continue_debate,
         {
             "bull_researcher": "bull_researcher",
             "research_manager": "research_manager",
+            END: END,
         },
     )
     work_flow.add_edge("research_manager", END)

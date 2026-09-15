@@ -1,0 +1,32 @@
+# ==============================================================================
+# SINGLE LINE UPDATE COMMAND (run this whenever you need to update anything):
+#
+#   docker compose up -d --build
+#
+# This rebuilds any changed code layers, recreates the container, and runs it
+# in the background.
+# ==============================================================================
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: agentic-trade-backend
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8000}:8000"
+    volumes:
+      - ./backend:/app
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+    env_file:
+      - ./backend/.env
+    environment:
+      - PORT=8000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+

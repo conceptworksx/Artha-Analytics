@@ -66,9 +66,9 @@ export function TechnicalTrendChart({ data }: { data?: TechDataPoint[] }) {
           <XAxis dataKey="date" tickFormatter={formatDate} tickLine={false} axisLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 10, fontFamily: "monospace" }} minTickGap={50} />
           <YAxis domain={["auto", "auto"]} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v}`} tick={{ fill: "var(--muted-foreground)", fontSize: 10, fontFamily: "monospace" }} tickCount={5} />
           <Tooltip contentStyle={CustomTooltipStyle} labelFormatter={formatDate} />
-          <Area name="Close" type="monotone" dataKey="close" stroke="var(--foreground)" strokeWidth={2} fillOpacity={1} fill="url(#colorCloseTrend)" />
-          <Line name="SMA 50" type="monotone" dataKey="ma50" stroke="#f43f5e" strokeWidth={1.5} dot={false} activeDot={false} />
-          <Line name="SMA 200" type="monotone" dataKey="ma200" stroke="#10b981" strokeWidth={1.5} dot={false} activeDot={false} />
+          <Area name="Close" type="monotone" dataKey="close" stroke="var(--foreground)" strokeWidth={2} fillOpacity={1} fill="url(#colorCloseTrend)" isAnimationActive={false} />
+          <Line name="SMA 50" type="monotone" dataKey="ma50" stroke="#f43f5e" strokeWidth={1.5} dot={false} activeDot={false} isAnimationActive={false} />
+          <Line name="SMA 200" type="monotone" dataKey="ma200" stroke="#10b981" strokeWidth={1.5} dot={false} activeDot={false} isAnimationActive={false} />
         </AreaChart>
       </ResponsiveContainer>
     </div>
@@ -92,9 +92,9 @@ export function TechnicalVolatilityChart({ data }: { data?: TechDataPoint[] }) {
           <XAxis dataKey="date" tickFormatter={formatDate} tickLine={false} axisLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 10, fontFamily: "monospace" }} minTickGap={50} />
           <YAxis domain={["auto", "auto"]} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v}`} tick={{ fill: "var(--muted-foreground)", fontSize: 10, fontFamily: "monospace" }} tickCount={5} />
           <Tooltip contentStyle={CustomTooltipStyle} labelFormatter={formatDate} />
-          <Area name="BB Upper" type="monotone" dataKey="bb_upper" stroke="#94a3b8" strokeWidth={1} strokeDasharray="4 4" fill="none" />
-          <Area name="BB Lower" type="monotone" dataKey="bb_lower" stroke="#94a3b8" strokeWidth={1} strokeDasharray="4 4" fill="none" />
-          <Area name="Close" type="monotone" dataKey="close" stroke="var(--foreground)" strokeWidth={2} fillOpacity={1} fill="url(#colorCloseVol)" />
+          <Area name="BB Upper" type="monotone" dataKey="bb_upper" stroke="#94a3b8" strokeWidth={1} strokeDasharray="4 4" fill="none" isAnimationActive={false} />
+          <Area name="BB Lower" type="monotone" dataKey="bb_lower" stroke="#94a3b8" strokeWidth={1} strokeDasharray="4 4" fill="none" isAnimationActive={false} />
+          <Area name="Close" type="monotone" dataKey="close" stroke="var(--foreground)" strokeWidth={2} fillOpacity={1} fill="url(#colorCloseVol)" isAnimationActive={false} />
         </AreaChart>
       </ResponsiveContainer>
     </div>
@@ -115,7 +115,7 @@ export function TechnicalMomentumChart({ data }: { data?: TechDataPoint[] }) {
           <ReferenceLine y={70} stroke="#f43f5e" strokeDasharray="3 3" />
           <ReferenceLine y={30} stroke="#10b981" strokeDasharray="3 3" />
           <ReferenceLine y={50} stroke="#cbd5e1" strokeDasharray="2 2" />
-          <Line name="RSI" type="monotone" dataKey="rsi" stroke="#d97706" strokeWidth={1.5} dot={false} />
+          <Line name="RSI" type="monotone" dataKey="rsi" stroke="#d97706" strokeWidth={1.5} dot={false} isAnimationActive={false} />
         </LineChart>
       </ResponsiveContainer>
     </div>

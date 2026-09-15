@@ -68,10 +68,25 @@ export function SearchView({
 
   useEffect(() => {
     let isMounted = true;
+
+    try {
+      const cached = sessionStorage.getItem("arbor:nse_tickers");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setTickers(parsed);
+          return;
+        }
+      }
+    } catch { }
+
     getTickers()
       .then((data) => {
         if (isMounted && Array.isArray(data) && data.length > 0) {
           setTickers(data);
+          try {
+            sessionStorage.setItem("arbor:nse_tickers", JSON.stringify(data));
+          } catch { }
         } else if (isMounted) {
           fetchFallback();
         }
@@ -84,7 +99,12 @@ export function SearchView({
       fetch("/nse-tickers.json")
         .then((r) => r.json())
         .then((data) => {
-          if (isMounted) setTickers(data);
+          if (isMounted) {
+            setTickers(data);
+            try {
+              sessionStorage.setItem("arbor:nse_tickers", JSON.stringify(data));
+            } catch { }
+          }
         })
         .catch(() => {
           if (isMounted) setTickers([]);
@@ -96,19 +116,20 @@ export function SearchView({
     };
   }, []);
 
-
   const fuse = useMemo(
     () =>
-      new Fuse(tickers, {
-        keys: ["symbol", "name"],
-        threshold: 0.3,
-        ignoreLocation: true,
-      }),
+      tickers.length > 0
+        ? new Fuse(tickers, {
+            keys: ["symbol", "name"],
+            threshold: 0.3,
+            ignoreLocation: true,
+          })
+        : null,
     [tickers],
   );
 
   const results = useMemo(() => {
-    if (!query.trim()) return [];
+    if (!query.trim() || !fuse) return [];
     return fuse
       .search(query)
       .slice(0, 8)

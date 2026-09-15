@@ -92,7 +92,6 @@ class TickerItem(BaseModel):
     name: str
 
 
-
 class AnalyzeRequest(BaseModel):
     ticker: str
     include_debate: bool = False
@@ -119,6 +118,26 @@ class AnalyzeResponse(BaseModel):
     verdict: dict | None = None
     bull_thesis: dict | str | None = None
     bear_thesis: dict | str | None = None
+    analyst_summaries: Optional[dict] = None
+
+
+class DebateRequest(BaseModel):
+    ticker: str
+    thinking_mode: Literal["low", "medium", "high"] = "low"
+    news_report: Optional[dict | str] = None
+    technical_report: Optional[dict | str] = None
+    fundamental_report: Optional[dict | str] = None
+    market_report: Optional[dict | str] = None
+    sector_report: Optional[dict | str] = None
+    analyst_summaries: Optional[dict] = None
+
+
+class DebateResponse(BaseModel):
+    ticker: str
+    bull_thesis: dict | str | None = None
+    bear_thesis: dict | str | None = None
+    verdict: dict | None = None
+    status: str = "success"
 
 
 class AnalysisSummary(BaseModel):
@@ -162,4 +181,3 @@ class SaveAnalysisResponse(BaseModel):
     status: str
     analysis_id: str
     message: str
-

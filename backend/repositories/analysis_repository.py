@@ -121,6 +121,10 @@ class AnalysisRepository:
                     id_str = str(doc_copy["_id"])
                     doc_copy["id"] = id_str
                     doc_copy["_id"] = id_str
+                if "analyzed_at" in doc_copy and hasattr(
+                    doc_copy["analyzed_at"], "isoformat"
+                ):
+                    doc_copy["analyzed_at"] = doc_copy["analyzed_at"].isoformat()
                 formatted_list.append(doc_copy)
 
             # 3. Store formatted metadata list in Upstash Redis (1 hour TTL)
