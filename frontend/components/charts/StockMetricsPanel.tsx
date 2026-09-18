@@ -9,6 +9,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { sanitizeTickerSymbol } from "@/lib/sanitizer";
 
 interface PricePoint {
   label: string;
@@ -27,7 +28,7 @@ export const StockMetricsPanel = memo(function StockMetricsPanel({ data }: Stock
   const info = data.company_info || {};
   const history = data.historical_prices || [];
 
-  const tickerSymbol = (info.symbol || data.ticker || "TICKER").split(".")[0];
+  const tickerSymbol = sanitizeTickerSymbol(info.symbol || data.ticker);
   const companyName = info.longName || info.shortName || tickerSymbol;
   const currency = info.currency || "INR";
 

@@ -3,20 +3,29 @@
 import { motion } from "framer-motion";
 import { TrendingDown, AlertCircle, XCircle, Zap } from "lucide-react";
 import type { ThesisOutput } from "@/lib/api";
+import { DebateArenaLoader } from "@/components/research/DebateArenaLoader";
+import { sanitizeTickerSymbol, sanitizeCleanText } from "@/lib/sanitizer";
+import { FormattedText } from "@/components/ui/FormattedText";
 
 export function BearThesisView({
   ticker,
   data,
+  isAnalyzing = false,
   onTriggerDebate,
   debateLoading = false,
   debateError,
 }: {
   ticker: string;
   data?: ThesisOutput | null;
+  isAnalyzing?: boolean;
   onTriggerDebate?: () => void;
   debateLoading?: boolean;
   debateError?: string | null;
 }) {
+  if (!data && debateLoading) {
+    return <DebateArenaLoader ticker={ticker} />;
+  }
+
   if (!data) {
     return (
       <div className="flex min-h-[400px] items-center justify-center rounded-2xl border border-[var(--border)] bg-white p-8 text-center shadow-sm">
@@ -38,13 +47,23 @@ export function BearThesisView({
           {onTriggerDebate && (
             <button
               onClick={onTriggerDebate}
-              disabled={debateLoading}
-              className="mt-2 flex items-center gap-2 rounded-full bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 text-[13px] font-semibold transition-all shadow-md hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              disabled={debateLoading || isAnalyzing}
+              className={`mt-2 flex items-center gap-2 rounded-full bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 text-[13px] font-semibold transition-all shadow-md ${
+                isAnalyzing
+                  ? "opacity-40 blur-[0.6px] pointer-events-none cursor-not-allowed select-none"
+                  : "hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              }`}
+              title={isAnalyzing ? "Analysis in progress. Specialist research compiling..." : "Generate Bull vs. Bear Debate"}
             >
-              {debateLoading ? (
+              {isAnalyzing ? (
                 <>
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  <span>Synthesizing Bear Thesis (~10s)...</span>
+                  <span>Waiting for Specialist Reports...</span>
+                </>
+              ) : debateLoading ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  <span>Synthesizing Institutional Bear Thesis...</span>
                 </>
               ) : (
                 <>
@@ -95,7 +114,7 @@ export function BearThesisView({
             transition={{ delay: 0.1 }}
             className="mb-4 text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl"
           >
-            {data.title}
+            {sanitizeCleanText(data.title)}
           </motion.h1>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -105,7 +124,7 @@ export function BearThesisView({
           >
             <div className="h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]" />
             <span className="font-mono text-[12px] font-medium text-rose-700 tracking-wider">
-              {ticker.split(".")[0]} · BEAR THESIS
+              {sanitizeTickerSymbol(ticker)} · BEAR THESIS
             </span>
           </motion.div>
         </header>
@@ -117,7 +136,7 @@ export function BearThesisView({
           className="mb-12 text-center"
         >
           <p className="text-[16px] leading-relaxed text-zinc-600 max-w-3xl mx-auto">
-            {data.introduction}
+            <FormattedText text={data.introduction || ""} />
           </p>
         </motion.div>
 
@@ -135,13 +154,13 @@ export function BearThesisView({
                   <XCircle className="h-5 w-5" />
                 </div>
                 <h3 className="text-[16px] font-semibold text-zinc-900 leading-tight">
-                  {arg.heading}
+                  <FormattedText text={arg.heading || ""} />
                 </h3>
               </div>
               <ul className="space-y-3 pl-11">
                 {arg.details?.map((detail, dIdx) => (
                   <li key={dIdx} className="text-[14px] leading-relaxed text-zinc-600 relative before:absolute before:left-[-1.25rem] before:top-[0.6rem] before:h-1.5 before:w-1.5 before:rounded-full before:bg-zinc-300 group-hover:before:bg-rose-400 transition-colors">
-                    {detail}
+                    <FormattedText text={detail || ""} />
                   </li>
                 ))}
               </ul>
@@ -149,7 +168,7 @@ export function BearThesisView({
                 <div className="mt-5 ml-11 rounded-lg border border-rose-200 bg-rose-50 p-3">
                   <p className="text-[13px] italic text-rose-800/80">
                     <span className="font-semibold not-italic text-rose-700">Counter: </span>
-                    {arg.rebuttal}
+                    <FormattedText text={arg.rebuttal} />
                   </p>
                 </div>
               )}

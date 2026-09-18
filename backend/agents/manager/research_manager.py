@@ -3,6 +3,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage
 from agents.agents_models import Verdict
 from config.settings import get_openrouter_llm
+from tools.manager_tool import extract_ground_truth_benchmarks
 
 
 class ResearchManager:
@@ -35,8 +36,13 @@ class ResearchManager:
                     "- Assess the strength of each side's argument (strong/moderate/weak).\n"
                     "- List the top 3 catalysts and top 3 risks.\n\n"
                     "PRICE GUIDANCE:\n"
-                    "- For BUY: entry_price = near support or current price, exit_price = target, "
-                    "stop_loss = below key support.\n"
+                    "- ALWAYS anchor your entry_price, exit_price, and stop_loss directly to the "
+                    "verified current market price (CMP) and support/resistance boundaries provided "
+                    "in the VERIFIED BENCHMARK DATA. Never invent fictional numbers.\n"
+                    "- For BUY: entry_price = near support or current price, exit_price = target near resistance, "
+                    "stop_loss = below key support zone (e.g. below the lower bound of S1/S2).\n"
+                    "- Use the provided Support/Resistance zones and confluence factors (Fibonacci, Swings, Moving Averages) to derive "
+                    "realistic parameters. Prioritize levels marked with Strong / High Confluence.\n"
                     "- For SELL: entry_price = current price (to sell), exit_price = N/A or lower "
                     "re-entry, stop_loss = N/A, hold_duration = 'Exit immediately' or short.\n"
                     "- For HOLD: entry_price = current position, exit_price = target if upside, "
@@ -48,6 +54,14 @@ class ResearchManager:
                 MessagesPlaceholder(variable_name="messages"),
             ]
         )
+
+    def _extract_ground_truth_benchmarks(self, state: dict) -> str:
+        """
+        Extract a concise, factual anchor of real market price, support/resistance levels,
+        and core valuation metrics from state to prevent hallucinated prices.
+        Delegates to tools.manager_tool.extract_ground_truth_benchmarks.
+        """
+        return extract_ground_truth_benchmarks(state)
 
     def _build_input(self, state: dict) -> dict:
         debate = state.get("investment_debate", {})
@@ -78,26 +92,22 @@ class ResearchManager:
         bull_thesis = _unpack_thesis(bull_thesis)
         bear_thesis = _unpack_thesis(bear_thesis)
 
-        # Extract technical price data for entry/exit guidance
-        tech_summary = state.get("technical_analyst_summary", {})
-        price_data = ""
-        if tech_summary:
-            price_data = f"""
-TECHNICAL PRICE DATA (for entry/exit/stop-loss guidance):
-{json.dumps(tech_summary, indent=2, default=str)}
-"""
+        # Ground-truth verified benchmarks
+        benchmarks = self._extract_ground_truth_benchmarks(state)
 
         content = f"""
 Company: {state.get('ticker_of_company', '')} | Sector: {state.get('sector_of_company', 'N/A')}
+
+{benchmarks}
 
 === BULL THESIS ===
 {bull_thesis}
 
 === BEAR THESIS ===
 {bear_thesis}
-{price_data}
-Weigh both sides. Deliver your final verdict as BUY, SELL, or HOLD
-with clear rationale, actionable trade parameters, and risk assessment.
+
+Weigh both sides objectively. Deliver your final verdict as BUY, SELL, or HOLD.
+MANDATORY: Derive your actionable trade parameters (entry_price, exit_price, stop_loss) directly from the VERIFIED MARKET BENCHMARKS above, ensuring prices are realistic and anchored to the CMP and key levels.
 """.strip()
 
         return {"messages": [HumanMessage(content=content)]}

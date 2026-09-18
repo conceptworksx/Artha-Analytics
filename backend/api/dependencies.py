@@ -6,6 +6,7 @@ from services.auth_service import AuthService
 from services.analysis_service import AnalysisService
 from core.exceptions import InvalidTokenError
 from services.cache_service import CacheService
+from services.stock_data_service import StockDataService
 from api.models import AuthUser
 
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -33,6 +34,12 @@ def get_analysis_service(
     analysis_repository: AnalysisRepository = Depends(get_analysis_repository),
 ) -> AnalysisService:
     return AnalysisService(analysis_repository)
+
+
+def get_stock_data_service(
+    cache_service: CacheService = Depends(get_cache_service),
+) -> StockDataService:
+    return StockDataService(cache_service)
 
 
 async def get_current_user(

@@ -7,7 +7,7 @@ from config.openrouter_balancer import OpenRouterLoadBalancer
 load_dotenv()
 
 OPEN_ROUTER_MODEL = os.getenv(
-    "OPEN_ROUTER_MODEL", "nvidia/nemotron-3-super-120b-a12b:free"
+    "OPEN_ROUTER_MODEL", "inclusionai/ling-3.0-flash-fin:free"
 )
 GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 
@@ -53,5 +53,8 @@ def get_openrouter_llm(
     }
 
     return OpenRouterLoadBalancer(
-        api_key=api_key, preferred_models=preferred_models, **kwargs
+        api_key=api_key,
+        preferred_models=preferred_models,
+        agent_name=agent_name,
+        **kwargs,
     )

@@ -5,6 +5,7 @@ import { BiMessageRoundedDots } from "react-icons/bi";
 import type { AuthUser } from "@/lib/api";
 import { Search } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
+import { sanitizeTickerSymbol } from "@/lib/sanitizer";
 
 const STEPS = [
   "Fetching news signals",
@@ -55,13 +56,13 @@ export function LoadingView({
         {user ? (
           <div className="flex items-center gap-2 sm:gap-4 font-mono text-[12px] text-[var(--muted-foreground)]">
             <span className="hidden sm:inline truncate max-w-[240px]">
-              {user.name || user.email.split("@")[0]}
+              {user.name || (user.email ? user.email.split("@")[0] : "User")}
             </span>
           </div>
         ) : (
           <>
             <div className="hidden sm:block font-mono text-[13px] text-[var(--muted-foreground)]">
-              {ticker.split(".")[0].toUpperCase()}.NS · NSE
+              {sanitizeTickerSymbol(ticker)}.NS · NSE
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
               <Link
@@ -80,7 +81,7 @@ export function LoadingView({
       <div className="flex flex-1 items-center justify-center px-4 sm:px-6 z-10">
         <div className="w-full max-w-[480px] text-center flex flex-col items-center">
           <h1 className="text-[24px] sm:text-[28px] font-semibold tracking-tight text-zinc-900">
-            Analysing {ticker.split(".")[0].toUpperCase()}
+            Analysing {sanitizeTickerSymbol(ticker)}
           </h1>
           <div className="mx-auto my-4 h-px w-full bg-black/5" />
           <p className="text-[15px] text-zinc-500 font-medium">

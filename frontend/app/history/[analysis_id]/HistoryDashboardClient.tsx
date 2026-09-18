@@ -12,6 +12,7 @@ import {
 } from "@/lib/api";
 import { LoadingView } from "@/components/research/LoadingView";
 import { AppSidebar, type ViewKey } from "@/components/layout/AppSidebar";
+import { sanitizeTickerSymbol } from "@/lib/sanitizer";
 import { ReportView } from "@/components/research/ReportView";
 import { FundamentalReportView } from "@/components/research/FundamentalReportView";
 import { TechnicalReportView } from "@/components/research/TechnicalReportView";
@@ -159,7 +160,7 @@ export default function HistoryDashboardClient({ analysisId }: { analysisId: str
           </Link>
         </div>
         <div className="hidden sm:block font-mono text-[13px] text-[var(--muted-foreground)]">
-          {data.ticker.split(".")[0].toUpperCase()}.NS (Historical View)
+          {sanitizeTickerSymbol(data?.ticker)}.NS (Historical View)
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
           <Link
@@ -213,7 +214,7 @@ export default function HistoryDashboardClient({ analysisId }: { analysisId: str
           </div>
         )}
 
-        <main ref={mainRef} className="flex-1 min-w-0 overflow-y-auto bg-gradient-to-b from-[#fafafa] to-white p-3 sm:p-4 md:p-6 print:overflow-visible print:h-auto print:block print:w-full print:m-0 print:p-0">
+        <main ref={mainRef} className="flex-1 min-w-0 overflow-y-auto bg-gradient-to-b from-[#fafafa] to-white p-3 sm:p-4 md:p-6">
           <ViewSwitch view={view} data={data} />
         </main>
       </div>
@@ -358,6 +359,6 @@ function ViewSwitch({
     case "bear":
       return <BearThesisView ticker={t} data={data.bear_thesis} />;
     case "verdict":
-      return <ManagerVerdictView ticker={t} data={data.verdict} chartsData={data.charts_data} />;
+      return <ManagerVerdictView ticker={t} data={data.verdict} chartsData={data.charts_data} technicalData={data.technical_data} />;
   }
 }

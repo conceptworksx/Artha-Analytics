@@ -98,6 +98,21 @@ class AnalyzeRequest(BaseModel):
     thinking_mode: Literal["low", "medium", "high"] = "low"
 
 
+class StockDataResponse(BaseModel):
+    ticker: str
+    company_info: dict | None = None
+    historical_prices: list | None = None
+    charts_data: Optional[dict] = None
+    fundamental_data: dict | None = None
+    technical_data: dict | None = None
+    market_data: dict | None = None
+    news_data: dict | None = None
+    sector_data: dict | None = None
+    status: str = "success"
+    cached: bool = False
+    error: str | None = None
+
+
 class AnalyzeResponse(BaseModel):
     ticker: str
     news_report: dict | str | None = None
@@ -130,6 +145,9 @@ class DebateRequest(BaseModel):
     market_report: Optional[dict | str] = None
     sector_report: Optional[dict | str] = None
     analyst_summaries: Optional[dict] = None
+    technical_data: Optional[dict] = None
+    fundamental_data: Optional[dict] = None
+    company_info: Optional[dict] = None
 
 
 class DebateResponse(BaseModel):

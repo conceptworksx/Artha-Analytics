@@ -67,6 +67,12 @@ def make_nodes(openrouter_api_key: str = None, thinking_level: str = "low") -> d
 
     @handle_node_errors("data_prefetch")
     def run_data_prefetch(state: AgentState) -> dict:
+        if state.get("data_bundle"):
+            return {
+                "data_bundle": state["data_bundle"],
+                "charts_data": state.get("charts_data")
+                or state["data_bundle"].get("charts_data", {}),
+            }
         raw_bundle = prefetch_ticker_bundle(state["ticker_of_company"])
         processed_bundle = process_prefetch_result(raw_bundle)
         charts_data = processed_bundle.get("charts_data", {})
@@ -112,10 +118,16 @@ def make_nodes(openrouter_api_key: str = None, thinking_level: str = "low") -> d
     def run_sector_analyst(state: AgentState) -> dict:
         result = sector_agent.run(state)
         report, summary = _extract_report(result, "report")
-        return {
+        updates = {
             "sector_analyst_report": report,
             "sector_analyst_summary": summary,
         }
+        resolved_sector = (
+            result.get("sector_name") if isinstance(result, dict) else None
+        )
+        if resolved_sector:
+            updates["sector_of_company"] = resolved_sector
+        return updates
 
     # ── Debate nodes ──────────────────────────────────────────────────────
 

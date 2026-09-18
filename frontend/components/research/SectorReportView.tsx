@@ -1,6 +1,9 @@
 import React, { useRef } from "react";
+import { Loader2 } from "lucide-react";
 
 import { FormattedText } from "@/components/ui/FormattedText";
+import { sanitizeTickerSymbol } from "@/lib/sanitizer";
+import { humanizeFieldName } from "@/lib/humanizer";
 
 const MetricTable = React.memo(function MetricTable({
   rows,
@@ -16,7 +19,7 @@ const MetricTable = React.memo(function MetricTable({
           <tr>
             {columns.map((col) => (
               <th key={col} className="px-4 py-2 font-semibold text-zinc-700">
-                {col}
+                {humanizeFieldName(col)}
               </th>
             ))}
           </tr>
@@ -51,6 +54,7 @@ export function SectorReportView({
   reportData,
   accent,
   filenameBase,
+  isPending,
   children,
 }: {
   title: string;
@@ -59,14 +63,10 @@ export function SectorReportView({
   reportData: any; // sector_report JSON object
   accent?: string;
   filenameBase: string;
+  isPending?: boolean;
   children?: React.ReactNode;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const canDownload = Boolean(reportData);
-
-  const handleDownloadPdf = () => {
-    window.print();
-  };
 
   const renderSectionContent = (content: any) => {
     if (!content) return null;
@@ -100,7 +100,7 @@ export function SectorReportView({
                 const columns = Object.keys(rows[0]);
                 return (
                   <div key={subKey} className="text-[14px] text-zinc-700 leading-relaxed">
-                    <span className="font-semibold text-zinc-900 block mb-1">{subKey}: </span>
+                    <span className="font-semibold text-zinc-900 block mb-1">{humanizeFieldName(subKey)}: </span>
                     <MetricTable rows={rows} columns={columns} />
                   </div>
                 );
@@ -112,7 +112,7 @@ export function SectorReportView({
                 className="text-[14px] text-zinc-700 leading-relaxed"
               >
                 <span className="font-semibold text-zinc-900 block mb-1">
-                  {subKey}:{" "}
+                  {humanizeFieldName(subKey)}:{" "}
                 </span>
                 <div className="whitespace-pre-wrap"><FormattedText text={String(subVal)} /></div>
               </div>
@@ -124,7 +124,7 @@ export function SectorReportView({
 
     // Fallback string
     return (
-      <div className="text-[14px] text-zinc-700 leading-relaxed whitespace-pre-wrap">
+      <div className="whitespace-pre-wrap text-[14px] text-zinc-700 leading-relaxed">
         <FormattedText text={String(content)} />
       </div>
     );
@@ -137,37 +137,41 @@ export function SectorReportView({
           <div className="mb-3 flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1 shadow-sm w-fit">
             {accent && <div className="h-2 w-2 rounded-full" style={{ background: accent }} />}
             <span className="font-mono text-[11px] font-medium text-zinc-600 tracking-wider uppercase">
-              {ticker.split(".")[0]} · {status}
+              {sanitizeTickerSymbol(ticker)} · {status}
             </span>
           </div>
           <h2 className="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">
             {title}
           </h2>
         </div>
-        <div className="flex items-center gap-4">
-          <button
-            disabled={!canDownload}
-            onClick={handleDownloadPdf}
-            className="flex items-center gap-1.5 rounded-md bg-gradient-to-b from-zinc-800 to-zinc-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] px-3 py-1.5 font-sans text-[11px] font-medium text-white transition-all hover:scale-105 hover:from-zinc-700 hover:to-zinc-950 hover:shadow-md active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
-          >
-            PDF
-          </button>
-        </div>
       </div>
 
       <div className="rounded-[2rem] bg-white p-5 sm:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-black/[0.04] mb-6 relative overflow-hidden">
         <div className="relative z-10 space-y-8">
-          {Object.entries(reportData || {}).map(
-            ([sectionTitle, sectionContent], index) => (
-              <section
-                key={sectionTitle}
-                className={index > 0 ? "pt-4 border-t border-zinc-100" : ""}
-              >
-                <h3 className="text-md font-semibold text-zinc-800 mb-4 border-b pb-1">
-                  {sectionTitle}
-                </h3>
-                {renderSectionContent(sectionContent)}
-              </section>
+          {(!reportData || Object.keys(reportData).length === 0) && isPending ? (
+            <div className="space-y-4 animate-pulse p-5 rounded-xl border border-zinc-200/75 bg-gradient-to-r from-zinc-50/90 via-amber-500/[0.02] to-zinc-50/90">
+              <div className="flex items-center gap-2 text-zinc-800 font-medium text-xs">
+                <Loader2 className="w-4 h-4 animate-spin text-amber-600" />
+                <span>Sector specialist compiling industry benchmarks and macroeconomic data...</span>
+              </div>
+              <div className="h-3.5 w-1/3 bg-gradient-to-r from-zinc-200/70 via-zinc-100 to-zinc-200/70 rounded-md" />
+              <div className="h-20 w-full bg-zinc-100/70 border border-zinc-200/50 rounded-xl" />
+              <div className="h-3.5 w-1/4 bg-gradient-to-r from-zinc-200/70 via-zinc-100 to-zinc-200/70 rounded-md" />
+              <div className="h-20 w-full bg-zinc-100/70 border border-zinc-200/50 rounded-xl" />
+            </div>
+          ) : (
+            Object.entries(reportData || {}).map(
+              ([sectionTitle, sectionContent], index) => (
+                <section
+                  key={sectionTitle}
+                  className={index > 0 ? "pt-4 border-t border-zinc-100" : ""}
+                >
+                  <h3 className="text-md font-semibold text-zinc-800 mb-4 border-b pb-1">
+                    {humanizeFieldName(sectionTitle)}
+                  </h3>
+                  {renderSectionContent(sectionContent)}
+                </section>
+              )
             )
           )}
         </div>

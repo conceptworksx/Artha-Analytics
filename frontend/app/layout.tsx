@@ -3,6 +3,7 @@ import {
   Fira_Code,
   Inter,
 } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const sans = Inter({ variable: "--font-active-sans", subsets: ["latin"], display: "swap" });
@@ -26,7 +27,10 @@ export default function RootLayout({
       lang="en"
       className={`${sans.variable} ${mono.variable} h-full antialiased print:h-auto print:overflow-visible`}
     >
-      <body className="min-h-full flex flex-col print:block print:h-auto print:min-h-0 print:overflow-visible">{children}</body>
+      <body className="min-h-full flex flex-col print:block print:h-auto print:min-h-0 print:overflow-visible">
+        {children}
+        <Toaster richColors position="bottom-right" />
+      </body>
     </html>
   );
 }

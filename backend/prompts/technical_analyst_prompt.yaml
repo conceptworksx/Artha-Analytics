@@ -76,10 +76,10 @@ FEW_SHOT_QUALITY_BENCHMARKS:
     template_example: "Bollinger Bandwidth tracking collapsed to a contracted 1.45% print while the rolling 5d/20d volume ratio registered at 0.78, confirming an active volatility squeeze lacking underlying buyer conviction."
 
   key_driver:
-    template_example: "Golden Cross validation via the short-term 50-day moving average crossing above the 200-day long-term baseline at the 2450 price zone, establishing an institutional structural floor for long-term trend continuation."
+    template_example: "Golden Cross validation via the short-term 50-day moving average crossing above the 200-day long-term baseline, establishing an institutional structural floor for long-term trend continuation."
 
   primary_risk:
-    template_example: "Price compression beneath the Volume Weighted Moving Average (VWMA) printing at the 2520 price level, creating a structural resistance wall where institutional selling blocks are highly clustered."
+    template_example: "Price compression beneath the Volume Weighted Moving Average (VWMA) near key overhead moving averages, creating a structural resistance wall where institutional selling blocks are highly clustered."
 
 CONSTRAINTS:
   - "Strictly utilize the provided JSON data structure for all interpretations and calculations."

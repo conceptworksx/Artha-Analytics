@@ -20,6 +20,43 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/analyses", tags=["Analyses History"])
 
 
+def validate_analysis_for_save(body: SaveAnalysisRequest) -> tuple[bool, list[str]]:
+    """
+    Validate that an analysis request contains complete, uncorrupted reports and
+    company data before saving to MongoDB.
+    Prevents persisting broken, partial, or placeholder analyses.
+    """
+    errors: list[str] = []
+    ticker = (body.ticker or "").strip()
+    if not ticker:
+        errors.append("Ticker symbol is required")
+
+    if not body.company_info or not isinstance(body.company_info, dict):
+        errors.append("company_info is missing or empty")
+
+    reports = {
+        "technical_report": body.technical_report,
+        "fundamental_report": body.fundamental_report,
+        "market_report": body.market_report,
+        "news_report": body.news_report,
+        "sector_report": body.sector_report,
+    }
+    for name, r in reports.items():
+        if not r:
+            errors.append(f"{name} is missing or incomplete")
+        elif isinstance(r, dict) and r.get("status") in ("error", "failed"):
+            errors.append(f"{name} contains failure status")
+        elif isinstance(r, str) and (
+            r.strip().lower().startswith("error") or "failed" in r.strip().lower()[:30]
+        ):
+            errors.append(f"{name} indicates failure string: {r[:40]}")
+
+    if not body.historical_prices and not body.charts_data:
+        errors.append("Both historical_prices and charts_data are missing")
+
+    return len(errors) == 0, errors
+
+
 @router.post("/save", response_model=SaveAnalysisResponse)
 @limiter.limit("10/minute")
 async def save_analysis_route(
@@ -29,6 +66,23 @@ async def save_analysis_route(
     analysis_service: AnalysisService = Depends(get_analysis_service),
 ):
     ticker = body.ticker.strip().upper()
+
+    # Validate analysis completeness before writing to DB
+    is_valid, validation_errors = validate_analysis_for_save(body)
+    if not is_valid:
+        error_msg = f"Cannot save incomplete analysis. Missing or invalid: {', '.join(validation_errors)}"
+        logger.warning(
+            f"Rejecting save analysis | ticker={ticker} | user_id={user.id} | errors={validation_errors}"
+        )
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "incomplete_analysis",
+                "message": error_msg,
+                "reasons": validation_errors,
+            },
+        )
+
     doc = {
         "analyzed_at": datetime.now(timezone.utc),
         "status": "success",

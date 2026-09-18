@@ -4,7 +4,7 @@ from tavily import TavilyClient
 from tools.utils.news_tool_helper import (
     _extract_news_fields,
     _to_iso,
-    _get_top5,
+    _get_top3,
     _deduplicate,
     _format_articles,
     _map_priority,
@@ -166,7 +166,7 @@ def get_indian_market_news() -> dict:
 
         result["status"] = "success"
         result["ai_summary"] = summaries[0] if summaries else ""
-        result["articles"] = _get_top5(filtered)
+        result["articles"] = _get_top3(filtered)
         _set_news_cached(cache_key, result)
 
         return result
@@ -234,7 +234,7 @@ def get_global_market_news() -> dict:
 
         result["status"] = "success"
         result["ai_summary"] = summaries[0] if summaries else ""
-        result["articles"] = _get_top5(filtered)
+        result["articles"] = _get_top3(filtered)
         _set_news_cached(cache_key, result)
         return result
 

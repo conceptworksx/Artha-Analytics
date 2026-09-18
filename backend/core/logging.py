@@ -102,41 +102,44 @@ def _make_console_handler(level: int = logging.INFO) -> logging.StreamHandler:
     return handler
 
 
-def _make_file_handler(
-    filepath: Path,
-    level: int = logging.DEBUG,
-) -> logging.handlers.RotatingFileHandler:
+def _make_file_handler(filepath: Path, level: int = logging.INFO) -> logging.Handler:
     """
     Rotating file handler.
     Each file rotates at 5MB, keeps 3 backups.
     e.g. agent.log → agent.log.1 → agent.log.2 → agent.log.3
     """
-    filepath.parent.mkdir(parents=True, exist_ok=True)
-    handler = logging.handlers.RotatingFileHandler(
-        filename=filepath,
-        maxBytes=5 * 1024 * 1024,  # 5 MB
-        backupCount=3,
-        encoding="utf-8",
-    )
-    handler.setLevel(level)
-    handler.setFormatter(_FileFormatter(LOG_FORMAT, datefmt=DATE_FORMAT))
-    handler.addFilter(_ScrubSecretsFilter())
-    return handler
+    try:
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+        handler = logging.handlers.RotatingFileHandler(
+            filename=filepath,
+            maxBytes=5 * 1024 * 1024,  # 5 MB
+            backupCount=3,
+            encoding="utf-8",
+        )
+        handler.setLevel(level)
+        handler.setFormatter(_FileFormatter(LOG_FORMAT, datefmt=DATE_FORMAT))
+        handler.addFilter(_ScrubSecretsFilter())
+        return handler
+    except (PermissionError, OSError):
+        return logging.NullHandler()
 
 
-def _make_error_file_handler(filepath: Path) -> logging.handlers.RotatingFileHandler:
+def _make_error_file_handler(filepath: Path) -> logging.Handler:
     """ERROR-only handler — writes to error.log regardless of which module logs it."""
-    filepath.parent.mkdir(parents=True, exist_ok=True)
-    handler = logging.handlers.RotatingFileHandler(
-        filename=filepath,
-        maxBytes=5 * 1024 * 1024,
-        backupCount=3,
-        encoding="utf-8",
-    )
-    handler.setLevel(logging.ERROR)
-    handler.setFormatter(_FileFormatter(LOG_FORMAT, datefmt=DATE_FORMAT))
-    handler.addFilter(_ScrubSecretsFilter())
-    return handler
+    try:
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+        handler = logging.handlers.RotatingFileHandler(
+            filename=filepath,
+            maxBytes=5 * 1024 * 1024,
+            backupCount=3,
+            encoding="utf-8",
+        )
+        handler.setLevel(logging.ERROR)
+        handler.setFormatter(_FileFormatter(LOG_FORMAT, datefmt=DATE_FORMAT))
+        handler.addFilter(_ScrubSecretsFilter())
+        return handler
+    except (PermissionError, OSError):
+        return logging.NullHandler()
 
 
 # ─────────────────────────────────────────────────────────────

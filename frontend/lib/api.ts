@@ -49,6 +49,20 @@ export interface Ticker {
 }
 
 
+export interface StockDataResponse {
+  ticker: string;
+  company_info?: any;
+  historical_prices?: any[];
+  charts_data?: any;
+  fundamental_data?: any;
+  technical_data?: any;
+  market_data?: any;
+  news_data?: any;
+  sector_data?: any;
+  status: string;
+  cached?: boolean;
+}
+
 export interface AnalyseResponse {
   ticker: string;
   news_report: any;
@@ -335,6 +349,40 @@ function buildErrorMessage(
 
 
 
+// ── Dedicated Market Data Layer ────────────────────────────────────────────────
+
+export async function fetchStockData(
+  ticker: string,
+  options?: {
+    forceRefresh?: boolean;
+    signal?: AbortSignal;
+  }
+): Promise<StockDataResponse> {
+  const cleanTicker = normalizeTicker(ticker);
+  const url = `${API_BASE_URL}/stocks/${encodeURIComponent(cleanTicker)}${
+    options?.forceRefresh ? "?force_refresh=true" : ""
+  }`;
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    signal: options?.signal,
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    const message =
+      errorData?.detail?.message ||
+      errorData?.detail ||
+      `Failed to fetch market data for ${cleanTicker}`;
+    throw new Error(message);
+  }
+
+  return res.json();
+}
+
 // ── Main analysis function ─────────────────────────────────────────────────────
 
 export async function analyseTicker({
@@ -344,6 +392,7 @@ export async function analyseTicker({
   signal,
   include_debate = false,
   thinking_mode = "low",
+  onStockDataLoaded,
 }: {
   ticker: string;
   openrouterApiKey: string;
@@ -351,9 +400,11 @@ export async function analyseTicker({
   signal?: AbortSignal;
   include_debate?: boolean;
   thinking_mode?: "low" | "medium" | "high";
+  onStockDataLoaded?: (stockData: Partial<AnalyseResponse>) => void;
 }): Promise<AnalyseResponse> {
   const cleanTicker = normalizeTicker(ticker);
-  const url = `${API_BASE_URL}/analyze`;
+  const useStream = Boolean(onStockDataLoaded);
+  const url = `${API_BASE_URL}/analyze${useStream ? "?stream=true" : ""}`;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -384,13 +435,86 @@ export async function analyseTicker({
     });
   }
 
-
-  const rawData = await res.json();
-
   if (!res.ok) {
-    const detail = rawData?.detail ?? rawData ?? {};
+    let detail: any = {};
+    try {
+      const rawErr = await res.json();
+      detail = rawErr?.detail ?? rawErr ?? {};
+    } catch {
+      detail = { message: res.statusText };
+    }
     throw new AnalysisError(buildErrorMessage(res.status, detail));
   }
+
+  if (useStream && res.body) {
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let finalData: any = null;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        try {
+          const chunk = JSON.parse(line.trim());
+          if (chunk.type === "stock_data" && chunk.payload) {
+            onStockDataLoaded?.({
+              ticker: chunk.payload.ticker ?? cleanTicker,
+              company_info: chunk.payload.company_info || null,
+              historical_prices: chunk.payload.historical_prices || [],
+              charts_data: chunk.payload.charts_data,
+              technical_data: chunk.payload.technical_data || null,
+              fundamental_data: chunk.payload.fundamental_data || null,
+              market_data: chunk.payload.market_data || null,
+            });
+          } else if (chunk.type === "complete_analysis" && chunk.payload) {
+            finalData = chunk.payload;
+          } else if (chunk.type === "error" && chunk.payload) {
+            throw new AnalysisError({
+              title: chunk.payload.title || "ANALYSIS FAILED",
+              message: chunk.payload.message || "An unexpected error occurred during analysis.",
+            });
+          }
+        } catch (parseErr) {
+          if (parseErr instanceof AnalysisError) throw parseErr;
+          console.warn("Error parsing stream chunk:", parseErr);
+        }
+      }
+    }
+
+    if (finalData) {
+      return {
+        ticker: finalData.ticker ?? cleanTicker,
+        news_report: finalData.news_report || "No news report available.",
+        technical_report: finalData.technical_report || "No technical report available.",
+        fundamental_report: finalData.fundamental_report || "No fundamental report available.",
+        market_report: finalData.market_report || "No market report available.",
+        sector_report: finalData.sector_report || "No sector report available.",
+        status: finalData.status || "success",
+        company_info: finalData.company_info || null,
+        fundamental_data: finalData.fundamental_data || null,
+        technical_data: finalData.technical_data || null,
+        market_data: finalData.market_data || null,
+        company_news: finalData.company_news || null,
+        indian_news: finalData.indian_news || null,
+        global_news: finalData.global_news || null,
+        historical_prices: finalData.historical_prices || [],
+        bull_thesis: finalData.bull_thesis || null,
+        bear_thesis: finalData.bear_thesis || null,
+        verdict: finalData.verdict || null,
+        analyst_summaries: finalData.analyst_summaries || null,
+        charts_data: finalData.charts_data,
+      };
+    }
+  }
+
+  const rawData = await res.json();
 
   // Inject fallback dummy values if they are missing from the backend response
   const data: AnalyseResponse = {
@@ -466,6 +590,9 @@ export async function runDebate({
     if (analysisData.fundamental_report) body.fundamental_report = analysisData.fundamental_report;
     if (analysisData.market_report) body.market_report = analysisData.market_report;
     if (analysisData.sector_report) body.sector_report = analysisData.sector_report;
+    if (analysisData.technical_data) body.technical_data = analysisData.technical_data;
+    if (analysisData.fundamental_data) body.fundamental_data = analysisData.fundamental_data;
+    if (analysisData.company_info) body.company_info = analysisData.company_info;
   }
 
   let res: Response;
@@ -581,6 +708,24 @@ export async function saveAnalysis({
   data: AnalyseResponse;
   authToken: string;
 }): Promise<SaveAnalysisResponse> {
+  // Client-side pre-validation: verify all 5 specialist reports and company info exist
+  if (
+    !data ||
+    !data.ticker ||
+    !data.company_info ||
+    !data.technical_report ||
+    !data.fundamental_report ||
+    !data.market_report ||
+    !data.news_report ||
+    !data.sector_report
+  ) {
+    throw new AnalysisError({
+      title: "SAVE FAILED",
+      message:
+        "Cannot save incomplete analysis. Please ensure all 5 specialist analyst reports are generated before saving.",
+    });
+  }
+
   const url = `${API_BASE_URL}/analyses/save`;
   const res = await fetchWithAuth(url, {
     method: "POST",
@@ -623,6 +768,13 @@ export function markAnalysisSaved(ticker: string) {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(`saved_analysis_${normalizeTicker(ticker)}`, "true");
+  } catch { }
+}
+
+export function clearAnalysisSaved(ticker: string) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(`saved_analysis_${normalizeTicker(ticker)}`);
   } catch { }
 }
 
@@ -1136,8 +1288,30 @@ export async function verifyOpenRouterApiKey({
 
 const KEY = (t: string) => `arbor:research:${t.toUpperCase()}`;
 
+export function isAnalysisComplete(data: any): boolean {
+  if (!data || typeof data !== "object") return false;
+  if (data.status && data.status !== "success") return false;
+  if (!data.company_info || typeof data.company_info !== "object") return false;
+  if (!Array.isArray(data.historical_prices) || data.historical_prices.length === 0) return false;
+  if (!data.charts_data || typeof data.charts_data !== "object") return false;
+  if (
+    !data.technical_report ||
+    !data.fundamental_report ||
+    !data.market_report ||
+    !data.news_report ||
+    !data.sector_report
+  ) {
+    return false;
+  }
+  return true;
+}
+
 export function cacheResponse(ticker: string, data: AnalyseResponse) {
   try {
+    if (!isAnalysisComplete(data)) {
+      console.warn(`[cacheResponse] Skipping cache for incomplete analysis | ticker=${ticker}`);
+      return;
+    }
     const clean = normalizeTicker(ticker);
     sessionStorage.setItem(KEY(clean), JSON.stringify(data));
   } catch { }
@@ -1155,7 +1329,7 @@ export function readCached(ticker: string): AnalyseResponse | null {
     const raw = sessionStorage.getItem(KEY(clean));
     if (!raw) return null;
     const parsed = JSON.parse(raw) as AnalyseResponse;
-    if (!parsed.charts_data) {
+    if (!isAnalysisComplete(parsed)) {
       sessionStorage.removeItem(KEY(clean));
       return null;
     }

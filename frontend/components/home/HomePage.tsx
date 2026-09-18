@@ -268,7 +268,7 @@ export function HomePage() {
               </div>
               <h3 className="mb-3 text-2xl font-bold text-zinc-900">60-Second Reports</h3>
               <p className="text-[16px] leading-relaxed text-zinc-500">
-                What takes an analyst hours, our AI does in seconds. Get deeply researched, beautifully formatted PDF reports instantly.
+                What takes an analyst hours, our AI does in seconds. Get deeply researched, beautifully formatted research reports instantly.
               </p>
             </motion.div>
 

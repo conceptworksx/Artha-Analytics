@@ -185,6 +185,8 @@ class AnalysisService:
         return await self.analysis_repository.get_analysis_by_id(analysis_id, user_id)
 
     async def save_analysis(self, user_id: str, ticker: str, doc: dict) -> str:
+        if not ticker or not doc or not isinstance(doc, dict):
+            raise ValueError("Cannot save analysis with empty ticker or document")
         return await self.analysis_repository.save_analysis(user_id, ticker, doc)
 
     async def increment_ip_search(self, client_ip: str):

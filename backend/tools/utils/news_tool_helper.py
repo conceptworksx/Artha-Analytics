@@ -12,7 +12,7 @@ logger = get_logger(__name__)
 _news_cache: dict = {}
 _news_cache_lock: threading.Lock = threading.Lock()
 
-_NEWS_CACHE_TTL: int = 900  # 15 mins
+_NEWS_CACHE_TTL: int = 10800  # 3 hours (10,800 seconds)
 
 
 def _get_news_cached(key: str) -> dict | None:
@@ -105,13 +105,13 @@ def _to_iso(date_str: str | None) -> str | None:
         return None
 
 
-def _get_top5(articles: list) -> list:
+def _get_top3(articles: list) -> list:
     """
     Sort articles by:
       1. Priority descending  (high > medium > low)
       2. Recency descending   (most recent first, used as tiebreaker)
 
-    Returns top 5 only.
+    Returns top 3 only.
     """
     return sorted(
         articles,
@@ -120,7 +120,7 @@ def _get_top5(articles: list) -> list:
             a.get("published_at") or "",  # tiebreaker
         ),
         reverse=True,
-    )[:5]
+    )[:3]
 
 
 def _format_articles(results: List[Dict], tag: str) -> List[Dict]:

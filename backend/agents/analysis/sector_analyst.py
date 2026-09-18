@@ -138,6 +138,7 @@ class SectorAnalyst(BaseAgent):
                     # Default: success
                     RunnableLambda(
                         lambda x: {
+                            "sector_name": x.get("sector_name"),
                             "report": x["report"],
                             "summary": x["summary"],
                             "error": None,

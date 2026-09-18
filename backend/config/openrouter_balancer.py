@@ -11,16 +11,20 @@ logger = get_logger(__name__)
 
 
 DEFAULT_FREE_MODELS: List[str] = [
-    "nvidia/nemotron-3-super-120b-a12b:free",
-    "nvidia/nemotron-3-ultra-550b-a55b:free",
-    "nvidia/nemotron-3.5-lightning:free",
-    "inclusionai/ling-3.0-flash-fin:free",
-    "inclusionai/ling-3.0-flash-sante:free",
-    "inclusionai/ling-3.0-flash-vl:free",
-    "nex-agi/nex-n2.5-pro:free",
-    "nex-agi/nex-n2.5-mini:free",
-    "dots-studio/dots-3-note-preview:free",
-    "thinking-machines/inkling-small:free",
+    # Tier 1: Ultra-Fast & 99% Available (Concurrent Analysis Primaries)
+    "inclusionai/ling-3.0-flash-fin:free",  # 11.7s p99, 99% avail
+    "inclusionai/ling-3.0-flash-sante:free",  # 11.7s p99, 99% avail (pure text)
+    "inclusionai/ling-3.0-flash-vl:free",  # 11.7s p99, 99% avail (multimodal / vision)
+    # Tier 2: Deep Context & High Availability (Debate & Synthesis)
+    "thinking-machines/inkling:free",  # 99s p99, 99% avail, 1.0M context
+    "nex-agi/nex-n2.5-pro:free",  # 127s p99, 95% avail
+    # Tier 3: Fast Secondary Fallback (75% avail, 17s latency vs 203s)
+    "nvidia/nemotron-3-super-120b-a12b:free",  # 17s p99, 75% avail
+    # Tier 4: High Context, High Availability, High Latency
+    "nvidia/nemotron-3.5-lightning:free",  # 203s p99, 94% avail, 1.0M context
+    # Tier 5: Lower Availability Tail (<75% avail)
+    "nvidia/nemotron-3-ultra-550b-a55b:free",  # 121s p99, 71% avail
+    "nex-agi/nex-n2.5-mini:free",  # 39.3s p99, 67% avail
 ]
 
 
@@ -86,6 +90,21 @@ class ModelHealthTracker:
                 )
 
 
+AGENT_DISPLAY_ROLES: Dict[str, str] = {
+    "TechnicalAnalyst": "Technical Analyst",
+    "FundamentalAnalyst": "Fundamental Analyst",
+    "MarketAnalyst": "Global Market Analyst",
+    "NewsAnalyst": "News & Sentiment Analyst",
+    "SectorAnalyst": "Sector Specialist",
+    "BullResearcher": "Bull Researcher",
+    "BearResearcher": "Bear Researcher",
+    "ResearchManager": "Research Manager",
+}
+
+# Roles that perform heavy multi-report synthesis and require extended timeouts
+DEBATE_MANAGER_AGENTS = {"BullResearcher", "BearResearcher", "ResearchManager"}
+
+
 class OpenRouterLoadBalancer:
     """
     Load balances and manages fallbacks across OpenRouter model pool.
@@ -93,6 +112,7 @@ class OpenRouterLoadBalancer:
     - Dynamic sorting by (health, in-flight load, least-recently degraded).
     - Prevents parallel executing agents from stomping on busy models.
     - Top 3 candidate models for fast failure and gateway timeout prevention.
+    - Explicit failure & fallback routing logging with agent/role identification.
     """
 
     _lock = threading.Lock()
@@ -103,9 +123,12 @@ class OpenRouterLoadBalancer:
         api_key: str | None = None,
         base_models: List[str] | None = None,
         preferred_models: List[str] | str | None = None,
+        agent_name: str | None = None,
         **kwargs,
     ):
         self.api_key = api_key
+        self.agent_name = agent_name or "GeneralAgent"
+        self.display_role = AGENT_DISPLAY_ROLES.get(self.agent_name, self.agent_name)
         kwargs.pop("preferred_models", None)
         kwargs.pop("preferred_model", None)
         self.kwargs = kwargs
@@ -157,7 +180,7 @@ class OpenRouterLoadBalancer:
 
         primary_in_flight = ModelHealthTracker.get_in_flight(ordered[0])
         logger.info(
-            f"[LoadBalancer] Call #{idx} | primary='{ordered[0]}' (in_flight={primary_in_flight}) | pool_size={len(ordered)} | healthy={len(healthy)}"
+            f"[LoadBalancer] Call #{idx} | role='{self.display_role}' | primary='{ordered[0]}' (in_flight={primary_in_flight}) | pool_size={len(ordered)} | healthy={len(healthy)}"
         )
         return ordered
 
@@ -175,6 +198,28 @@ class OpenRouterLoadBalancer:
             if self.api_key:
                 llm_kwargs["openrouter_api_key"] = self.api_key
 
+            # Adaptive role-based timeout:
+            # Debate & Research Manager agents get 300s (5m); parallel analysts get 120s (2m).
+            default_timeout_s = (
+                300 if self.agent_name in DEBATE_MANAGER_AGENTS else 120
+            )
+            env_timeout = os.getenv("OPENROUTER_REQUEST_TIMEOUT") or os.getenv("OPENROUTER_TIMEOUT")
+            if env_timeout:
+                try:
+                    default_timeout_s = float(env_timeout)
+                except ValueError:
+                    pass
+
+            timeout_val = (
+                llm_kwargs.pop("request_timeout", None)
+                or llm_kwargs.pop("timeout", None)
+                or default_timeout_s
+            )
+            # If passed in seconds (<= 1000), convert to milliseconds for langchain-openrouter
+            if timeout_val <= 1000:
+                timeout_val = int(timeout_val * 1000)
+            llm_kwargs["request_timeout"] = timeout_val
+
             llm_inst = ChatOpenRouter(**llm_kwargs)
             base_runnable = (
                 llm_inst.with_structured_output(structured_schema)
@@ -185,20 +230,61 @@ class OpenRouterLoadBalancer:
             def _create_logged_runnable(m_name: str, rank: int, base: Runnable):
                 def _invoke_fn(input_val, config=None, **kwargs):
                     if rank > 0:
+                        failed_model = candidate_models[rank - 1]
                         logger.warning(
-                            f"[LoadBalancer] Fallback triggered! Primary '{primary_name}' failed -> Executing fallback candidate #{rank} '{m_name}'"
+                            f"[LoadBalancer] [Role: {self.display_role}] Fallback triggered! "
+                            f"Model '{failed_model}' failed while performing {self.display_role} -> "
+                            f"Routing to fallback candidate #{rank} '{m_name}'"
                         )
                     with ModelHealthTracker.track_execution(m_name):
                         try:
                             return base.invoke(input_val, config=config, **kwargs)
                         except Exception as exc:
                             ModelHealthTracker.mark_degraded(m_name)
-                            logger.warning(
-                                f"[LoadBalancer] Candidate #{rank} '{m_name}' failed | error={exc}"
-                            )
+                            if rank + 1 < len(candidate_models):
+                                next_candidate = candidate_models[rank + 1]
+                                logger.error(
+                                    f"[LoadBalancer] [Role: {self.display_role}] Model '{m_name}' failed while performing {self.display_role} | "
+                                    f"error={exc} | Routing to next candidate #{rank + 1} '{next_candidate}'"
+                                )
+                            else:
+                                logger.error(
+                                    f"[LoadBalancer] [Role: {self.display_role}] Model '{m_name}' failed while performing {self.display_role} | "
+                                    f"error={exc} | All {len(candidate_models)} candidates in pool exhausted!"
+                                )
                             raise
 
-                return RunnableLambda(_invoke_fn)
+                async def _ainvoke_fn(input_val, config=None, **kwargs):
+                    if rank > 0:
+                        failed_model = candidate_models[rank - 1]
+                        logger.warning(
+                            f"[LoadBalancer] [Role: {self.display_role}] Fallback triggered! "
+                            f"Model '{failed_model}' failed while performing {self.display_role} -> "
+                            f"Routing to fallback candidate #{rank} '{m_name}'"
+                        )
+                    with ModelHealthTracker.track_execution(m_name):
+                        try:
+                            if hasattr(base, "ainvoke"):
+                                return await base.ainvoke(
+                                    input_val, config=config, **kwargs
+                                )
+                            return base.invoke(input_val, config=config, **kwargs)
+                        except Exception as exc:
+                            ModelHealthTracker.mark_degraded(m_name)
+                            if rank + 1 < len(candidate_models):
+                                next_candidate = candidate_models[rank + 1]
+                                logger.error(
+                                    f"[LoadBalancer] [Role: {self.display_role}] Model '{m_name}' failed while performing {self.display_role} | "
+                                    f"error={exc} | Routing to next candidate #{rank + 1} '{next_candidate}'"
+                                )
+                            else:
+                                logger.error(
+                                    f"[LoadBalancer] [Role: {self.display_role}] Model '{m_name}' failed while performing {self.display_role} | "
+                                    f"error={exc} | All {len(candidate_models)} candidates in pool exhausted!"
+                                )
+                            raise
+
+                return RunnableLambda(_invoke_fn, afunc=_ainvoke_fn)
 
             runnables.append(_create_logged_runnable(model_name, i, base_runnable))
 
@@ -214,6 +300,12 @@ class OpenRouterLoadBalancer:
 
     def invoke(self, input_val: Any, config: Any = None, **kwargs) -> Any:
         runnable = self.get_runnable()
+        return runnable.invoke(input_val, config=config, **kwargs)
+
+    async def ainvoke(self, input_val: Any, config: Any = None, **kwargs) -> Any:
+        runnable = self.get_runnable()
+        if hasattr(runnable, "ainvoke"):
+            return await runnable.ainvoke(input_val, config=config, **kwargs)
         return runnable.invoke(input_val, config=config, **kwargs)
 
     def stream(self, input_val: Any, config: Any = None, **kwargs) -> Any:

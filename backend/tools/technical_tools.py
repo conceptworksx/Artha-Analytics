@@ -811,12 +811,39 @@ def compute_volume(df: pd.DataFrame) -> dict[str, Any]:
         return result
 
 
+FACTOR_WEIGHTS: dict[str, float] = {
+    "50D_SWING_LOW": 1.0,
+    "50D_SWING_HIGH": 1.0,
+    "20D_SWING_LOW": 0.9,
+    "20D_SWING_HIGH": 0.9,
+    "FIB_61_8": 1.0,
+    "FIB_50_0": 0.8,
+    "FIB_38_2": 0.7,
+    "FIB_23_6": 0.6,
+    "FIB_78_6": 0.7,
+    "FIB_EXT_127_2": 0.8,
+    "FIB_EXT_161_8": 0.9,
+    "SMA_20": 0.7,
+    "SMA_50": 0.8,
+    "SMA_200": 1.0,
+    "HISTORICAL_BOUNCE": 0.8,
+}
+
+
 def compute_price_levels(df: pd.DataFrame) -> dict[str, Any]:
     """
-    Price level computation designed for agentic workflows.
+    Institutional Support & Resistance Confluence Engine.
+    Combines:
+      - 20D/50D structural extremes & swing direction detection (UP_SWING vs DOWN_SWING)
+      - Direction-aware Fibonacci retracements & breakout/breakdown extensions
+      - Key Moving Averages (20, 50, 200 DMA)
+      - Deterministic historical bounce touches (>= 0.75 ATR moves)
+      - Dynamic ATR-calibrated volatility filtering and zone clustering
+      - Confluence scoring & distance-based S1/S2 and R1/R2 selection
+      - Volatility-buffered market structure classification
     """
 
-    logger.debug("Computing price levels")
+    logger.debug("Computing price levels with confluence engine")
 
     result = {
         "current": None,
@@ -825,6 +852,15 @@ def compute_price_levels(df: pd.DataFrame) -> dict[str, Any]:
         "pct_from_52w_high": None,
         "pct_from_52w_low": None,
         "rs_20d_pct": None,
+        "support_1": None,
+        "support_2": None,
+        "resistance_1": None,
+        "resistance_2": None,
+        "supports": [],
+        "resistances": [],
+        "market_structure": "RANGE",
+        "swing_context": {},
+        "fibonacci_levels": {},
         "status": "failed",
         "error": None,
     }
@@ -846,21 +882,338 @@ def compute_price_levels(df: pd.DataFrame) -> dict[str, Any]:
 
         price = float(close.iloc[-1])
 
-        # --- 52-week logic (guarded) ---
+        # --- 1. 52-week logic (guarded) ---
         lookback_52w = min(252, len(close))
         window_52w = close.tail(lookback_52w)
+        window_52w_high = (
+            df["High"].tail(lookback_52w) if "High" in df.columns else window_52w
+        )
+        window_52w_low = (
+            df["Low"].tail(lookback_52w) if "Low" in df.columns else window_52w
+        )
 
-        h52 = float(window_52w.max())
-        l52 = float(window_52w.min())
+        h52 = float(window_52w_high.max())
+        l52 = float(window_52w_low.min())
 
         pct_from_high = ((price / h52) - 1) * 100 if h52 else None
         pct_from_low = ((price / l52) - 1) * 100 if l52 else None
 
-        # --- 20-day return (safe) ---
+        # --- 2. 20-day return (safe) ---
         if len(close) >= 20:
             rs_20d = ((price / float(close.iloc[-20])) - 1) * 100
         else:
             rs_20d = None
+
+        # --- 3. ATR Volatility Calibration ---
+        atr = None
+        if {"High", "Low", "Close"}.issubset(df.columns) and len(df) >= 15:
+            try:
+                atr_series = ta.volatility.AverageTrueRange(
+                    df["High"], df["Low"], df["Close"], window=14
+                ).average_true_range()
+                if not atr_series.isna().all():
+                    last_atr = float(atr_series.iloc[-1])
+                    if last_atr > 0:
+                        atr = last_atr
+            except Exception:
+                atr = None
+
+        if atr is None or atr <= 0:
+            atr = max(price * 0.02, 1.0)  # Safe 2% volatility fallback
+
+        distance_threshold = max(price * 0.005, atr * 0.25)
+        cluster_tolerance = max(price * 0.008, atr * 0.50)
+
+        # --- 4. 20D & 50D Structural Swings ---
+        lookback_50 = min(50, len(df))
+        lookback_20 = min(20, len(df))
+        w50 = df.tail(lookback_50)
+        w20 = df.tail(lookback_20)
+
+        h50 = (
+            float(w50["High"].max())
+            if "High" in w50.columns
+            else float(close.tail(lookback_50).max())
+        )
+        l50 = (
+            float(w50["Low"].min())
+            if "Low" in w50.columns
+            else float(close.tail(lookback_50).min())
+        )
+        h20 = (
+            float(w20["High"].max())
+            if "High" in w20.columns
+            else float(close.tail(lookback_20).max())
+        )
+        l20 = (
+            float(w20["Low"].min())
+            if "Low" in w20.columns
+            else float(close.tail(lookback_20).min())
+        )
+
+        # Determine swing direction by checking whether 50D high was reached after 50D low
+        if "High" in w50.columns and "Low" in w50.columns:
+            high_idx = w50["High"].idxmax()
+            low_idx = w50["Low"].idxmin()
+            high_pos = w50.index.get_loc(high_idx)
+            low_pos = w50.index.get_loc(low_idx)
+            swing_direction = "UP_SWING" if high_pos >= low_pos else "DOWN_SWING"
+            high_date = (
+                str(high_idx.date()) if hasattr(high_idx, "date") else str(high_idx)
+            )
+            low_date = str(low_idx.date()) if hasattr(low_idx, "date") else str(low_idx)
+        else:
+            swing_direction = (
+                "UP_SWING" if price >= (l50 + (h50 - l50) / 2) else "DOWN_SWING"
+            )
+            high_date = None
+            low_date = None
+
+        swing_range = max(h50 - l50, 0.0)
+        swing_context = {
+            "direction": swing_direction,
+            "swing_high": round(h50, 2),
+            "swing_low": round(l50, 2),
+            "high_date": high_date,
+            "low_date": low_date,
+            "swing_range": round(swing_range, 2),
+        }
+
+        # --- 5. Direction-Aware Fibonacci Calculation ---
+        fib_levels = {}
+        candidates: list[dict[str, Any]] = []
+
+        if swing_range > 0:
+            if swing_direction == "UP_SWING":
+                # Retracements pull back downwards from high
+                f236 = h50 - 0.236 * swing_range
+                f382 = h50 - 0.382 * swing_range
+                f500 = h50 - 0.500 * swing_range
+                f618 = h50 - 0.618 * swing_range
+                f786 = h50 - 0.786 * swing_range
+                # Extensions project above high for breakouts
+                ext1272 = l50 + 1.272 * swing_range
+                ext1618 = l50 + 1.618 * swing_range
+            else:
+                # Retracements bounce upwards from low
+                f236 = l50 + 0.236 * swing_range
+                f382 = l50 + 0.382 * swing_range
+                f500 = l50 + 0.500 * swing_range
+                f618 = l50 + 0.618 * swing_range
+                f786 = l50 + 0.786 * swing_range
+                # Extensions project below low for breakdowns
+                ext1272 = h50 - 1.272 * swing_range
+                ext1618 = h50 - 1.618 * swing_range
+
+            fib_levels = {
+                "fib_23_6": round(f236, 2),
+                "fib_38_2": round(f382, 2),
+                "fib_50_0": round(f500, 2),
+                "fib_61_8": round(f618, 2),
+                "fib_78_6": round(f786, 2),
+                "fib_ext_127_2": round(ext1272, 2),
+                "fib_ext_161_8": round(ext1618, 2),
+            }
+
+            fib_items = [
+                ("FIB_23_6", f236),
+                ("FIB_38_2", f382),
+                ("FIB_50_0", f500),
+                ("FIB_61_8", f618),
+                ("FIB_78_6", f786),
+                ("FIB_EXT_127_2", ext1272),
+                ("FIB_EXT_161_8", ext1618),
+            ]
+            for factor, lvl in fib_items:
+                candidates.append(
+                    {
+                        "level": float(lvl),
+                        "factor": factor,
+                        "source": "fibonacci",
+                        "weight": FACTOR_WEIGHTS.get(factor, 0.7),
+                    }
+                )
+
+        # --- 6. Structural Swings & Moving Averages Candidates ---
+        candidates.append(
+            {
+                "level": float(h50),
+                "factor": "50D_SWING_HIGH",
+                "source": "market_structure",
+                "weight": FACTOR_WEIGHTS["50D_SWING_HIGH"],
+            }
+        )
+        candidates.append(
+            {
+                "level": float(l50),
+                "factor": "50D_SWING_LOW",
+                "source": "market_structure",
+                "weight": FACTOR_WEIGHTS["50D_SWING_LOW"],
+            }
+        )
+        candidates.append(
+            {
+                "level": float(h20),
+                "factor": "20D_SWING_HIGH",
+                "source": "market_structure",
+                "weight": FACTOR_WEIGHTS["20D_SWING_HIGH"],
+            }
+        )
+        candidates.append(
+            {
+                "level": float(l20),
+                "factor": "20D_SWING_LOW",
+                "source": "market_structure",
+                "weight": FACTOR_WEIGHTS["20D_SWING_LOW"],
+            }
+        )
+
+        for w, factor in [(20, "SMA_20"), (50, "SMA_50"), (200, "SMA_200")]:
+            if len(close) >= w:
+                ma_val = close.rolling(w).mean().iloc[-1]
+                if not pd.isna(ma_val):
+                    candidates.append(
+                        {
+                            "level": float(ma_val),
+                            "factor": factor,
+                            "source": "moving_average",
+                            "weight": FACTOR_WEIGHTS.get(factor, 0.8),
+                        }
+                    )
+
+        # --- 7. Historical Price Reaction Bounces (>= 0.75 ATR) ---
+        if {"High", "Low"}.issubset(w50.columns) and len(w50) >= 7:
+            lows = w50["Low"].values
+            highs = w50["High"].values
+            n = len(w50)
+            # Local swing valley with bounce reaction
+            for i in range(1, n - 3):
+                if lows[i] < lows[i - 1] and lows[i] < lows[i + 1]:
+                    max_subsequent = highs[i + 1 : min(i + 4, n)].max()
+                    if max_subsequent - lows[i] >= 0.75 * atr:
+                        candidates.append(
+                            {
+                                "level": float(lows[i]),
+                                "factor": "HISTORICAL_BOUNCE",
+                                "source": "price_action",
+                                "weight": FACTOR_WEIGHTS["HISTORICAL_BOUNCE"],
+                            }
+                        )
+            # Local swing peak with rejection reaction
+            for i in range(1, n - 3):
+                if highs[i] > highs[i - 1] and highs[i] > highs[i + 1]:
+                    min_subsequent = lows[i + 1 : min(i + 4, n)].min()
+                    if highs[i] - min_subsequent >= 0.75 * atr:
+                        candidates.append(
+                            {
+                                "level": float(highs[i]),
+                                "factor": "HISTORICAL_BOUNCE",
+                                "source": "price_action",
+                                "weight": FACTOR_WEIGHTS["HISTORICAL_BOUNCE"],
+                            }
+                        )
+
+        # --- 8. Cluster Candidates into Confluence Zones ---
+        sorted_candidates = sorted(candidates, key=lambda c: c["level"])
+        clusters: list[list[dict[str, Any]]] = []
+
+        for cand in sorted_candidates:
+            if not clusters:
+                clusters.append([cand])
+            else:
+                current_cluster = clusters[-1]
+                cluster_min = min(c["level"] for c in current_cluster)
+                if cand["level"] - cluster_min <= cluster_tolerance:
+                    current_cluster.append(cand)
+                else:
+                    clusters.append([cand])
+
+        zones = []
+        for cl in clusters:
+            levels = [c["level"] for c in cl]
+            low_zone = round(min(levels), 2)
+            high_zone = round(max(levels), 2)
+            center_lvl = round(sum(levels) / len(levels), 2)
+
+            # Deduplicate factors to prevent artificial score inflation
+            unique_factors_dict: dict[str, float] = {}
+            for c in cl:
+                f = c["factor"]
+                if f not in unique_factors_dict or c["weight"] > unique_factors_dict[f]:
+                    unique_factors_dict[f] = c["weight"]
+
+            unique_factors = list(unique_factors_dict.keys())
+            confluence_score = round(sum(unique_factors_dict.values()), 2)
+            confluence_count = len(unique_factors)
+
+            if confluence_score >= 2.5:
+                strength = "HIGH"
+            elif confluence_score >= 1.5:
+                strength = "MEDIUM"
+            else:
+                strength = "LOW"
+
+            zones.append(
+                {
+                    "center": center_lvl,
+                    "zone": {
+                        "low": low_zone,
+                        "high": high_zone,
+                    },
+                    "confluence_factors": unique_factors,
+                    "confluence_count": confluence_count,
+                    "confluence_score": confluence_score,
+                    "strength": strength,
+                }
+            )
+
+        # --- 9. Distance-Based Support & Resistance Selection ---
+        # Supports: strictly below (price - distance_threshold), sorted DESCENDING by distance to price
+        supports = [z for z in zones if z["center"] < price - distance_threshold]
+        supports.sort(key=lambda z: z["center"], reverse=True)
+
+        # Resistances: strictly above (price + distance_threshold), sorted ASCENDING by distance to price
+        resistances = [z for z in zones if z["center"] > price + distance_threshold]
+        resistances.sort(key=lambda z: z["center"])
+
+        s1 = supports[0] if len(supports) > 0 else None
+        s2 = supports[1] if len(supports) > 1 else None
+        r1 = resistances[0] if len(resistances) > 0 else None
+        r2 = resistances[1] if len(resistances) > 1 else None
+
+        # --- 10. Volatility-Buffered Market Structure Determination ---
+        prior_52w_h = (
+            window_52w_high.iloc[:-1] if len(window_52w_high) > 1 else window_52w_high
+        )
+        prior_52w_l = (
+            window_52w_low.iloc[:-1] if len(window_52w_low) > 1 else window_52w_low
+        )
+        prior_h52 = float(prior_52w_h.max())
+        prior_l52 = float(prior_52w_l.min())
+
+        breakout_threshold = max(price * 0.005, atr * 0.25)
+        if price > prior_h52 + breakout_threshold:
+            market_structure = "BREAKOUT"
+        elif price < prior_l52 - breakout_threshold:
+            market_structure = "BREAKDOWN"
+        else:
+            ma50 = close.rolling(50).mean().iloc[-1] if len(close) >= 50 else None
+            if (
+                ma50
+                and not pd.isna(ma50)
+                and price > ma50
+                and swing_direction == "UP_SWING"
+            ):
+                market_structure = "UPTREND"
+            elif (
+                ma50
+                and not pd.isna(ma50)
+                and price < ma50
+                and swing_direction == "DOWN_SWING"
+            ):
+                market_structure = "DOWNTREND"
+            else:
+                market_structure = "RANGE"
 
         result.update(
             {
@@ -874,17 +1227,23 @@ def compute_price_levels(df: pd.DataFrame) -> dict[str, Any]:
                     round(pct_from_low, 2) if pct_from_low is not None else None
                 ),
                 "rs_20d_pct": round(rs_20d, 2) if rs_20d is not None else None,
+                "support_1": s1["center"] if s1 else None,
+                "support_2": s2["center"] if s2 else None,
+                "resistance_1": r1["center"] if r1 else None,
+                "resistance_2": r2["center"] if r2 else None,
+                "supports": supports,
+                "resistances": resistances,
+                "market_structure": market_structure,
+                "swing_context": swing_context,
+                "fibonacci_levels": fib_levels,
                 "status": "success",
             }
         )
 
         logger.debug(
-            f"Price levels computed | current={price:.2f} "
-            f"52w_high={h52:.2f} 52w_low={l52:.2f}"
+            f"Price levels computed | current={price:.2f} S1={result['support_1']} "
+            f"R1={result['resistance_1']} structure={market_structure}"
         )
-
-        if pct_from_high is not None and pct_from_high < -20:
-            logger.warning(f"Significant drawdown | {pct_from_high:.2f}% from 52W high")
 
         result["missing_fields"] = [
             k
